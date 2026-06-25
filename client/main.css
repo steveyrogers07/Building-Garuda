@@ -67,3 +67,43 @@ pre {
 	overflow: auto;
 	color: var(--ink);
 }
+
+/* Phase 3 — FIR review UI */
+.wrap.wide { max-width: 980px; }
+.small { font-size: 0.78rem; }
+.muted { color: var(--muted); }
+
+.badge {
+	display: inline-block;
+	border-radius: 999px;
+	padding: 1px 8px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	background: #0c1226;
+	border: 1px solid #243056;
+}
+.badge.ok { color: var(--ok); }
+.badge.warn { color: var(--warn); }
+
+.card.review { padding: 14px 16px; }
+.card.review.flagged { border-color: #5a4a1f; }
+.card.review.done { opacity: 0.55; }
+
+.rhead {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+table.fields { width: 100%; border-collapse: collapse; margin: 6px 0; }
+table.fields td { padding: 3px 8px; border-bottom: 1px solid #1c2542; vertical-align: top; }
+table.fields td.k { color: var(--muted); width: 150px; }
+table.fields td.c { width: 64px; text-align: right; }
+table.fields tr.low td.v { color: var(--warn); }
+
+.lists { font-size: 0.88rem; display: grid; gap: 4px; margin: 8px 0; }
+.ractions { display: flex; gap: 10px; margin-top: 10px; }
+.btn.approve { background: var(--ok); color: #04210f; }
+.btn:disabled { opacity: 0.5; cursor: default; }

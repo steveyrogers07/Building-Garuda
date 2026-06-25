@@ -1,0 +1,1224 @@
+[
+  {
+    "doc_id": "FIR_001_INC010001",
+    "txt": "FIR_001_INC010001.txt",
+    "png": "FIR_001_INC010001.png",
+    "source_incident_id": "INC010001",
+    "truth": {
+      "fir_no": "BNU20/2024/0102",
+      "occurred_at": "2024-11-29 04:36:00",
+      "district_code": "BNU",
+      "station_code": "BNU20",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "12.923634",
+      "long": "77.611144",
+      "address_text": "Market Yard, Bengaluru Urban",
+      "status": "Final Report",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near Market Yard, Bengaluru Urban during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Urvi Amble",
+          "role": "suspect"
+        },
+        {
+          "value": "Joshua Dhar",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_002_INC010002",
+    "txt": "FIR_002_INC010002.txt",
+    "png": "FIR_002_INC010002.png",
+    "source_incident_id": "INC010002",
+    "truth": {
+      "fir_no": "RMN03/2024/0067",
+      "occurred_at": "2024-11-06 20:30:00",
+      "district_code": "RMN",
+      "station_code": "RMN03",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "12.664979",
+      "long": "77.26966",
+      "address_text": "Market Yard, Ramanagara",
+      "status": "Under Investigation",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near Temple Street, Ramanagara during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Joshua Dhar",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_003_INC010003",
+    "txt": "FIR_003_INC010003.txt",
+    "png": "FIR_003_INC010003.png",
+    "source_incident_id": "INC010003",
+    "truth": {
+      "fir_no": "TMK02/2024/0081",
+      "occurred_at": "2024-12-13 19:15:00",
+      "district_code": "TMK",
+      "station_code": "TMK02",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "13.342453",
+      "long": "77.145914",
+      "address_text": "Bus Stand, Tumakuru",
+      "status": "Under Investigation",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near Layout, Tumakuru during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Urvi Amble",
+          "role": "suspect"
+        },
+        {
+          "value": "Joshua Dhar",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_004_INC010004",
+    "txt": "FIR_004_INC010004.txt",
+    "png": "FIR_004_INC010004.png",
+    "source_incident_id": "INC010004",
+    "truth": {
+      "fir_no": "KLR02/2024/0097",
+      "occurred_at": "2024-12-06 20:24:00",
+      "district_code": "KLR",
+      "station_code": "KLR02",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "13.0698",
+      "long": "78.248849",
+      "address_text": "New Extension, Kolar",
+      "status": "Chargesheeted",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near 5th Cross, Kolar during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Urvi Amble",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_005_INC010005",
+    "txt": "FIR_005_INC010005.txt",
+    "png": "FIR_005_INC010005.png",
+    "source_incident_id": "INC010005",
+    "truth": {
+      "fir_no": "BNU10/2024/0085",
+      "occurred_at": "2024-11-29 01:02:00",
+      "district_code": "BNU",
+      "station_code": "BNU10",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "356",
+      "lat": "12.967926",
+      "long": "77.660003",
+      "address_text": "Bus Stand, Bengaluru Urban",
+      "status": "Chargesheeted",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near College Road, Bengaluru Urban during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Joshua Dhar",
+          "role": "suspect"
+        },
+        {
+          "value": "Imaran Pal",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_006_INC010006",
+    "txt": "FIR_006_INC010006.txt",
+    "png": "FIR_006_INC010006.png",
+    "source_incident_id": "INC010006",
+    "truth": {
+      "fir_no": "RMN03/2024/0068",
+      "occurred_at": "2024-11-20 01:03:00",
+      "district_code": "RMN",
+      "station_code": "RMN03",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "356",
+      "lat": "12.7637",
+      "long": "77.405707",
+      "address_text": "Railway Station Road, Ramanagara",
+      "status": "Under Investigation",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near College Road, Ramanagara during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Wyatt Thaker",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_007_INC010007",
+    "txt": "FIR_007_INC010007.txt",
+    "png": "FIR_007_INC010007.png",
+    "source_incident_id": "INC010007",
+    "truth": {
+      "fir_no": "TMK02/2024/0082",
+      "occurred_at": "2024-12-14 15:16:00",
+      "district_code": "TMK",
+      "station_code": "TMK02",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "13.353025",
+      "long": "77.106217",
+      "address_text": "Layout, Tumakuru",
+      "status": "Under Investigation",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near Market Yard, Tumakuru during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Imaran Pal",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_008_INC010008",
+    "txt": "FIR_008_INC010008.txt",
+    "png": "FIR_008_INC010008.png",
+    "source_incident_id": "INC010008",
+    "truth": {
+      "fir_no": "KLR03/2024/0102",
+      "occurred_at": "2024-11-21 17:26:00",
+      "district_code": "KLR",
+      "station_code": "KLR03",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "13.099791",
+      "long": "78.082796",
+      "address_text": "Bus Stand, Kolar",
+      "status": "Closed",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near New Extension, Kolar during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Imaran Pal",
+          "role": "suspect"
+        },
+        {
+          "value": "Urvi Amble",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_009_INC010009",
+    "txt": "FIR_009_INC010009.txt",
+    "png": "FIR_009_INC010009.png",
+    "source_incident_id": "INC010009",
+    "truth": {
+      "fir_no": "BNU21/2024/0106",
+      "occurred_at": "2024-12-26 15:25:00",
+      "district_code": "BNU",
+      "station_code": "BNU21",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "356",
+      "lat": "12.960276",
+      "long": "77.601992",
+      "address_text": "5th Cross, Bengaluru Urban",
+      "status": "Final Report",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near New Extension, Bengaluru Urban during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Imaran Pal",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_010_INC010010",
+    "txt": "FIR_010_INC010010.txt",
+    "png": "FIR_010_INC010010.png",
+    "source_incident_id": "INC010010",
+    "truth": {
+      "fir_no": "RMN01/2024/0059",
+      "occurred_at": "2024-11-27 22:09:00",
+      "district_code": "RMN",
+      "station_code": "RMN01",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "12.755422",
+      "long": "77.263008",
+      "address_text": "Temple Street, Ramanagara",
+      "status": "Under Investigation",
+      "mo_text": "Two helmeted persons on a black motorcycle snatched a gold chain near New Extension, Ramanagara during night hours and fled towards the highway.",
+      "persons": [
+        {
+          "value": "Aayush Zachariah",
+          "role": "suspect"
+        },
+        {
+          "value": "Urvi Amble",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA68MC3164"
+      ],
+      "phones": [
+        "+916534933629"
+      ]
+    }
+  },
+  {
+    "doc_id": "FIR_011_INC010011",
+    "txt": "FIR_011_INC010011.txt",
+    "png": "FIR_011_INC010011.png",
+    "source_incident_id": "INC010011",
+    "truth": {
+      "fir_no": "MYS04/2024/0095",
+      "occurred_at": "2024-05-16 08:00:00",
+      "district_code": "MYS",
+      "station_code": "MYS04",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "331(4)",
+      "lat": "12.319233",
+      "long": "76.683057",
+      "address_text": "College Road, Mysuru",
+      "status": "Closed",
+      "mo_text": "Burglary at a residence near College Road, Mysuru; entry via rear door, Rs.25000 stolen.",
+      "persons": [
+        {
+          "value": "Champak Oak",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_012_INC010012",
+    "txt": "FIR_012_INC010012.txt",
+    "png": "FIR_012_INC010012.png",
+    "source_incident_id": "INC010012",
+    "truth": {
+      "fir_no": "MYS05/2024/0111",
+      "occurred_at": "2024-05-22 14:00:00",
+      "district_code": "MYS",
+      "station_code": "MYS05",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "457",
+      "lat": "12.329193",
+      "long": "76.684277",
+      "address_text": "Railway Station Road, Mysuru",
+      "status": "Under Investigation",
+      "mo_text": "Burglary at a residence near Railway Station Road, Mysuru; entry via rear door, Rs.50000 stolen.",
+      "persons": [
+        {
+          "value": "Yoshita Pandit",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_013_INC010013",
+    "txt": "FIR_013_INC010013.txt",
+    "png": "FIR_013_INC010013.png",
+    "source_incident_id": "INC010013",
+    "truth": {
+      "fir_no": "MYS06/2024/0099",
+      "occurred_at": "2024-05-22 00:00:00",
+      "district_code": "MYS",
+      "station_code": "MYS06",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "331(4)",
+      "lat": "12.329879",
+      "long": "76.661723",
+      "address_text": "Market, Mysuru",
+      "status": "Pending Trial",
+      "mo_text": "Burglary at a residence near Market, Mysuru; entry via rear door, Rs.75000 stolen.",
+      "persons": [
+        {
+          "value": "Aishani Ravel",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_014_INC010014",
+    "txt": "FIR_014_INC010014.txt",
+    "png": "FIR_014_INC010014.png",
+    "source_incident_id": "INC010014",
+    "truth": {
+      "fir_no": "MYS02/2024/0091",
+      "occurred_at": "2024-05-17 07:00:00",
+      "district_code": "MYS",
+      "station_code": "MYS02",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "457",
+      "lat": "12.341737",
+      "long": "76.690102",
+      "address_text": "1st Main, Mysuru",
+      "status": "Pending Trial",
+      "mo_text": "Burglary at a residence near 1st Main, Mysuru; entry via rear door, Rs.50000 stolen.",
+      "persons": [
+        {
+          "value": "Ijaya Sengupta",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_015_INC010015",
+    "txt": "FIR_015_INC010015.txt",
+    "png": "FIR_015_INC010015.png",
+    "source_incident_id": "INC010015",
+    "truth": {
+      "fir_no": "MYS05/2024/0112",
+      "occurred_at": "2024-05-20 15:00:00",
+      "district_code": "MYS",
+      "station_code": "MYS05",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "457",
+      "lat": "12.324793",
+      "long": "76.662798",
+      "address_text": "Layout, Mysuru",
+      "status": "Under Investigation",
+      "mo_text": "House lock broken at Layout, Mysuru during evening; jewellery and Rs.20000 reported missing.",
+      "persons": [
+        {
+          "value": "Udarsh Som",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_016_INC010016",
+    "txt": "FIR_016_INC010016.txt",
+    "png": "FIR_016_INC010016.png",
+    "source_incident_id": "INC010016",
+    "truth": {
+      "fir_no": "MYS01/2024/0100",
+      "occurred_at": "2024-05-19 00:00:00",
+      "district_code": "MYS",
+      "station_code": "MYS01",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "331(4)",
+      "lat": "12.330302",
+      "long": "76.668264",
+      "address_text": "New Extension, Mysuru",
+      "status": "Under Investigation",
+      "mo_text": "Burglary at a residence near New Extension, Mysuru; entry via rear door, Rs.5000 stolen.",
+      "persons": [
+        {
+          "value": "Ojas Sengupta",
+          "role": "victim"
+        },
+        {
+          "value": "Kritika Dubey",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_017_INC010017",
+    "txt": "FIR_017_INC010017.txt",
+    "png": "FIR_017_INC010017.png",
+    "source_incident_id": "INC010017",
+    "truth": {
+      "fir_no": "BNU10/2025/0086",
+      "occurred_at": "2025-03-17 23:02:00",
+      "district_code": "BNU",
+      "station_code": "BNU10",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "379",
+      "lat": "13.015607",
+      "long": "77.525686",
+      "address_text": "Temple Street, Bengaluru Urban",
+      "status": "Chargesheeted",
+      "mo_text": "Accused decamped with a Royal Enfield parked near Temple Street, Bengaluru Urban during morning hours.",
+      "persons": [
+        {
+          "value": "Damini Jhaveri",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA11DF2440"
+      ],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_018_INC010018",
+    "txt": "FIR_018_INC010018.txt",
+    "png": "FIR_018_INC010018.png",
+    "source_incident_id": "INC010018",
+    "truth": {
+      "fir_no": "BNU21/2025/0107",
+      "occurred_at": "2025-03-17 10:39:00",
+      "district_code": "BNU",
+      "station_code": "BNU21",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "379",
+      "lat": "13.036236",
+      "long": "77.575217",
+      "address_text": "Industrial Area, Bengaluru Urban",
+      "status": "Closed",
+      "mo_text": "Maruti Swift stolen from Industrial Area, Bengaluru Urban; ignition tampered. CCTV footage under review.",
+      "persons": [
+        {
+          "value": "Bishakha Sibal",
+          "role": "victim"
+        },
+        {
+          "value": "David Deo",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA17XG1022"
+      ],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_019_INC010071",
+    "txt": "FIR_019_INC010071.txt",
+    "png": "FIR_019_INC010071.png",
+    "source_incident_id": "INC010071",
+    "truth": {
+      "fir_no": "BNU09/2025/0097",
+      "occurred_at": "2025-04-28 23:25:00",
+      "district_code": "BNU",
+      "station_code": "BNU09",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "331(4)",
+      "lat": "12.960958",
+      "long": "77.576324",
+      "address_text": "1st Main, Bengaluru Urban",
+      "status": "Under Investigation",
+      "mo_text": "House lock broken at 1st Main, Bengaluru Urban during morning; mobile phone and Rs.40000 reported missing.",
+      "persons": [
+        {
+          "value": "Tanveer Ahluwalia",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_020_INC010072",
+    "txt": "FIR_020_INC010072.txt",
+    "png": "FIR_020_INC010072.png",
+    "source_incident_id": "INC010072",
+    "truth": {
+      "fir_no": "BNU14/2025/0086",
+      "occurred_at": "2025-04-13 18:18:00",
+      "district_code": "BNU",
+      "station_code": "BNU14",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "457",
+      "lat": "12.974272",
+      "long": "77.582124",
+      "address_text": "New Extension, Bengaluru Urban",
+      "status": "Chargesheeted",
+      "mo_text": "House lock broken at New Extension, Bengaluru Urban during morning; gold chain and Rs.25000 reported missing.",
+      "persons": [
+        {
+          "value": "Jonathan Karnik",
+          "role": "victim"
+        },
+        {
+          "value": "Nathan Chanda",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_021_INC010116",
+    "txt": "FIR_021_INC010116.txt",
+    "png": "FIR_021_INC010116.png",
+    "source_incident_id": "INC010116",
+    "truth": {
+      "fir_no": "MYS05/2024/0113",
+      "occurred_at": "2024-09-02 23:12:00",
+      "district_code": "MYS",
+      "station_code": "MYS05",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "303(2)",
+      "lat": "12.325976",
+      "long": "76.580924",
+      "address_text": "Temple Street, Mysuru",
+      "status": "Under Investigation",
+      "mo_text": "Hero Splendor stolen from Temple Street, Mysuru; ignition tampered. CCTV footage under review.",
+      "persons": [
+        {
+          "value": "Suhania Chana",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA49SI4789"
+      ],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_022_INC010117",
+    "txt": "FIR_022_INC010117.txt",
+    "png": "FIR_022_INC010117.png",
+    "source_incident_id": "INC010117",
+    "truth": {
+      "fir_no": "MYS07/2024/0095",
+      "occurred_at": "2024-09-25 07:32:00",
+      "district_code": "MYS",
+      "station_code": "MYS07",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "303(2)",
+      "lat": "12.297538",
+      "long": "76.689992",
+      "address_text": "Market, Mysuru",
+      "status": "Final Report",
+      "mo_text": "Accused decamped with a Yamaha FZ parked near Market, Mysuru during night hours.",
+      "persons": [
+        {
+          "value": "Anik Parekh",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA28VE3220"
+      ],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_023_INC008207",
+    "txt": "FIR_023_INC008207.txt",
+    "png": "FIR_023_INC008207.png",
+    "source_incident_id": "INC008207",
+    "truth": {
+      "fir_no": "UDP01/2024/0048",
+      "occurred_at": "2024-01-06 12:33:09",
+      "district_code": "UDP",
+      "station_code": "UDP01",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "303(2)",
+      "lat": "13.343993",
+      "long": "74.774331",
+      "address_text": "Market, Udupi",
+      "status": "Chargesheeted",
+      "mo_text": "Hyundai i20 stolen from Market, Udupi; ignition tampered. CCTV footage under review.",
+      "persons": [
+        {
+          "value": "Onkar Doshi",
+          "role": "victim"
+        },
+        {
+          "value": "Ansh Lal",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA01XK7258"
+      ],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_024_INC009090",
+    "txt": "FIR_024_INC009090.txt",
+    "png": "FIR_024_INC009090.png",
+    "source_incident_id": "INC009090",
+    "truth": {
+      "fir_no": "CKM02/2024/0049",
+      "occurred_at": "2024-08-03 19:41:22",
+      "district_code": "CKM",
+      "station_code": "CKM02",
+      "crime_type": "Assault",
+      "ipc_bns_code": "115(2)",
+      "lat": "13.265441",
+      "long": "75.673599",
+      "address_text": "Industrial Area, Chikkamagaluru",
+      "status": "Under Investigation",
+      "mo_text": "Complainant assaulted following an altercation near Industrial Area, Chikkamagaluru during morning.",
+      "persons": [
+        {
+          "value": "Dipta Pandya",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_025_INC009421",
+    "txt": "FIR_025_INC009421.txt",
+    "png": "FIR_025_INC009421.png",
+    "source_incident_id": "INC009421",
+    "truth": {
+      "fir_no": "KLB03/2025/0069",
+      "occurred_at": "2025-01-07 19:21:19",
+      "district_code": "KLB",
+      "station_code": "KLB03",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "379",
+      "lat": "17.428148",
+      "long": "76.831034",
+      "address_text": "Industrial Area, Kalaburagi",
+      "status": "Under Investigation",
+      "mo_text": "TVS Jupiter stolen from Industrial Area, Kalaburagi; ignition tampered. CCTV footage under review.",
+      "persons": [
+        {
+          "value": "Baljiwan Sastry",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_026_INC007515",
+    "txt": "FIR_026_INC007515.txt",
+    "png": "FIR_026_INC007515.png",
+    "source_incident_id": "INC007515",
+    "truth": {
+      "fir_no": "HVR03/2024/0036",
+      "occurred_at": "2024-10-31 20:47:42",
+      "district_code": "HVR",
+      "station_code": "HVR03",
+      "crime_type": "Rioting",
+      "ipc_bns_code": "191(2)",
+      "lat": "14.756455",
+      "long": "75.347641",
+      "address_text": "Market Yard, Haveri",
+      "status": "Under Investigation",
+      "mo_text": "Unlawful assembly near Market Yard, Haveri turned violent during morning.",
+      "persons": [
+        {
+          "value": "Lipika Borde",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_027_INC004407",
+    "txt": "FIR_027_INC004407.txt",
+    "png": "FIR_027_INC004407.png",
+    "source_incident_id": "INC004407",
+    "truth": {
+      "fir_no": "BAL03/2024/0042",
+      "occurred_at": "2024-03-29 14:35:11",
+      "district_code": "BAL",
+      "station_code": "BAL03",
+      "crime_type": "Rioting",
+      "ipc_bns_code": "147",
+      "lat": "15.162587",
+      "long": "76.919791",
+      "address_text": "College Road, Ballari",
+      "status": "Under Investigation",
+      "mo_text": "Group clash near College Road, Ballari; public property damaged.",
+      "persons": [
+        {
+          "value": "Edhitha Chahal",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_028_INC005721",
+    "txt": "FIR_028_INC005721.txt",
+    "png": "FIR_028_INC005721.png",
+    "source_incident_id": "INC005721",
+    "truth": {
+      "fir_no": "DK02/2024/0049",
+      "occurred_at": "2024-10-14 13:30:32",
+      "district_code": "DK",
+      "station_code": "DK02",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "356",
+      "lat": "12.786986",
+      "long": "75.01246",
+      "address_text": "Market, Dakshina Kannada",
+      "status": "Under Investigation",
+      "mo_text": "Two persons on a motorcycle snatched a mobile phone from the complainant near Market, Dakshina Kannada and fled.",
+      "persons": [
+        {
+          "value": "Ira Shan",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_029_INC007578",
+    "txt": "FIR_029_INC007578.txt",
+    "png": "FIR_029_INC007578.png",
+    "source_incident_id": "INC007578",
+    "truth": {
+      "fir_no": "CKM03/2024/0058",
+      "occurred_at": "2024-05-01 21:42:44",
+      "district_code": "CKM",
+      "station_code": "CKM03",
+      "crime_type": "Theft",
+      "ipc_bns_code": "379",
+      "lat": "13.202988",
+      "long": "75.692841",
+      "address_text": "Layout, Chikkamagaluru",
+      "status": "Pending Trial",
+      "mo_text": "Theft reported near Layout, Chikkamagaluru; gold chain found missing by the complainant.",
+      "persons": [
+        {
+          "value": "Quincy Lata",
+          "role": "victim"
+        },
+        {
+          "value": "Fitan Babu",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_030_INC008146",
+    "txt": "FIR_030_INC008146.txt",
+    "png": "FIR_030_INC008146.png",
+    "source_incident_id": "INC008146",
+    "truth": {
+      "fir_no": "KPL02/2024/0060",
+      "occurred_at": "2024-10-06 16:47:14",
+      "district_code": "KPL",
+      "station_code": "KPL02",
+      "crime_type": "Robbery",
+      "ipc_bns_code": "309(4)",
+      "lat": "15.375735",
+      "long": "76.178069",
+      "address_text": "Market, Koppal",
+      "status": "Under Investigation",
+      "mo_text": "Complainant robbed of jewellery at wooden club-point near Market, Koppal during morning.",
+      "persons": [
+        {
+          "value": "Yutika Trivedi",
+          "role": "victim"
+        },
+        {
+          "value": "Aadi Pandit",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_031_INC000749",
+    "txt": "FIR_031_INC000749.txt",
+    "png": "FIR_031_INC000749.png",
+    "source_incident_id": "INC000749",
+    "truth": {
+      "fir_no": "BNU05/2025/0016",
+      "occurred_at": "2025-01-15 03:50:56",
+      "district_code": "BNU",
+      "station_code": "BNU05",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "303(2)",
+      "lat": "13.01314",
+      "long": "77.59095",
+      "address_text": "Market Yard, Bengaluru Urban",
+      "status": "Under Investigation",
+      "mo_text": "Accused decamped with a TVS Jupiter parked near Market Yard, Bengaluru Urban during night hours.",
+      "persons": [
+        {
+          "value": "Rayaan Sampath",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_032_INC008791",
+    "txt": "FIR_032_INC008791.txt",
+    "png": "FIR_032_INC008791.png",
+    "source_incident_id": "INC008791",
+    "truth": {
+      "fir_no": "KLB01/2025/0070",
+      "occurred_at": "2025-01-06 02:51:55",
+      "district_code": "KLB",
+      "station_code": "KLB01",
+      "crime_type": "Assault",
+      "ipc_bns_code": "323",
+      "lat": "17.32916",
+      "long": "76.751253",
+      "address_text": "Temple Street, Kalaburagi",
+      "status": "Under Investigation",
+      "mo_text": "Complainant assaulted following an altercation near Temple Street, Kalaburagi during night.",
+      "persons": [
+        {
+          "value": "Balhaar Behl",
+          "role": "victim"
+        },
+        {
+          "value": "Januja Rege",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_033_INC009405",
+    "txt": "FIR_033_INC009405.txt",
+    "png": "FIR_033_INC009405.png",
+    "source_incident_id": "INC009405",
+    "truth": {
+      "fir_no": "BNR03/2025/0074",
+      "occurred_at": "2025-02-02 14:14:34",
+      "district_code": "BNR",
+      "station_code": "BNR03",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "303(2)",
+      "lat": "13.229323",
+      "long": "77.676371",
+      "address_text": "Temple Street, Bengaluru Rural",
+      "status": "Under Investigation",
+      "mo_text": "Accused decamped with a TVS Jupiter parked near Temple Street, Bengaluru Rural during morning hours.",
+      "persons": [
+        {
+          "value": "Parth Bali",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_034_INC001496",
+    "txt": "FIR_034_INC001496.txt",
+    "png": "FIR_034_INC001496.png",
+    "source_incident_id": "INC001496",
+    "truth": {
+      "fir_no": "KLB05/2024/0013",
+      "occurred_at": "2024-09-19 22:47:24",
+      "district_code": "KLB",
+      "station_code": "KLB05",
+      "crime_type": "Robbery",
+      "ipc_bns_code": "309(4)",
+      "lat": "17.455807",
+      "long": "76.919609",
+      "address_text": "Market, Kalaburagi",
+      "status": "Final Report",
+      "mo_text": "Armed robbery near Market, Kalaburagi; Rs.25000 looted by the accused.",
+      "persons": [
+        {
+          "value": "Jason Dar",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_035_INC004402",
+    "txt": "FIR_035_INC004402.txt",
+    "png": "FIR_035_INC004402.png",
+    "source_incident_id": "INC004402",
+    "truth": {
+      "fir_no": "CTD02/2024/0031",
+      "occurred_at": "2024-11-18 17:48:29",
+      "district_code": "CTD",
+      "station_code": "CTD02",
+      "crime_type": "Robbery",
+      "ipc_bns_code": "309(4)",
+      "lat": "14.295949",
+      "long": "76.355414",
+      "address_text": "College Road, Chitradurga",
+      "status": "Under Investigation",
+      "mo_text": "Complainant robbed of cash at country-made pistol-point near College Road, Chitradurga during morning.",
+      "persons": [
+        {
+          "value": "Abeer Brar",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_036_INC007629",
+    "txt": "FIR_036_INC007629.txt",
+    "png": "FIR_036_INC007629.png",
+    "source_incident_id": "INC007629",
+    "truth": {
+      "fir_no": "BID03/2024/0052",
+      "occurred_at": "2024-02-13 05:42:41",
+      "district_code": "BID",
+      "station_code": "BID03",
+      "crime_type": "House burglary",
+      "ipc_bns_code": "331(4)",
+      "lat": "17.851844",
+      "long": "77.531643",
+      "address_text": "Temple Street, Bidar",
+      "status": "Final Report",
+      "mo_text": "House lock broken at Temple Street, Bidar during evening; gold chain and Rs.40000 reported missing.",
+      "persons": [
+        {
+          "value": "Damyanti Mital",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_037_INC007165",
+    "txt": "FIR_037_INC007165.txt",
+    "png": "FIR_037_INC007165.png",
+    "source_incident_id": "INC007165",
+    "truth": {
+      "fir_no": "UK03/2024/0059",
+      "occurred_at": "2024-12-15 00:06:27",
+      "district_code": "UK",
+      "station_code": "UK03",
+      "crime_type": "Motor vehicle theft",
+      "ipc_bns_code": "379",
+      "lat": "14.825364",
+      "long": "74.707074",
+      "address_text": "College Road, Uttara Kannada",
+      "status": "Under Investigation",
+      "mo_text": "Vehicle theft reported at College Road, Uttara Kannada; no eyewitness available.",
+      "persons": [
+        {
+          "value": "Maya Chaudry",
+          "role": "victim"
+        },
+        {
+          "value": "Farhan Balay",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_038_INC009702",
+    "txt": "FIR_038_INC009702.txt",
+    "png": "FIR_038_INC009702.png",
+    "source_incident_id": "INC009702",
+    "truth": {
+      "fir_no": "KLR03/2024/0100",
+      "occurred_at": "2024-09-19 02:49:04",
+      "district_code": "KLR",
+      "station_code": "KLR03",
+      "crime_type": "Kidnapping",
+      "ipc_bns_code": "137(2)",
+      "lat": "13.060451",
+      "long": "78.114181",
+      "address_text": "Bus Stand, Kolar",
+      "status": "Pending Trial",
+      "mo_text": "A person reported kidnapped from Bus Stand, Kolar during night.",
+      "persons": [
+        {
+          "value": "Warjas Bhagat",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_039_INC009912",
+    "txt": "FIR_039_INC009912.txt",
+    "png": "FIR_039_INC009912.png",
+    "source_incident_id": "INC009912",
+    "truth": {
+      "fir_no": "RCR02/2024/0097",
+      "occurred_at": "2024-03-15 15:45:09",
+      "district_code": "RCR",
+      "station_code": "RCR02",
+      "crime_type": "Two-wheeler theft",
+      "ipc_bns_code": "379",
+      "lat": "16.125465",
+      "long": "77.304508",
+      "address_text": "Market, Raichur",
+      "status": "Closed",
+      "mo_text": "Honda Activa stolen from Market, Raichur; ignition tampered. CCTV footage under review.",
+      "persons": [
+        {
+          "value": "Agastya Karpe",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA64YR2175"
+      ],
+      "phones": []
+    }
+  },
+  {
+    "doc_id": "FIR_040_INC007520",
+    "txt": "FIR_040_INC007520.txt",
+    "png": "FIR_040_INC007520.png",
+    "source_incident_id": "INC007520",
+    "truth": {
+      "fir_no": "DK03/2024/0066",
+      "occurred_at": "2024-04-09 20:47:53",
+      "district_code": "DK",
+      "station_code": "DK03",
+      "crime_type": "Chain snatching",
+      "ipc_bns_code": "304(2)",
+      "lat": "13.048854",
+      "long": "75.050414",
+      "address_text": "Circle, Dakshina Kannada",
+      "status": "Chargesheeted",
+      "mo_text": "Miscreants snatched a gold chain near Circle, Dakshina Kannada during night and sped away on a two-wheeler.",
+      "persons": [
+        {
+          "value": "Sathvik Edwin",
+          "role": "victim"
+        },
+        {
+          "value": "Champak Chanda",
+          "role": "suspect"
+        }
+      ],
+      "vehicles": [
+        "KA28XT2286"
+      ],
+      "phones": []
+    }
+  }
+]

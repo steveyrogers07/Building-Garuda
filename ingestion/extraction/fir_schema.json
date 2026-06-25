@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GARUDA FIR extraction record",
+  "description": "Structured fields extracted from a single FIR (OCR text). Maps to the canonical Incidents row plus nested entities promoted to Entities/Incident_Edges.",
+  "type": "object",
+  "required": ["fir_no", "occurred_at", "district_code", "crime_type"],
+  "additionalProperties": false,
+  "properties": {
+    "fir_no":        { "type": "string" },
+    "occurred_at":   { "type": "string", "description": "YYYY-MM-DD HH:MM:SS" },
+    "reported_at":   { "type": ["string", "null"] },
+    "district_code": { "type": "string" },
+    "station_code":  { "type": ["string", "null"] },
+    "crime_type":    { "type": "string" },
+    "ipc_bns_code":  { "type": ["string", "null"] },
+    "lat":           { "type": ["number", "null"] },
+    "long":          { "type": ["number", "null"] },
+    "address_text":  { "type": ["string", "null"] },
+    "mo_text":       { "type": ["string", "null"] },
+    "status":        { "type": ["string", "null"] },
+    "persons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "value":  { "type": "string" },
+          "role":   { "type": "string", "enum": ["suspect", "victim", "witness"] },
+          "age":    { "type": ["integer", "null"] },
+          "gender": { "type": ["string", "null"] }
+        },
+        "required": ["value", "role"]
+      }
+    },
+    "vehicles": { "type": "array", "items": { "type": "string" } },
+    "phones":   { "type": "array", "items": { "type": "string" } }
+  }
+}

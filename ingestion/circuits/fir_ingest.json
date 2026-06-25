@@ -1,0 +1,42 @@
+{
+	"_doc": "GARUDA FIR ingestion circuit (Phase 3). Catalyst Circuits orchestrate the serverless steps with retries and error handling. This file DOCUMENTS the intended orchestration; create/confirm the circuit in the console Circuit builder (exact field names/types may differ by Catalyst version). The single-function event handler in functions/ingest-event implements the same flow inline for the simple path — use this circuit when you want per-step retries, fan-out, or a dead-letter on OCR/extract failure.",
+	"name": "fir_ingest",
+	"comment": "Stratus FIR scan -> Zia OCR -> AppSail extract -> Review_Queue (human-in-the-loop)",
+	"startAt": "OCR",
+	"states": {
+		"OCR": {
+			"type": "function",
+			"comment": "Zia OCR: download the scan from Stratus and convert to raw text",
+			"resource": "ingest-event#ocr",
+			"parameters": { "bucket.$": "$.bucket", "key.$": "$.key" },
+			"resultPath": "$.ocr",
+			"retry": [{ "errorEquals": ["ZiaError", "Timeout"], "maxAttempts": 2, "intervalSeconds": 5 }],
+			"catch": [{ "errorEquals": ["States.ALL"], "next": "DeadLetter" }],
+			"next": "Extract"
+		},
+		"Extract": {
+			"type": "appsail",
+			"comment": "AppSail brain: text -> structured fields + per-field confidence + review record",
+			"resource": "POST /extract",
+			"parameters": { "text.$": "$.ocr.text", "source_fir_url.$": "$.source_fir_url" },
+			"resultPath": "$.extract",
+			"retry": [{ "errorEquals": ["Timeout"], "maxAttempts": 2, "intervalSeconds": 5 }],
+			"catch": [{ "errorEquals": ["States.ALL"], "next": "DeadLetter" }],
+			"next": "Queue"
+		},
+		"Queue": {
+			"type": "datastore",
+			"comment": "Insert Review_Queue row (status=pending). Humans approve in the review UI; never auto-promote.",
+			"resource": "INSERT Review_Queue",
+			"parameters": { "row.$": "$.extract.review_record" },
+			"end": true
+		},
+		"DeadLetter": {
+			"type": "datastore",
+			"comment": "Record the failure for re-drive (Audit_Log); operator inspects and re-uploads.",
+			"resource": "INSERT Audit_Log",
+			"parameters": { "action": "ingest_failed", "detail.$": "$.error" },
+			"end": true
+		}
+	}
+}

@@ -1,8 +1,8 @@
 {
 	"deployment": {
-		"name": "api",
+		"name": "ingest-event",
 		"stack": "node18",
-		"type": "advancedio",
+		"type": "event",
 		"env_variables": {
 			"APPSAIL_BASE_URL": ""
 		}

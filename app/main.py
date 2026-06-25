@@ -10,7 +10,16 @@ Start command (see app-config.json):
 """
 from fastapi import FastAPI
 
-app = FastAPI(title="GARUDA ML Brain", version="0.1.0")
+app = FastAPI(title="GARUDA ML Brain", version="0.2.0")
+
+# Phase 3 ingestion endpoints (/extract, /geocode, /promote). Wrapped so the health
+# probe stays up even if an optional import is missing in a given environment.
+try:
+    from routers.ingestion import router as ingestion_router
+    app.include_router(ingestion_router)
+except Exception as _exc:  # noqa: BLE001
+    import logging
+    logging.getLogger("garuda").warning("ingestion router not loaded: %s", _exc)
 
 
 @app.get("/health")

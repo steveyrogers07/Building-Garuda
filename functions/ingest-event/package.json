@@ -1,0 +1,10 @@
+{
+	"name": "ingest-event",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "GARUDA / Karnataka SCRB",
+	"description": "GARUDA FIR ingestion event function: Stratus -> Zia OCR -> AppSail /extract -> Review_Queue (Phase 3).",
+	"dependencies": {
+		"zcatalyst-sdk-node": "^3.4.0"
+	}
+}

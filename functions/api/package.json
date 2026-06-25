@@ -1,8 +1,10 @@
 {
 	"name": "api",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"main": "index.js",
 	"author": "GARUDA / Karnataka SCRB",
-	"description": "GARUDA Advanced I/O REST function (Phase 1 hello-world; no deps yet).",
-	"dependencies": {}
+	"description": "GARUDA Advanced I/O REST function: health + human-in-the-loop review (Phase 3).",
+	"dependencies": {
+		"zcatalyst-sdk-node": "^3.4.0"
+	}
 }

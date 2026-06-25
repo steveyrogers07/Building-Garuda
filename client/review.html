@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>FIR Review &mdash; GARUDA</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="main.css" />
+</head>
+
+<body>
+	<main class="wrap wide">
+		<h1>&#128221; GARUDA &mdash; FIR Review Queue</h1>
+		<p class="phase">Human-in-the-loop: confirm the extracted fields, then approve to canonical or reject.</p>
+		<nav class="actions">
+			<button class="btn ghost" id="refresh">Refresh</button>
+			<a class="btn ghost" href="protected.html">Back</a>
+			<button class="btn ghost" id="signout">Sign out</button>
+		</nav>
+		<p id="status" class="note"></p>
+		<section id="queue"></section>
+	</main>
+
+	<script src="https://static.zohocdn.com/catalyst/sdk/js/4.5.0/catalyst-web-sdk.min.js"></script>
+	<script src="config.js"></script>
+	<script src="main.js"></script>
+	<script src="review.js"></script>
+</body>
+
+</html>

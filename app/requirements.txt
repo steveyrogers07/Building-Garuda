@@ -1,7 +1,18 @@
-# GARUDA AppSail (Phase 1 hello-world) — keep minimal.
-# Heavy ML libs (pandas, scikit-learn, lightgbm, networkx, hdbscan,
-# sentence-transformers, splink, shap, statsmodels, zcatalyst-sdk-python)
-# are added in Phases 4-7. Plain `uvicorn` (not uvicorn[standard]) keeps the
-# dependency tree cross-platform — uvloop has no Windows wheel for local runs.
+# GARUDA AppSail dependencies.
+# Phase 1-3: FastAPI surface + the rule-based ingestion brain (stdlib only).
 fastapi
 uvicorn
+
+# Phase 4: entity resolution + MO fingerprinting (all local/free, no QuickML credits).
+numpy
+scikit-learn          # TF-IDF + TruncatedSVD + HDBSCAN (HDBSCAN bundled since sklearn 1.3)
+rapidfuzz             # Jaro-Winkler name similarity
+jellyfish             # NYSIIS / Metaphone phonetic keys (blocking)
+indic-transliteration # Kannada <-> Latin so script variants align
+
+# Account-gated batch write-back (/resolve/run, /mo/run with GARUDA_BACKEND=zcql).
+zcatalyst-sdk-python
+
+# Opt-in, NOT installed by default (keeps deploy light + $0):
+#   sentence-transformers   # MO_EMBEDDER=sbert -> local multilingual MO embeddings (pulls torch)
+#   recordlinkage / splink  # Fellegi-Sunter probabilistic linkage (alt to the weighted scorer)

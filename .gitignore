@@ -1,0 +1,53 @@
+# Node / frontend
+node_modules/
+dist/
+build/
+.vite/
+*.local
+
+# Python / AppSail
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Catalyst
+.catalyst/
+catalyst-deploy/
+*.zip
+
+# Secrets & env
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+
+# Generated data (keep the generator + ground_truth.json, not the bulk output)
+data/synthetic/*.csv
+data/synthetic/*.parquet
+# loader --dry-run / --emit-csv output (regenerable)
+data/**/_canonical/
+*.sqlite
+# NOTE: reference CSVs (ipc_bns_map, census_2011, geo_boundaries, gazetteer) and
+# data/synthetic/ground_truth.json ARE committed; only large raw GeoJSON is ignored.
+data/reference/*.geojson
+# Generated FIR renders (regenerable from generate_firs.py); keep the generator +
+# the golden key fir_key.json, not the bulk .txt/.png output.
+data/fir_samples/*.txt
+data/fir_samples/*.png
+# Local PoC store + Phase-5 generated outputs (default GARUDA_HOME; regenerable).
+# External GARUDA_HOME (e.g. ~/Desktop/garuda) lives outside the repo entirely.
+data/local/
+*.db
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+data/synthetic/*.npz

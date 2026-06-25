@@ -1,0 +1,63 @@
+# GARUDA — column map: SOURCE columns -> canonical fields, per table.
+#
+# THE SWAP POINT. When the real KSP dataset arrives, copy this file to
+# column_map.ksp.yaml and change ONLY the `source:` names and `transform:`s here —
+# nothing downstream (validator, loader, engines, frontend) changes.
+#
+# Per field:  <canonical_field>: { source: <source_column>, transform: <datetime|int|float|str> }
+# A missing `source` defaults to the canonical name; a missing `transform` means string.
+# Fields not listed are left empty (e.g. mo_cluster_id / series_id are filled in later phases).
+
+Incidents:
+  fields:
+    incident_id:    { source: incident_id }
+    fir_no:         { source: fir_no }
+    occurred_at:    { source: occurred_at, transform: datetime }
+    reported_at:    { source: reported_at, transform: datetime }
+    district_code:  { source: district_code }
+    station_code:   { source: station_code }
+    crime_type:     { source: crime_type }
+    ipc_bns_code:   { source: ipc_bns_code }
+    lat:            { source: lat,  transform: float }
+    long:           { source: long, transform: float }
+    address_text:   { source: address_text }
+    mo_text:        { source: mo_text }
+    status:         { source: status }
+    source_fir_url: { source: source_fir_url }
+    confidence:     { source: confidence, transform: float }
+    created_by:     { source: created_by }
+
+Entities:
+  fields:
+    entity_id:        { source: entity_id }
+    canonical_id:     { source: canonical_id }
+    type:             { source: type }
+    value:            { source: value }
+    alias_of:         { source: alias_of }
+    age:              { source: age, transform: int }
+    gender:           { source: gender }
+    match_confidence: { source: match_confidence, transform: float }
+
+Incident_Edges:
+  fields:
+    incident_id:   { source: incident_id }
+    entity_id:     { source: entity_id }
+    role:          { source: role }
+    edge_weight:   { source: edge_weight, transform: float }
+    evidence_type: { source: evidence_type }
+
+# source file: data/reference/census_2011.csv (district_name column is ignored)
+Socioeconomic:
+  fields:
+    area_code:    { source: area_code }
+    population:   { source: population,   transform: int }
+    density:      { source: density,      transform: float }
+    literacy:     { source: literacy,     transform: float }
+    urbanization: { source: urbanization, transform: float }
+
+# source file: data/reference/geo_boundaries.csv
+Geo_Boundaries:
+  fields:
+    area_code: { source: area_code }
+    level:     { source: level }
+    polygon:   { source: polygon }

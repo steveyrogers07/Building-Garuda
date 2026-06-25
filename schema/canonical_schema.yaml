@@ -1,0 +1,180 @@
+# GARUDA — Canonical Data Store schema (single source of truth).
+#
+# Consumed by: ingestion/adapter/validate.py (the gate), ingestion/adapter/loader.py
+# (coercion + which table), and schema/create_tables.md (console/SDK creation).
+# Downstream engines/frontend read ONLY these canonical tables.
+#
+# Catalyst auto-adds ROWID, CREATORID, CREATEDTIME, MODIFIEDTIME to every table.
+# Column types (Catalyst Data Store): Text, Int, BigInt, Decimal, Boolean, Date,
+# DateTime, ForeignKey, AutoNumber.
+#
+# FK note: a Catalyst ForeignKey stores the *ROWID* of the referenced row, which is
+# unknown at CSV-generation time and not settable via console Import. So join columns
+# in Incident_Edges are modelled as Text business keys (incident_id / entity_id) that
+# reference the business keys in Incidents/Entities. ZCQL joins use those business keys
+# (see schema/create_tables.md). loader.py can optionally remap them to true ROWID FKs
+# after the parent rows are inserted (--remap-fk); default is business keys.
+
+meta:
+  auto_columns: [ROWID, CREATORID, CREATEDTIME, MODIFIEDTIME]
+  types: [Text, Int, BigInt, Decimal, Boolean, Date, DateTime, ForeignKey, AutoNumber]
+
+tables:
+
+  # ---------- CORE (populated in Phase 2) ----------
+
+  Incidents:
+    phase: 2
+    populate: true
+    description: One row per FIR / crime incident — the spine of the platform.
+    business_key: incident_id
+    columns:
+      - { name: incident_id,   type: Text,     nullable: false, unique: true }
+      - { name: fir_no,        type: Text,     nullable: false }
+      - { name: occurred_at,   type: DateTime, nullable: false }
+      - { name: reported_at,   type: DateTime, nullable: true }
+      - { name: district_code, type: Text,     nullable: false }
+      - { name: station_code,  type: Text,     nullable: true }
+      - { name: crime_type,    type: Text,     nullable: false }
+      - { name: ipc_bns_code,  type: Text,     nullable: true }
+      - { name: lat,           type: Decimal,  nullable: true }
+      - { name: long,          type: Decimal,  nullable: true }
+      - { name: address_text,  type: Text,     nullable: true }
+      - { name: mo_text,       type: Text,     nullable: true }
+      - { name: status,        type: Text,     nullable: true }
+      - { name: mo_cluster_id, type: Text,     nullable: true }   # filled in Phase 4
+      - { name: series_id,     type: Text,     nullable: true }   # filled in Phase 5
+      - { name: source_fir_url,type: Text,     nullable: true }
+      - { name: confidence,    type: Decimal,  nullable: true }
+      - { name: created_by,    type: Text,     nullable: true }
+
+  Entities:
+    phase: 2
+    populate: true
+    description: People / vehicles / phones mentioned in incidents. canonical_id groups aliases.
+    business_key: entity_id
+    columns:
+      - { name: entity_id,        type: Text,    nullable: false, unique: true }
+      - { name: canonical_id,     type: Text,    nullable: false }   # == entity_id for a canonical record; aliases point to parent's canonical_id
+      - { name: type,             type: Text,    nullable: false }   # person | vehicle | phone
+      - { name: value,            type: Text,    nullable: false }   # name / reg-no / phone-no
+      - { name: alias_of,         type: Text,    nullable: true }    # entity_id of the canonical record this is an alias of
+      - { name: age,              type: Int,     nullable: true }
+      - { name: gender,           type: Text,    nullable: true }
+      - { name: match_confidence, type: Decimal, nullable: true }
+
+  Incident_Edges:
+    phase: 2
+    populate: true
+    description: Incident <-> Entity links (the graph). Business-key join columns (see FK note).
+    columns:
+      - { name: incident_id,  type: Text,    nullable: false, ref: Incidents.incident_id }
+      - { name: entity_id,    type: Text,    nullable: false, ref: Entities.entity_id }
+      - { name: role,         type: Text,    nullable: false }   # suspect|victim|witness|vehicle_used|phone_used
+      - { name: edge_weight,  type: Decimal, nullable: true }
+      - { name: evidence_type,type: Text,    nullable: true }    # fir_named|cctv|recovered|call_record|witness
+
+  Socioeconomic:
+    phase: 2
+    populate: true
+    description: Per-area socio-economic features for the WHY model.
+    business_key: area_code
+    columns:
+      - { name: area_code,    type: Text,    nullable: false, unique: true }
+      - { name: population,   type: Int,     nullable: true }
+      - { name: density,      type: Decimal, nullable: true }
+      - { name: literacy,     type: Decimal, nullable: true }
+      - { name: urbanization, type: Decimal, nullable: true }
+
+  Geo_Boundaries:
+    phase: 2
+    populate: true
+    description: Area polygons (GeoJSON stored as text) for choropleths / spatial joins.
+    business_key: area_code
+    columns:
+      - { name: area_code, type: Text, nullable: false, unique: true }
+      - { name: level,     type: Text, nullable: false }   # state|district|taluk
+      - { name: polygon,   type: Text, nullable: false }   # GeoJSON geometry as a string
+
+  # ---------- DERIVED (created empty in Phase 2; filled later) ----------
+
+  MO_Clusters:
+    phase: 4
+    populate: false
+    description: MO fingerprint clusters (HDBSCAN over MO embeddings + features).
+    columns:
+      - { name: cluster_id,          type: Text, nullable: false, unique: true }
+      - { name: crime_type,          type: Text, nullable: true }
+      - { name: size,                type: Int,  nullable: true }
+      - { name: label,               type: Text, nullable: true }
+      - { name: centroid_features,   type: Text, nullable: true }   # JSON
+      - { name: exemplar_incident_id,type: Text, nullable: true }
+
+  Crime_Series:
+    phase: 5
+    populate: false
+    description: Linked crime series (MO + space-time near-repeat).
+    columns:
+      - { name: series_id,      type: Text, nullable: false, unique: true }
+      - { name: crime_type,     type: Text, nullable: true }
+      - { name: district_code,  type: Text, nullable: true }
+      - { name: locality,       type: Text, nullable: true }
+      - { name: start_date,     type: Date, nullable: true }
+      - { name: end_date,       type: Date, nullable: true }
+      - { name: incident_count, type: Int,  nullable: true }
+      - { name: method,         type: Text, nullable: true }
+
+  Predictive_Risk:
+    phase: 6
+    populate: false
+    description: Backtested risk score per grid x period.
+    columns:
+      - { name: grid_id,       type: Text,    nullable: false }
+      - { name: district_code, type: Text,    nullable: true }
+      - { name: period,        type: Date,    nullable: true }
+      - { name: risk_score,    type: Decimal, nullable: true }
+      - { name: rank,          type: Int,     nullable: true }
+      - { name: top_drivers,   type: Text,    nullable: true }   # SHAP JSON
+      - { name: model_version, type: Text,    nullable: true }
+
+  Alerts:
+    phase: 5
+    populate: false
+    description: Anomaly / emerging-trend alerts.
+    columns:
+      - { name: alert_id,     type: Text,     nullable: false, unique: true }
+      - { name: type,         type: Text,     nullable: true }
+      - { name: district_code,type: Text,     nullable: true }
+      - { name: crime_type,   type: Text,     nullable: true }
+      - { name: severity,     type: Text,     nullable: true }
+      - { name: window_start, type: DateTime, nullable: true }
+      - { name: window_end,   type: DateTime, nullable: true }
+      - { name: detail,       type: Text,     nullable: true }
+      - { name: status,       type: Text,     nullable: true }
+
+  Review_Queue:
+    phase: 3
+    populate: false
+    description: Human-in-the-loop queue for OCR/extraction output before promotion to Incidents.
+    columns:
+      - { name: review_id,        type: Text,     nullable: false, unique: true }
+      - { name: source_fir_url,   type: Text,     nullable: true }
+      - { name: extracted_json,   type: Text,     nullable: true }
+      - { name: field_confidences,type: Text,     nullable: true }
+      - { name: status,           type: Text,     nullable: true }   # pending|approved|rejected
+      - { name: reviewer,         type: Text,     nullable: true }
+      - { name: created_at,       type: DateTime, nullable: true }
+
+  Audit_Log:
+    phase: 9
+    populate: false
+    description: Governance audit trail — every privileged read/query.
+    columns:
+      - { name: log_id,     type: Text,     nullable: false, unique: true }
+      - { name: actor,      type: Text,     nullable: true }
+      - { name: role,       type: Text,     nullable: true }
+      - { name: action,     type: Text,     nullable: true }
+      - { name: resource,   type: Text,     nullable: true }
+      - { name: query_text, type: Text,     nullable: true }
+      - { name: ts,         type: DateTime, nullable: true }
+      - { name: ip,         type: Text,     nullable: true }

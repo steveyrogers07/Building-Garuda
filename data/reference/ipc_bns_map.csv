@@ -1,0 +1,25 @@
+ipc_code,bns_code,crime_head,description
+379,303(2),Theft,Theft (incl. two-wheeler / motor-vehicle theft)
+380,305,Theft in dwelling,Theft in a dwelling house
+457,331(4),House-breaking,Lurking house-trespass / house-breaking by night
+356,304(2),Snatching,Snatching of property carried by a person
+392,309(4),Robbery,Robbery
+395,310(2),Dacoity,Dacoity (robbery by five or more persons)
+420,318(4),Cheating,Cheating and dishonestly inducing delivery of property
+406,316(2),Criminal breach of trust,Criminal breach of trust
+323,115(2),Hurt,Voluntarily causing hurt
+325,117(2),Grievous hurt,Voluntarily causing grievous hurt
+326,118(1),Grievous hurt by weapon,Grievous hurt by dangerous weapon/means
+147,191(2),Rioting,Rioting
+447,329(3),Criminal trespass,Criminal trespass
+302,103(1),Murder,Murder
+307,109,Attempt to murder,Attempt to murder
+363,137(2),Kidnapping,Kidnapping
+376,64,Rape,Rape
+354,74,Outraging modesty,Assault/criminal force to woman to outrage modesty
+498A,85,Cruelty to woman,Cruelty by husband or his relatives
+384,308(2),Extortion,Extortion
+411,317(2),Receiving stolen property,Dishonestly receiving stolen property
+279,281,Rash driving,Rash driving on a public way
+506,351(2),Criminal intimidation,Criminal intimidation
+341,126(2),Wrongful restraint,Wrongfully restraining a person

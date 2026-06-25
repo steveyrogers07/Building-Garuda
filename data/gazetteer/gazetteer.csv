@@ -1,0 +1,497 @@
+place,district_code,level,lat,long
+Bengaluru Urban,BNU,district,12.97,77.59
+Bengaluru Urban Taluk 1,BNU,taluk,12.897085,77.756063
+Bengaluru Urban Taluk 2,BNU,taluk,13.057275,77.626221
+Bengaluru Urban Taluk 3,BNU,taluk,12.676615,77.533206
+"Market, Bengaluru Urban",BNU,locality,12.953847,77.590103
+"Bus Stand, Bengaluru Urban",BNU,locality,12.949765,77.586816
+"1st Main, Bengaluru Urban",BNU,locality,12.943992,77.528177
+"5th Cross, Bengaluru Urban",BNU,locality,13.002053,77.635884
+"Layout, Bengaluru Urban",BNU,locality,12.899246,77.471441
+"Circle, Bengaluru Urban",BNU,locality,12.982759,77.635692
+"Temple Street, Bengaluru Urban",BNU,locality,12.902064,77.631902
+"Railway Station Road, Bengaluru Urban",BNU,locality,12.971061,77.431766
+"College Road, Bengaluru Urban",BNU,locality,13.009406,77.609211
+"Industrial Area, Bengaluru Urban",BNU,locality,12.979613,77.690603
+"Market Yard, Bengaluru Urban",BNU,locality,12.866834,77.507873
+"New Extension, Bengaluru Urban",BNU,locality,12.964654,77.543767
+Bengaluru Rural,BNR,district,13.22,77.57
+Bengaluru Rural Taluk 1,BNR,taluk,13.196759,77.651863
+Bengaluru Rural Taluk 2,BNR,taluk,13.27268,77.589215
+Bengaluru Rural Taluk 3,BNR,taluk,13.385059,77.41652
+"Market, Bengaluru Rural",BNR,locality,13.161986,77.634042
+"Bus Stand, Bengaluru Rural",BNR,locality,13.294474,77.52695
+"1st Main, Bengaluru Rural",BNR,locality,13.271198,77.584307
+"5th Cross, Bengaluru Rural",BNR,locality,13.218707,77.6798
+"Layout, Bengaluru Rural",BNR,locality,13.257512,77.524604
+"Circle, Bengaluru Rural",BNR,locality,13.157219,77.557333
+"Temple Street, Bengaluru Rural",BNR,locality,13.276393,77.689478
+"Railway Station Road, Bengaluru Rural",BNR,locality,13.233691,77.551973
+"College Road, Bengaluru Rural",BNR,locality,13.184826,77.67922
+"Industrial Area, Bengaluru Rural",BNR,locality,13.205886,77.534166
+"Market Yard, Bengaluru Rural",BNR,locality,13.279158,77.626057
+"New Extension, Bengaluru Rural",BNR,locality,13.249424,77.578999
+Mysuru,MYS,district,12.3,76.64
+Mysuru Taluk 1,MYS,taluk,12.122008,76.762475
+Mysuru Taluk 2,MYS,taluk,12.331255,76.52885
+Mysuru Taluk 3,MYS,taluk,12.340359,76.470053
+"Market, Mysuru",MYS,locality,12.336679,76.732145
+"Bus Stand, Mysuru",MYS,locality,12.331032,76.843569
+"1st Main, Mysuru",MYS,locality,12.409609,76.557002
+"5th Cross, Mysuru",MYS,locality,12.35358,76.631594
+"Layout, Mysuru",MYS,locality,12.432233,76.660275
+"Circle, Mysuru",MYS,locality,12.212356,76.761733
+"Temple Street, Mysuru",MYS,locality,12.389607,76.657731
+"Railway Station Road, Mysuru",MYS,locality,12.320035,76.671599
+"College Road, Mysuru",MYS,locality,12.269799,76.677063
+"Industrial Area, Mysuru",MYS,locality,12.286266,76.741735
+"Market Yard, Mysuru",MYS,locality,12.183084,76.762423
+"New Extension, Mysuru",MYS,locality,12.280082,76.672172
+Belagavi,BEL,district,15.85,74.5
+Belagavi Taluk 1,BEL,taluk,15.692724,74.698171
+Belagavi Taluk 2,BEL,taluk,15.969716,74.501315
+Belagavi Taluk 3,BEL,taluk,15.671693,74.401438
+"Market, Belagavi",BEL,locality,15.857921,74.519441
+"Bus Stand, Belagavi",BEL,locality,15.815842,74.481372
+"1st Main, Belagavi",BEL,locality,15.883125,74.398022
+"5th Cross, Belagavi",BEL,locality,15.849272,74.596083
+"Layout, Belagavi",BEL,locality,15.825896,74.445235
+"Circle, Belagavi",BEL,locality,15.916469,74.474803
+"Temple Street, Belagavi",BEL,locality,15.865999,74.570545
+"Railway Station Road, Belagavi",BEL,locality,15.890992,74.533817
+"College Road, Belagavi",BEL,locality,15.805623,74.318355
+"Industrial Area, Belagavi",BEL,locality,15.861837,74.488739
+"Market Yard, Belagavi",BEL,locality,15.874986,74.473679
+"New Extension, Belagavi",BEL,locality,15.805074,74.477644
+Kalaburagi,KLB,district,17.33,76.83
+Kalaburagi Taluk 1,KLB,taluk,17.345365,76.94615
+Kalaburagi Taluk 2,KLB,taluk,17.185845,76.681916
+Kalaburagi Taluk 3,KLB,taluk,17.225533,76.728331
+"Market, Kalaburagi",KLB,locality,17.280499,76.844234
+"Bus Stand, Kalaburagi",KLB,locality,17.322706,76.789607
+"1st Main, Kalaburagi",KLB,locality,17.355018,76.769413
+"5th Cross, Kalaburagi",KLB,locality,17.258054,76.85009
+"Layout, Kalaburagi",KLB,locality,17.356427,76.855359
+"Circle, Kalaburagi",KLB,locality,17.24183,76.77962
+"Temple Street, Kalaburagi",KLB,locality,17.388697,76.867053
+"Railway Station Road, Kalaburagi",KLB,locality,17.32181,76.805721
+"College Road, Kalaburagi",KLB,locality,17.307944,76.853845
+"Industrial Area, Kalaburagi",KLB,locality,17.280246,76.863179
+"Market Yard, Kalaburagi",KLB,locality,17.281972,76.804414
+"New Extension, Kalaburagi",KLB,locality,17.295047,76.876425
+Dakshina Kannada,DK,district,12.87,75.04
+Dakshina Kannada Taluk 1,DK,taluk,12.910162,74.898383
+Dakshina Kannada Taluk 2,DK,taluk,12.568819,74.914399
+Dakshina Kannada Taluk 3,DK,taluk,12.83202,75.054101
+"Market, Dakshina Kannada",DK,locality,12.885344,74.971035
+"Bus Stand, Dakshina Kannada",DK,locality,12.930351,75.029248
+"1st Main, Dakshina Kannada",DK,locality,12.888817,75.034864
+"5th Cross, Dakshina Kannada",DK,locality,12.813234,75.05096
+"Layout, Dakshina Kannada",DK,locality,12.776692,75.051089
+"Circle, Dakshina Kannada",DK,locality,12.965275,75.047272
+"Temple Street, Dakshina Kannada",DK,locality,12.88104,74.92875
+"Railway Station Road, Dakshina Kannada",DK,locality,12.950602,75.12185
+"College Road, Dakshina Kannada",DK,locality,12.830275,75.073706
+"Industrial Area, Dakshina Kannada",DK,locality,12.843131,75.056539
+"Market Yard, Dakshina Kannada",DK,locality,12.93614,75.086007
+"New Extension, Dakshina Kannada",DK,locality,12.868927,74.923559
+Tumakuru,TMK,district,13.34,77.1
+Tumakuru Taluk 1,TMK,taluk,13.365844,77.033124
+Tumakuru Taluk 2,TMK,taluk,13.385708,77.283186
+Tumakuru Taluk 3,TMK,taluk,13.437137,77.081134
+"Market, Tumakuru",TMK,locality,13.330849,77.120082
+"Bus Stand, Tumakuru",TMK,locality,13.335313,77.186649
+"1st Main, Tumakuru",TMK,locality,13.310904,77.112835
+"5th Cross, Tumakuru",TMK,locality,13.305997,77.08925
+"Layout, Tumakuru",TMK,locality,13.327195,77.029624
+"Circle, Tumakuru",TMK,locality,13.30944,77.034226
+"Temple Street, Tumakuru",TMK,locality,13.321893,77.19451
+"Railway Station Road, Tumakuru",TMK,locality,13.272312,77.22927
+"College Road, Tumakuru",TMK,locality,13.31744,77.112151
+"Industrial Area, Tumakuru",TMK,locality,13.365741,77.08599
+"Market Yard, Tumakuru",TMK,locality,13.362363,77.142693
+"New Extension, Tumakuru",TMK,locality,13.26397,77.163682
+Ballari,BAL,district,15.14,76.92
+Ballari Taluk 1,BAL,taluk,15.141568,77.072376
+Ballari Taluk 2,BAL,taluk,15.159874,77.076837
+Ballari Taluk 3,BAL,taluk,15.076176,76.882973
+"Market, Ballari",BAL,locality,15.111283,76.985878
+"Bus Stand, Ballari",BAL,locality,15.16077,76.903945
+"1st Main, Ballari",BAL,locality,15.111625,76.937815
+"5th Cross, Ballari",BAL,locality,15.066308,76.850565
+"Layout, Ballari",BAL,locality,15.120555,76.96109
+"Circle, Ballari",BAL,locality,15.145844,76.973497
+"Temple Street, Ballari",BAL,locality,15.198454,76.93711
+"Railway Station Road, Ballari",BAL,locality,15.228215,76.912752
+"College Road, Ballari",BAL,locality,15.133021,76.950728
+"Industrial Area, Ballari",BAL,locality,15.129415,76.94104
+"Market Yard, Ballari",BAL,locality,15.175268,77.008103
+"New Extension, Ballari",BAL,locality,15.12823,76.883209
+Davanagere,DVG,district,14.47,75.92
+Davanagere Taluk 1,DVG,taluk,14.331575,75.850143
+Davanagere Taluk 2,DVG,taluk,14.187294,75.744828
+Davanagere Taluk 3,DVG,taluk,14.591017,75.918806
+"Market, Davanagere",DVG,locality,14.461826,75.915711
+"Bus Stand, Davanagere",DVG,locality,14.432121,75.97211
+"1st Main, Davanagere",DVG,locality,14.350623,75.914858
+"5th Cross, Davanagere",DVG,locality,14.494339,75.920672
+"Layout, Davanagere",DVG,locality,14.615372,75.856253
+"Circle, Davanagere",DVG,locality,14.4701,75.985955
+"Temple Street, Davanagere",DVG,locality,14.522538,75.9298
+"Railway Station Road, Davanagere",DVG,locality,14.455505,75.917694
+"College Road, Davanagere",DVG,locality,14.462427,75.923389
+"Industrial Area, Davanagere",DVG,locality,14.438938,75.884029
+"Market Yard, Davanagere",DVG,locality,14.488219,75.858773
+"New Extension, Davanagere",DVG,locality,14.446781,75.849665
+Dharwad,DHW,district,15.46,75.01
+Dharwad Taluk 1,DHW,taluk,15.375685,74.929438
+Dharwad Taluk 2,DHW,taluk,15.459982,75.157046
+Dharwad Taluk 3,DHW,taluk,15.454151,75.124306
+"Market, Dharwad",DHW,locality,15.408853,74.955942
+"Bus Stand, Dharwad",DHW,locality,15.419348,74.909055
+"1st Main, Dharwad",DHW,locality,15.29641,75.082666
+"5th Cross, Dharwad",DHW,locality,15.556954,74.977309
+"Layout, Dharwad",DHW,locality,15.449414,75.140228
+"Circle, Dharwad",DHW,locality,15.478943,74.95964
+"Temple Street, Dharwad",DHW,locality,15.399797,74.980935
+"Railway Station Road, Dharwad",DHW,locality,15.446053,75.015808
+"College Road, Dharwad",DHW,locality,15.401306,75.028811
+"Industrial Area, Dharwad",DHW,locality,15.51331,74.961571
+"Market Yard, Dharwad",DHW,locality,15.486136,75.099216
+"New Extension, Dharwad",DHW,locality,15.622696,74.981915
+Shivamogga,SMG,district,13.93,75.57
+Shivamogga Taluk 1,SMG,taluk,13.737039,75.735187
+Shivamogga Taluk 2,SMG,taluk,13.914049,75.675832
+Shivamogga Taluk 3,SMG,taluk,13.878897,75.498398
+"Market, Shivamogga",SMG,locality,14.058773,75.626543
+"Bus Stand, Shivamogga",SMG,locality,13.898009,75.475549
+"1st Main, Shivamogga",SMG,locality,14.035772,75.61294
+"5th Cross, Shivamogga",SMG,locality,13.946525,75.618064
+"Layout, Shivamogga",SMG,locality,13.891607,75.627647
+"Circle, Shivamogga",SMG,locality,13.898399,75.578739
+"Temple Street, Shivamogga",SMG,locality,13.883031,75.617
+"Railway Station Road, Shivamogga",SMG,locality,13.955079,75.599054
+"College Road, Shivamogga",SMG,locality,13.97989,75.544443
+"Industrial Area, Shivamogga",SMG,locality,13.959231,75.638787
+"Market Yard, Shivamogga",SMG,locality,13.987871,75.582642
+"New Extension, Shivamogga",SMG,locality,13.960625,75.481695
+Hassan,HSN,district,13.01,76.1
+Hassan Taluk 1,HSN,taluk,12.91664,76.220903
+Hassan Taluk 2,HSN,taluk,12.959008,76.128272
+Hassan Taluk 3,HSN,taluk,12.930596,76.013012
+"Market, Hassan",HSN,locality,13.018269,76.052364
+"Bus Stand, Hassan",HSN,locality,13.086121,76.101475
+"1st Main, Hassan",HSN,locality,13.038193,76.237805
+"5th Cross, Hassan",HSN,locality,13.052223,76.196795
+"Layout, Hassan",HSN,locality,12.991962,76.092299
+"Circle, Hassan",HSN,locality,12.949213,76.149467
+"Temple Street, Hassan",HSN,locality,13.071503,76.127252
+"Railway Station Road, Hassan",HSN,locality,12.985578,76.165653
+"College Road, Hassan",HSN,locality,13.13762,76.120843
+"Industrial Area, Hassan",HSN,locality,12.944217,76.129261
+"Market Yard, Hassan",HSN,locality,13.117499,76.110617
+"New Extension, Hassan",HSN,locality,12.911863,76.123854
+Vijayapura,VJP,district,16.83,75.71
+Vijayapura Taluk 1,VJP,taluk,16.886525,75.710746
+Vijayapura Taluk 2,VJP,taluk,17.038429,75.734298
+Vijayapura Taluk 3,VJP,taluk,16.858659,75.64228
+"Market, Vijayapura",VJP,locality,16.787908,75.642349
+"Bus Stand, Vijayapura",VJP,locality,16.770934,75.631281
+"1st Main, Vijayapura",VJP,locality,16.852337,75.679679
+"5th Cross, Vijayapura",VJP,locality,16.833496,75.637154
+"Layout, Vijayapura",VJP,locality,16.816594,75.739478
+"Circle, Vijayapura",VJP,locality,16.965135,75.67959
+"Temple Street, Vijayapura",VJP,locality,16.828553,75.674232
+"Railway Station Road, Vijayapura",VJP,locality,16.899868,75.746411
+"College Road, Vijayapura",VJP,locality,16.786725,75.691749
+"Industrial Area, Vijayapura",VJP,locality,16.802477,75.718637
+"Market Yard, Vijayapura",VJP,locality,16.79603,75.710878
+"New Extension, Vijayapura",VJP,locality,16.769542,75.776555
+Kolar,KLR,district,13.14,78.13
+Kolar Taluk 1,KLR,taluk,12.987516,77.995297
+Kolar Taluk 2,KLR,taluk,13.027547,78.263282
+Kolar Taluk 3,KLR,taluk,13.036619,78.070379
+"Market, Kolar",KLR,locality,13.063787,78.164635
+"Bus Stand, Kolar",KLR,locality,13.153462,78.17976
+"1st Main, Kolar",KLR,locality,13.120023,78.045082
+"5th Cross, Kolar",KLR,locality,13.026177,78.087051
+"Layout, Kolar",KLR,locality,13.100374,78.117456
+"Circle, Kolar",KLR,locality,13.140439,78.18668
+"Temple Street, Kolar",KLR,locality,13.139128,78.061651
+"Railway Station Road, Kolar",KLR,locality,13.194081,78.130939
+"College Road, Kolar",KLR,locality,13.106734,78.135729
+"Industrial Area, Kolar",KLR,locality,13.12421,78.104356
+"Market Yard, Kolar",KLR,locality,13.177566,78.060915
+"New Extension, Kolar",KLR,locality,13.128598,78.153945
+Mandya,MDY,district,12.52,76.9
+Mandya Taluk 1,MDY,taluk,12.271041,76.810088
+Mandya Taluk 2,MDY,taluk,12.608286,76.959476
+Mandya Taluk 3,MDY,taluk,12.625261,76.988836
+"Market, Mandya",MDY,locality,12.496215,76.900681
+"Bus Stand, Mandya",MDY,locality,12.506815,76.867983
+"1st Main, Mandya",MDY,locality,12.480042,76.999923
+"5th Cross, Mandya",MDY,locality,12.478675,76.877836
+"Layout, Mandya",MDY,locality,12.406467,76.997778
+"Circle, Mandya",MDY,locality,12.377958,76.900476
+"Temple Street, Mandya",MDY,locality,12.471113,76.917359
+"Railway Station Road, Mandya",MDY,locality,12.451947,76.976851
+"College Road, Mandya",MDY,locality,12.412809,76.928635
+"Industrial Area, Mandya",MDY,locality,12.416422,76.910134
+"Market Yard, Mandya",MDY,locality,12.531452,76.963861
+"New Extension, Mandya",MDY,locality,12.62707,76.935416
+Raichur,RCR,district,16.2,77.36
+Raichur Taluk 1,RCR,taluk,16.30607,77.405304
+Raichur Taluk 2,RCR,taluk,16.020771,77.23063
+Raichur Taluk 3,RCR,taluk,16.227442,77.330436
+"Market, Raichur",RCR,locality,16.128931,77.309646
+"Bus Stand, Raichur",RCR,locality,16.24238,77.334415
+"1st Main, Raichur",RCR,locality,16.29024,77.375525
+"5th Cross, Raichur",RCR,locality,16.301357,77.421504
+"Layout, Raichur",RCR,locality,16.332731,77.340437
+"Circle, Raichur",RCR,locality,16.08902,77.326127
+"Temple Street, Raichur",RCR,locality,16.22005,77.400464
+"Railway Station Road, Raichur",RCR,locality,16.188359,77.392445
+"College Road, Raichur",RCR,locality,16.085261,77.336556
+"Industrial Area, Raichur",RCR,locality,16.203516,77.399291
+"Market Yard, Raichur",RCR,locality,16.175136,77.308496
+"New Extension, Raichur",RCR,locality,16.236192,77.334905
+Bidar,BID,district,17.91,77.52
+Bidar Taluk 1,BID,taluk,18.013442,77.392775
+Bidar Taluk 2,BID,taluk,17.91538,77.353363
+Bidar Taluk 3,BID,taluk,17.839602,77.559083
+"Market, Bidar",BID,locality,17.940768,77.52482
+"Bus Stand, Bidar",BID,locality,17.944424,77.567823
+"1st Main, Bidar",BID,locality,17.893527,77.647025
+"5th Cross, Bidar",BID,locality,17.926538,77.516906
+"Layout, Bidar",BID,locality,17.944692,77.515371
+"Circle, Bidar",BID,locality,17.89968,77.487936
+"Temple Street, Bidar",BID,locality,17.935851,77.490482
+"Railway Station Road, Bidar",BID,locality,17.850268,77.53008
+"College Road, Bidar",BID,locality,18.035851,77.592576
+"Industrial Area, Bidar",BID,locality,17.939244,77.541248
+"Market Yard, Bidar",BID,locality,17.940672,77.375127
+"New Extension, Bidar",BID,locality,17.983495,77.649075
+Chitradurga,CTD,district,14.23,76.4
+Chitradurga Taluk 1,CTD,taluk,14.127167,76.549269
+Chitradurga Taluk 2,CTD,taluk,14.273908,76.259832
+Chitradurga Taluk 3,CTD,taluk,14.051802,76.421069
+"Market, Chitradurga",CTD,locality,14.343925,76.368746
+"Bus Stand, Chitradurga",CTD,locality,14.298819,76.395122
+"1st Main, Chitradurga",CTD,locality,14.265125,76.385662
+"5th Cross, Chitradurga",CTD,locality,14.079641,76.381641
+"Layout, Chitradurga",CTD,locality,14.153953,76.451336
+"Circle, Chitradurga",CTD,locality,14.22356,76.425116
+"Temple Street, Chitradurga",CTD,locality,14.244933,76.475357
+"Railway Station Road, Chitradurga",CTD,locality,14.291631,76.395993
+"College Road, Chitradurga",CTD,locality,14.207427,76.351386
+"Industrial Area, Chitradurga",CTD,locality,14.208336,76.41987
+"Market Yard, Chitradurga",CTD,locality,14.23931,76.305564
+"New Extension, Chitradurga",CTD,locality,14.280576,76.356843
+Udupi,UDP,district,13.34,74.75
+Udupi Taluk 1,UDP,taluk,13.468501,74.90407
+Udupi Taluk 2,UDP,taluk,13.258334,74.608451
+Udupi Taluk 3,UDP,taluk,13.282034,74.738943
+"Market, Udupi",UDP,locality,13.387295,74.748164
+"Bus Stand, Udupi",UDP,locality,13.491939,74.751514
+"1st Main, Udupi",UDP,locality,13.34118,74.676694
+"5th Cross, Udupi",UDP,locality,13.402247,74.819143
+"Layout, Udupi",UDP,locality,13.264116,74.776364
+"Circle, Udupi",UDP,locality,13.330715,74.807371
+"Temple Street, Udupi",UDP,locality,13.379987,74.817779
+"Railway Station Road, Udupi",UDP,locality,13.225839,74.688354
+"College Road, Udupi",UDP,locality,13.318703,74.750969
+"Industrial Area, Udupi",UDP,locality,13.33918,74.745429
+"Market Yard, Udupi",UDP,locality,13.352514,74.766074
+"New Extension, Udupi",UDP,locality,13.293794,74.689857
+Haveri,HVR,district,14.8,75.4
+Haveri Taluk 1,HVR,taluk,14.803282,75.632945
+Haveri Taluk 2,HVR,taluk,14.873489,75.405754
+Haveri Taluk 3,HVR,taluk,14.733237,75.389174
+"Market, Haveri",HVR,locality,14.833621,75.39596
+"Bus Stand, Haveri",HVR,locality,14.736731,75.440096
+"1st Main, Haveri",HVR,locality,14.752407,75.375335
+"5th Cross, Haveri",HVR,locality,14.786251,75.41514
+"Layout, Haveri",HVR,locality,14.706561,75.402284
+"Circle, Haveri",HVR,locality,14.909154,75.437828
+"Temple Street, Haveri",HVR,locality,14.768846,75.402483
+"Railway Station Road, Haveri",HVR,locality,14.858733,75.375845
+"College Road, Haveri",HVR,locality,14.793849,75.457917
+"Industrial Area, Haveri",HVR,locality,14.880386,75.29428
+"Market Yard, Haveri",HVR,locality,14.89703,75.332001
+"New Extension, Haveri",HVR,locality,14.884143,75.477648
+Bagalkote,BGK,district,16.18,75.7
+Bagalkote Taluk 1,BGK,taluk,16.103598,75.748537
+Bagalkote Taluk 2,BGK,taluk,16.332615,75.841635
+Bagalkote Taluk 3,BGK,taluk,16.060054,75.697603
+"Market, Bagalkote",BGK,locality,16.065422,75.739592
+"Bus Stand, Bagalkote",BGK,locality,16.258432,75.658341
+"1st Main, Bagalkote",BGK,locality,16.235357,75.766058
+"5th Cross, Bagalkote",BGK,locality,16.193059,75.743529
+"Layout, Bagalkote",BGK,locality,16.110003,75.649262
+"Circle, Bagalkote",BGK,locality,16.145839,75.726443
+"Temple Street, Bagalkote",BGK,locality,16.191825,75.658738
+"Railway Station Road, Bagalkote",BGK,locality,16.122522,75.66097
+"College Road, Bagalkote",BGK,locality,16.236831,75.622665
+"Industrial Area, Bagalkote",BGK,locality,16.145689,75.692987
+"Market Yard, Bagalkote",BGK,locality,16.184925,75.689125
+"New Extension, Bagalkote",BGK,locality,16.15828,75.665384
+Koppal,KPL,district,15.35,76.15
+Koppal Taluk 1,KPL,taluk,15.499426,76.085065
+Koppal Taluk 2,KPL,taluk,15.296234,76.00144
+Koppal Taluk 3,KPL,taluk,15.223563,76.225337
+"Market, Koppal",KPL,locality,15.398741,76.202872
+"Bus Stand, Koppal",KPL,locality,15.302156,76.171744
+"1st Main, Koppal",KPL,locality,15.362869,76.158647
+"5th Cross, Koppal",KPL,locality,15.360055,76.070797
+"Layout, Koppal",KPL,locality,15.461224,76.154894
+"Circle, Koppal",KPL,locality,15.33953,76.182069
+"Temple Street, Koppal",KPL,locality,15.479033,76.203191
+"Railway Station Road, Koppal",KPL,locality,15.373347,76.149615
+"College Road, Koppal",KPL,locality,15.362675,76.137398
+"Industrial Area, Koppal",KPL,locality,15.344862,76.131673
+"Market Yard, Koppal",KPL,locality,15.267559,76.111428
+"New Extension, Koppal",KPL,locality,15.467295,76.237904
+Ramanagara,RMN,district,12.72,77.28
+Ramanagara Taluk 1,RMN,taluk,12.706693,77.467218
+Ramanagara Taluk 2,RMN,taluk,12.814803,77.219891
+Ramanagara Taluk 3,RMN,taluk,12.458917,77.225424
+"Market, Ramanagara",RMN,locality,12.713763,77.314444
+"Bus Stand, Ramanagara",RMN,locality,12.820057,77.296312
+"1st Main, Ramanagara",RMN,locality,12.69942,77.322525
+"5th Cross, Ramanagara",RMN,locality,12.745045,77.382473
+"Layout, Ramanagara",RMN,locality,12.584344,77.280212
+"Circle, Ramanagara",RMN,locality,12.732988,77.225426
+"Temple Street, Ramanagara",RMN,locality,12.706485,77.252224
+"Railway Station Road, Ramanagara",RMN,locality,12.720278,77.308327
+"College Road, Ramanagara",RMN,locality,12.636452,77.340612
+"Industrial Area, Ramanagara",RMN,locality,12.753964,77.195701
+"Market Yard, Ramanagara",RMN,locality,12.653247,77.238571
+"New Extension, Ramanagara",RMN,locality,12.79288,77.25608
+Chikkaballapura,CKB,district,13.43,77.73
+Chikkaballapura Taluk 1,CKB,taluk,13.438078,77.577314
+Chikkaballapura Taluk 2,CKB,taluk,13.388113,77.711853
+Chikkaballapura Taluk 3,CKB,taluk,13.598884,77.801209
+"Market, Chikkaballapura",CKB,locality,13.410278,77.736547
+"Bus Stand, Chikkaballapura",CKB,locality,13.38911,77.686789
+"1st Main, Chikkaballapura",CKB,locality,13.387402,77.814428
+"5th Cross, Chikkaballapura",CKB,locality,13.396114,77.623647
+"Layout, Chikkaballapura",CKB,locality,13.403052,77.678157
+"Circle, Chikkaballapura",CKB,locality,13.503996,77.705898
+"Temple Street, Chikkaballapura",CKB,locality,13.414025,77.780932
+"Railway Station Road, Chikkaballapura",CKB,locality,13.41386,77.611197
+"College Road, Chikkaballapura",CKB,locality,13.492474,77.870798
+"Industrial Area, Chikkaballapura",CKB,locality,13.537072,77.692321
+"Market Yard, Chikkaballapura",CKB,locality,13.459802,77.561451
+"New Extension, Chikkaballapura",CKB,locality,13.446149,77.714891
+Chikkamagaluru,CKM,district,13.32,75.77
+Chikkamagaluru Taluk 1,CKM,taluk,13.427398,75.776492
+Chikkamagaluru Taluk 2,CKM,taluk,13.180049,75.705471
+Chikkamagaluru Taluk 3,CKM,taluk,13.406098,75.877046
+"Market, Chikkamagaluru",CKM,locality,13.253091,75.769722
+"Bus Stand, Chikkamagaluru",CKM,locality,13.214162,75.853137
+"1st Main, Chikkamagaluru",CKM,locality,13.303583,75.789027
+"5th Cross, Chikkamagaluru",CKM,locality,13.354125,75.756798
+"Layout, Chikkamagaluru",CKM,locality,13.380966,75.838573
+"Circle, Chikkamagaluru",CKM,locality,13.305436,75.756145
+"Temple Street, Chikkamagaluru",CKM,locality,13.393803,75.76139
+"Railway Station Road, Chikkamagaluru",CKM,locality,13.339261,75.712283
+"College Road, Chikkamagaluru",CKM,locality,13.422689,75.862846
+"Industrial Area, Chikkamagaluru",CKM,locality,13.301804,75.679398
+"Market Yard, Chikkamagaluru",CKM,locality,13.335716,75.734219
+"New Extension, Chikkamagaluru",CKM,locality,13.288905,75.808783
+Uttara Kannada,UK,district,14.79,74.69
+Uttara Kannada Taluk 1,UK,taluk,14.985624,74.619659
+Uttara Kannada Taluk 2,UK,taluk,14.92216,74.673526
+Uttara Kannada Taluk 3,UK,taluk,14.893976,74.831027
+"Market, Uttara Kannada",UK,locality,14.807273,74.584328
+"Bus Stand, Uttara Kannada",UK,locality,14.787603,74.688045
+"1st Main, Uttara Kannada",UK,locality,14.76446,74.714144
+"5th Cross, Uttara Kannada",UK,locality,14.746981,74.794104
+"Layout, Uttara Kannada",UK,locality,14.756723,74.717763
+"Circle, Uttara Kannada",UK,locality,14.78937,74.771016
+"Temple Street, Uttara Kannada",UK,locality,14.795095,74.765737
+"Railway Station Road, Uttara Kannada",UK,locality,14.748577,74.71947
+"College Road, Uttara Kannada",UK,locality,14.747366,74.724085
+"Industrial Area, Uttara Kannada",UK,locality,14.830899,74.715479
+"Market Yard, Uttara Kannada",UK,locality,14.814463,74.688657
+"New Extension, Uttara Kannada",UK,locality,14.761578,74.679197
+Gadag,GDG,district,15.43,75.63
+Gadag Taluk 1,GDG,taluk,15.407224,75.649345
+Gadag Taluk 2,GDG,taluk,15.618018,75.551906
+Gadag Taluk 3,GDG,taluk,15.242863,75.566706
+"Market, Gadag",GDG,locality,15.456556,75.697045
+"Bus Stand, Gadag",GDG,locality,15.408904,75.599122
+"1st Main, Gadag",GDG,locality,15.389348,75.548782
+"5th Cross, Gadag",GDG,locality,15.438091,75.645729
+"Layout, Gadag",GDG,locality,15.421102,75.548765
+"Circle, Gadag",GDG,locality,15.431038,75.688847
+"Temple Street, Gadag",GDG,locality,15.376664,75.681862
+"Railway Station Road, Gadag",GDG,locality,15.485344,75.679533
+"College Road, Gadag",GDG,locality,15.457716,75.444292
+"Industrial Area, Gadag",GDG,locality,15.431984,75.716577
+"Market Yard, Gadag",GDG,locality,15.490464,75.520231
+"New Extension, Gadag",GDG,locality,15.380788,75.59378
+Vijayanagara,VJN,district,15.27,76.39
+Vijayanagara Taluk 1,VJN,taluk,15.09743,76.359474
+Vijayanagara Taluk 2,VJN,taluk,15.201161,76.110009
+Vijayanagara Taluk 3,VJN,taluk,14.967163,76.330007
+"Market, Vijayanagara",VJN,locality,15.17545,76.30889
+"Bus Stand, Vijayanagara",VJN,locality,15.241322,76.319831
+"1st Main, Vijayanagara",VJN,locality,15.290861,76.326097
+"5th Cross, Vijayanagara",VJN,locality,15.292462,76.39388
+"Layout, Vijayanagara",VJN,locality,15.192862,76.427982
+"Circle, Vijayanagara",VJN,locality,15.23127,76.290122
+"Temple Street, Vijayanagara",VJN,locality,15.27144,76.469434
+"Railway Station Road, Vijayanagara",VJN,locality,15.260321,76.329169
+"College Road, Vijayanagara",VJN,locality,15.225226,76.449709
+"Industrial Area, Vijayanagara",VJN,locality,15.252231,76.316398
+"Market Yard, Vijayanagara",VJN,locality,15.245416,76.435312
+"New Extension, Vijayanagara",VJN,locality,15.265711,76.402591
+Yadgir,YDG,district,16.77,77.14
+Yadgir Taluk 1,YDG,taluk,16.897575,77.151545
+Yadgir Taluk 2,YDG,taluk,16.876555,77.253813
+Yadgir Taluk 3,YDG,taluk,16.876123,77.211823
+"Market, Yadgir",YDG,locality,16.767353,77.166008
+"Bus Stand, Yadgir",YDG,locality,16.730741,77.111237
+"1st Main, Yadgir",YDG,locality,16.791595,77.088087
+"5th Cross, Yadgir",YDG,locality,16.801602,77.138458
+"Layout, Yadgir",YDG,locality,16.664601,77.120224
+"Circle, Yadgir",YDG,locality,16.663776,77.100692
+"Temple Street, Yadgir",YDG,locality,16.806233,77.144752
+"Railway Station Road, Yadgir",YDG,locality,16.720799,77.124671
+"College Road, Yadgir",YDG,locality,16.873499,77.171324
+"Industrial Area, Yadgir",YDG,locality,16.67937,77.139027
+"Market Yard, Yadgir",YDG,locality,16.875174,77.108767
+"New Extension, Yadgir",YDG,locality,16.850635,77.1584
+Kodagu,KDG,district,12.42,75.74
+Kodagu Taluk 1,KDG,taluk,12.230512,75.821051
+Kodagu Taluk 2,KDG,taluk,12.373619,75.846801
+Kodagu Taluk 3,KDG,taluk,12.154086,75.737426
+"Market, Kodagu",KDG,locality,12.304059,75.73524
+"Bus Stand, Kodagu",KDG,locality,12.439443,75.811633
+"1st Main, Kodagu",KDG,locality,12.505537,75.655121
+"5th Cross, Kodagu",KDG,locality,12.389481,75.815477
+"Layout, Kodagu",KDG,locality,12.341969,75.671636
+"Circle, Kodagu",KDG,locality,12.382768,75.686585
+"Temple Street, Kodagu",KDG,locality,12.388257,75.76371
+"Railway Station Road, Kodagu",KDG,locality,12.366084,75.714944
+"College Road, Kodagu",KDG,locality,12.51951,75.751775
+"Industrial Area, Kodagu",KDG,locality,12.416773,75.810399
+"Market Yard, Kodagu",KDG,locality,12.426237,75.81282
+"New Extension, Kodagu",KDG,locality,12.358031,75.790097
+Chamarajanagar,CHN,district,11.92,76.94
+Chamarajanagar Taluk 1,CHN,taluk,11.908226,77.086121
+Chamarajanagar Taluk 2,CHN,taluk,11.926928,76.759976
+Chamarajanagar Taluk 3,CHN,taluk,11.976148,76.926055
+"Market, Chamarajanagar",CHN,locality,11.861741,76.962861
+"Bus Stand, Chamarajanagar",CHN,locality,12.022945,76.979614
+"1st Main, Chamarajanagar",CHN,locality,11.875668,76.949254
+"5th Cross, Chamarajanagar",CHN,locality,11.814123,76.853287
+"Layout, Chamarajanagar",CHN,locality,11.994082,76.98435
+"Circle, Chamarajanagar",CHN,locality,11.983322,76.941456
+"Temple Street, Chamarajanagar",CHN,locality,11.936341,77.00421
+"Railway Station Road, Chamarajanagar",CHN,locality,11.932043,76.971105
+"College Road, Chamarajanagar",CHN,locality,11.836932,76.973282
+"Industrial Area, Chamarajanagar",CHN,locality,11.87323,77.036705
+"Market Yard, Chamarajanagar",CHN,locality,11.862414,76.875837
+"New Extension, Chamarajanagar",CHN,locality,11.845188,76.967457

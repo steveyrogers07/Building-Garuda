@@ -1,0 +1,115 @@
+# GARUDA — synthetic generator configuration (parameterised; never hardcode in code).
+# Consumed by data/generate.py. Keep the seed fixed so ground_truth.json stays valid.
+
+seed: 20260618
+
+counts:
+  n_incidents: 10000          # total incidents incl. planted (dev-tier safe: 10-20k)
+  persons_canonical: 7000     # base canonical persons (aliases added on top)
+  alias_fraction: 0.25        # share of persons that get 1..max_aliases variants
+  max_aliases: 3
+  vehicles: 2200
+  phones: 1800
+  active_offender_fraction: 0.10   # small set of repeat offenders (denser graph)
+
+dates:
+  start: 2024-01-01
+  end: 2025-06-30
+  weekend_boost: 1.25         # Fri/Sat/Sun
+  month_end_boost: 1.5        # last 3 days of month
+  festivals:                  # date +/- window_days gets a multiplicative boost
+    - { name: Sankranti,         date: 2025-01-14, window_days: 2, boost: 1.6 }
+    - { name: Ugadi-2024,        date: 2024-04-09, window_days: 2, boost: 1.5 }
+    - { name: Ganesh-Chaturthi,  date: 2024-09-07, window_days: 2, boost: 1.6 }
+    - { name: Dasara-2024,       date: 2024-10-12, window_days: 4, boost: 1.9 }
+    - { name: Deepavali-2024,    date: 2024-10-31, window_days: 3, boost: 2.0 }
+    - { name: Ugadi-2025,        date: 2025-03-30, window_days: 2, boost: 1.5 }
+
+# Crime types night-skew their timing; these are "day" crimes (office-hours-ish).
+day_crimes: [Cheating, Cybercrime, Criminal breach of trust]
+
+bns_ratio: 0.60               # ~60% incidents coded in BNS, ~40% IPC
+
+status_weights:
+  Under Investigation: 0.45
+  Chargesheeted: 0.22
+  Pending Trial: 0.12
+  Closed: 0.12
+  Final Report: 0.09
+
+# 31 Karnataka districts. lat/long are approximate centroids (representative;
+# swap precise values with the official GeoJSON later). weight = relative incidence.
+districts:
+  - { code: BNU, name: Bengaluru Urban,   lat: 12.97, long: 77.59, weight: 22 }
+  - { code: BNR, name: Bengaluru Rural,   lat: 13.22, long: 77.57, weight: 3 }
+  - { code: MYS, name: Mysuru,            lat: 12.30, long: 76.64, weight: 7 }
+  - { code: BEL, name: Belagavi,          lat: 15.85, long: 74.50, weight: 6 }
+  - { code: KLB, name: Kalaburagi,        lat: 17.33, long: 76.83, weight: 5 }
+  - { code: DK,  name: Dakshina Kannada,  lat: 12.87, long: 75.04, weight: 5 }
+  - { code: TMK, name: Tumakuru,          lat: 13.34, long: 77.10, weight: 4 }
+  - { code: BAL, name: Ballari,           lat: 15.14, long: 76.92, weight: 4 }
+  - { code: DVG, name: Davanagere,        lat: 14.47, long: 75.92, weight: 4 }
+  - { code: DHW, name: Dharwad,           lat: 15.46, long: 75.01, weight: 4 }
+  - { code: SMG, name: Shivamogga,        lat: 13.93, long: 75.57, weight: 3 }
+  - { code: HSN, name: Hassan,            lat: 13.01, long: 76.10, weight: 3 }
+  - { code: VJP, name: Vijayapura,        lat: 16.83, long: 75.71, weight: 3 }
+  - { code: KLR, name: Kolar,             lat: 13.14, long: 78.13, weight: 3 }
+  - { code: MDY, name: Mandya,            lat: 12.52, long: 76.90, weight: 3 }
+  - { code: RCR, name: Raichur,           lat: 16.20, long: 77.36, weight: 3 }
+  - { code: BID, name: Bidar,             lat: 17.91, long: 77.52, weight: 2 }
+  - { code: CTD, name: Chitradurga,       lat: 14.23, long: 76.40, weight: 2 }
+  - { code: UDP, name: Udupi,             lat: 13.34, long: 74.75, weight: 2 }
+  - { code: HVR, name: Haveri,            lat: 14.80, long: 75.40, weight: 2 }
+  - { code: BGK, name: Bagalkote,         lat: 16.18, long: 75.70, weight: 2 }
+  - { code: KPL, name: Koppal,            lat: 15.35, long: 76.15, weight: 2 }
+  - { code: RMN, name: Ramanagara,        lat: 12.72, long: 77.28, weight: 2 }
+  - { code: CKB, name: Chikkaballapura,   lat: 13.43, long: 77.73, weight: 2 }
+  - { code: CKM, name: Chikkamagaluru,    lat: 13.32, long: 75.77, weight: 2 }
+  - { code: UK,  name: Uttara Kannada,    lat: 14.79, long: 74.69, weight: 2 }
+  - { code: GDG, name: Gadag,             lat: 15.43, long: 75.63, weight: 2 }
+  - { code: VJN, name: Vijayanagara,      lat: 15.27, long: 76.39, weight: 2 }
+  - { code: YDG, name: Yadgir,            lat: 16.77, long: 77.14, weight: 1 }
+  - { code: KDG, name: Kodagu,            lat: 12.42, long: 75.74, weight: 1 }
+  - { code: CHN, name: Chamarajanagar,    lat: 11.92, long: 76.94, weight: 1 }
+
+# Crime mix. ipc/bns are the section codes; the IPC<->BNS map CSV must cover both.
+crime_types:
+  - { name: Two-wheeler theft,         weight: 16, ipc: "379", bns: "303(2)" }
+  - { name: Theft,                     weight: 13, ipc: "379", bns: "303(2)" }
+  - { name: House burglary,            weight: 12, ipc: "457", bns: "331(4)" }
+  - { name: Chain snatching,           weight: 10, ipc: "356", bns: "304(2)" }
+  - { name: Assault,                   weight: 8,  ipc: "323", bns: "115(2)" }
+  - { name: Cheating,                  weight: 7,  ipc: "420", bns: "318(4)" }
+  - { name: Robbery,                   weight: 6,  ipc: "392", bns: "309(4)" }
+  - { name: Motor vehicle theft,       weight: 5,  ipc: "379", bns: "303(2)" }
+  - { name: Cybercrime,                weight: 5,  ipc: "420", bns: "318(4)" }
+  - { name: Grievous hurt,             weight: 3,  ipc: "325", bns: "117(2)" }
+  - { name: Criminal breach of trust,  weight: 3,  ipc: "406", bns: "316(2)" }
+  - { name: Rioting,                   weight: 3,  ipc: "147", bns: "191(2)" }
+  - { name: Criminal trespass,         weight: 3,  ipc: "447", bns: "329(3)" }
+  - { name: Dacoity,                   weight: 1,  ipc: "395", bns: "310(2)" }
+  - { name: Murder,                    weight: 1,  ipc: "302", bns: "103(1)" }
+  - { name: Kidnapping,                weight: 1,  ipc: "363", bns: "137(2)" }
+
+planted:
+  network:
+    crime_type: Chain snatching
+    n_incidents: 10
+    districts: [BNU, RMN, TMK, KLR]   # >=3 districts; the cross-district reveal
+    n_members: 5                      # persons in the gang
+    kingpin_presence: 0.8             # kingpin appears in ~80% of the incidents
+    window: { start: 2024-11-01, end: 2025-01-31 }
+  series:
+    crime_type: House burglary
+    district: MYS
+    n_incidents: 6
+    window_days: 14
+    locality_jitter_deg: 0.01         # ~1 km tight cluster
+  # Target high-volume district x crime cells so a 3-4x spike is meaningful.
+  # injection = baseline * (multiplier - 1), computed at runtime (floor keeps it visible).
+  # Avoid cells used by the network (Chain snatching in BNU/RMN/TMK/KLR, Nov-Jan)
+  # and the series (House burglary in MYS).
+  anomalies:
+    - { district: BNU, crime_type: Two-wheeler theft, month: 2025-03, multiplier: 4.0 }
+    - { district: BNU, crime_type: House burglary,    month: 2025-04, multiplier: 3.5 }
+    - { district: MYS, crime_type: Two-wheeler theft, month: 2024-09, multiplier: 3.5 }

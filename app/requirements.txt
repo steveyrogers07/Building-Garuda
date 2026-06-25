@@ -14,6 +14,11 @@ indic-transliteration # Kannada <-> Latin so script variants align
 networkx              # graph build, degree/betweenness centrality, Louvain communities
 statsmodels           # STL de-seasonalisation for the anomaly baseline (robust z-score fallback)
 
+# Phase 6: predictive risk forecasting (all local/free; SHAP via LightGBM TreeSHAP).
+lightgbm              # gradient-boosted hotspot model + native pred_contrib (TreeSHAP)
+holidays              # India/Karnataka holiday calendar flag (graceful no-op if absent)
+pandas                # feature-table aggregation (also used across the engines)
+
 # Account-gated batch write-back (/resolve/run, /mo/run with GARUDA_BACKEND=zcql).
 zcatalyst-sdk-python
 

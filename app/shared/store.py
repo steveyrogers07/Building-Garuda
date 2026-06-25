@@ -292,3 +292,42 @@ def write_network_cache(center, payload):
     p = d / f"{center}.json"
     p.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     return str(p)
+
+
+# --------------------------------------------------------------------------- #
+# Phase-6 reads/writes — socio-economic context + Predictive_Risk
+# --------------------------------------------------------------------------- #
+_SOCIO_COLS = ("area_code", "population", "density", "literacy", "urbanization")
+_PRED_RISK_COLS = ["grid_id", "district_code", "crime_type", "period", "risk_score",
+                   "rank", "top_drivers", "model_version", "backtest_pai"]
+
+
+def fetch_socioeconomic():
+    """Per-area socio-economic features. Locally sourced from the Census reference
+    CSV; from the Socioeconomic Data Store table under GARUDA_BACKEND=zcql."""
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Socioeconomic", zcql.execute_query(
+            "SELECT " + ", ".join(_SOCIO_COLS) + " FROM Socioeconomic"))
+    p = SYN_DIR.parent / "reference" / "census_2011.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _SOCIO_COLS} for r in rows]
+
+
+def write_predictive_risk(rows):
+    """Persist forecast risk per (area x period x crime_type) -> Predictive_Risk."""
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        for i in range(0, len(rows), ZCQL_BATCH):
+            for r in rows[i:i + ZCQL_BATCH]:
+                vals = ", ".join(
+                    (str(float(r.get(k) or 0)) if k in ("risk_score", "backtest_pai")
+                     else str(int(r.get(k) or 0)) if k == "rank"
+                     else f"'{_sql_escape(r.get(k, ''))}'")
+                    for k in _PRED_RISK_COLS)
+                zcql.execute_query(
+                    f"INSERT INTO Predictive_Risk ({', '.join(_PRED_RISK_COLS)}) "
+                    f"VALUES ({vals})")
+        return len(rows)
+    _write_out_csv("predictive_risk.csv", rows, _PRED_RISK_COLS)
+    return len(rows)

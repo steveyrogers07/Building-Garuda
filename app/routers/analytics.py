@@ -12,17 +12,27 @@ Phase 5 — co-offender network / crime-series / anomaly (the hero reveal):
   POST /series/run          : link incidents into Crime_Series (MO + space-time near-repeat).
   POST /anomaly/run         : flag emerging-trend spikes into Alerts.
 
+Phase 6 — predictive & explainable risk forecasting (places x times, not people):
+  POST /risk/run            : walk-forward backtest (PAI/PEI/PR-AUC) + write Predictive_Risk.
+  GET  /risk/top            : current highest-risk area x crime-type cells.
+  GET  /risk/explain        : SHAP drivers for one area x crime-type prediction.
+  GET  /risk/fairness       : per-ward predicted-vs-actual bias audit.
+
 Reads/writes go through shared.store (local CSV by default; Catalyst Data Store via ZCQL
 when GARUDA_BACKEND=zcql). The heavy ML stays here on AppSail; Node stays thin.
 """
 from __future__ import annotations
 
+import json
 import os
 from typing import Optional
 
+import numpy as np
+import pandas as pd
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from engines import forecasting as fc
 from engines import mo as mo_engine
 from engines import network as net_engine
 from engines.anomaly import detect as detect_anomalies
@@ -180,3 +190,82 @@ def anomaly_run(body: RunIn):
     written = store.write_alerts(res["alerts"]) if body.write else 0
     return {"ok": True, "alerts": len(res["alerts"]), "written": written,
             "sample": res["alerts"][:20]}
+
+
+# --------------------------------------------------------------------------- #
+# Phase 6 — predictive & explainable risk forecasting
+# --------------------------------------------------------------------------- #
+# Training is expensive; cache the model + backtest + current risk surface.
+_RISK_CACHE = {"state": None}
+
+
+def _risk_state(rebuild=False):
+    if _RISK_CACHE["state"] is None or rebuild:
+        t, feats = fc.build_feature_table(store.fetch_incidents_p5(),
+                                          store.fetch_socioeconomic())
+        wf = fc.walk_forward(t, feats, n_folds=3)
+        model = fc.fit(t, feats)
+        cur, last = fc.forecast_next(t, feats, model)
+        samp = t.sample(min(40000, len(t)), random_state=0).copy()
+        samp["score"] = model.predict_proba(samp[feats])[:, 1]
+        fair_df, fair_sum = fc.fairness_audit(samp, "score")
+        _RISK_CACHE["state"] = {"t": t, "feats": feats, "model": model, "cur": cur,
+                                "last": last, "wf": wf, "fair": (fair_df, fair_sum)}
+    return _RISK_CACHE["state"]
+
+
+def _risk_rows(st, n=None):
+    """Predictive_Risk rows for the current risk surface (top SHAP drivers inline)."""
+    cur = st["cur"] if n is None else st["cur"].head(n)
+    feats, model = st["feats"], st["model"]
+    booster = getattr(model, "booster_", model)
+    contrib = booster.predict(cur[feats].to_numpy(dtype=float), pred_contrib=True)
+    period = str(pd.Timestamp(st["last"]).date())
+    pai = st["wf"]["summary"].get("pai")
+    rows = []
+    for i, (_, r) in enumerate(cur.reset_index(drop=True).iterrows()):
+        vals = contrib[i][:-1]
+        drivers = [feats[j] for j in np.argsort(np.abs(vals))[::-1][:3]]
+        rows.append({"grid_id": r["area_code"], "district_code": r["area_code"],
+                     "crime_type": r["crime_type"], "period": period,
+                     "risk_score": round(float(r["risk_score"]), 4), "rank": int(r["rank"]),
+                     "top_drivers": json.dumps(drivers), "model_version": fc.MODEL_VERSION,
+                     "backtest_pai": pai})
+    return rows
+
+
+@router.post("/risk/run")
+def risk_run(body: RunIn):
+    st = _risk_state(rebuild=True)
+    rows = _risk_rows(st)
+    written = store.write_predictive_risk(rows) if body.write else 0
+    return {"ok": True, "metrics": st["wf"]["summary"], "base_rate": st["wf"]["base_rate"],
+            "model_version": fc.MODEL_VERSION, "risk_cells": len(rows),
+            "written": written, "top": rows[:10]}
+
+
+@router.get("/risk/top")
+def risk_top(n: int = 20):
+    st = _risk_state()
+    return {"as_of": str(pd.Timestamp(st["last"]).date()), "top": _risk_rows(st, n=n)}
+
+
+@router.get("/risk/explain")
+def risk_explain(area: str, crime_type: str):
+    """SHAP drivers: why is this area x crime-type risky right now?"""
+    st = _risk_state()
+    cur = st["cur"]
+    row = cur[(cur["area_code"] == area) & (cur["crime_type"] == crime_type)]
+    if row.empty:
+        return {"error": "unknown area/crime_type", "area": area, "crime_type": crime_type}
+    drivers = fc.shap_drivers(st["model"], row[st["feats"]].to_numpy(dtype=float),
+                              st["feats"], top=8)
+    return {"area": area, "crime_type": crime_type,
+            "risk_score": round(float(row.iloc[0]["risk_score"]), 4), "drivers": drivers}
+
+
+@router.get("/risk/fairness")
+def risk_fairness():
+    st = _risk_state()
+    fair_df, fair_sum = st["fair"]
+    return {"summary": fair_sum, "wards": fair_df.to_dict("records")}

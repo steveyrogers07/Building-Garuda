@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Protected &mdash; GARUDA</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="main.css" />
+</head>
+
+<body>
+	<main class="wrap">
+		<h1>&#128274; GARUDA &mdash; Protected area</h1>
+		<p class="phase">This route is login-gated &mdash; the Phase 1 authentication proof.</p>
+		<section id="who" class="card">
+			<p>Checking session&hellip;</p>
+		</section>
+		<nav class="actions">
+			<button class="btn" id="signout">Sign out</button>
+			<a class="btn ghost" href="index.html">Home</a>
+		</nav>
+	</main>
+
+	<script src="https://static.zohocdn.com/catalyst/sdk/js/4.5.0/catalyst-web-sdk.min.js"></script>
+	<script src="config.js"></script>
+	<script src="main.js"></script>
+	<script>
+		(async function () {
+			var user = await GARUDA.requireAuth('login.html');
+			if (!user) return; // not signed in -> redirected to login
+			document.getElementById('who').innerHTML =
+				'<h2>Welcome</h2><p class="note">You are signed in. Role-based masking is wired in Phase 9.</p>' +
+				'<pre>' + JSON.stringify(user, null, 2) + '</pre>';
+			document.getElementById('signout').addEventListener('click', function () {
+				GARUDA.signOut('index.html');
+			});
+		})();
+	</script>
+</body>
+
+</html>

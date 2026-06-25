@@ -1,0 +1,50 @@
+<svg viewBox="0 0 980 400" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif" role="img">
+<title>GARUDA runtime data flow from scanned FIR to patrol decision</title>
+<rect x="0" y="0" width="980" height="400" fill="#FFFFFF"/>
+<defs>
+<marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto-start-reverse"><path d="M0,0 L7,3 L0,6 Z" fill="#8A93A0"/></marker>
+<style>
+.h2t{fill:#FFFFFF;font-weight:700;font-size:12px;letter-spacing:.04em;}
+.hd2{fill:#2F6F9F;}
+.st{fill:#F5F3EE;stroke:#D3CDBF;stroke-width:1.2;}
+.stx{fill:#E7F0F8;stroke:#2F6F9F;stroke-width:1.6;}
+.stt{fill:#1B2230;font-size:11px;}
+.bn{fill:#F0EDE6;stroke:#D3CDBF;stroke-width:1;}
+.bnx{fill:#E7F0F8;stroke:#2F6F9F;stroke-width:1;}
+.bnt{fill:#1B2230;font-weight:700;font-size:11.5px;}
+.ttl2{fill:#1B2230;font-weight:700;font-size:14px;}
+.ft{fill:#5B6472;font-size:10px;}
+.cn{stroke:#8A93A0;stroke-width:1.6;fill:none;}
+</style>
+</defs>
+<text x="24" y="22" class="ttl2">GARUDA · runtime flow — from a scanned FIR to a patrol decision</text>
+<rect class="bnx" x="24" y="36" width="932" height="38" rx="8"/>
+<text x="490" y="60" text-anchor="middle" class="bnt">INTERFACE   ·   Map   ·   Force-graph   ·   Copilot (RAG + citations)   ·   Dashboards</text>
+<line class="cn" x1="133" y1="74" x2="133" y2="100" marker-end="url(#ar2)"/>
+<line class="cn" x1="609" y1="100" x2="609" y2="74" marker-end="url(#ar2)"/>
+<line class="cn" x1="847" y1="100" x2="847" y2="74" marker-end="url(#ar2)"/>
+<rect class="hd2" x="24" y="100" width="218" height="32" rx="7"/><text x="133" y="121" text-anchor="middle" class="h2t">1 · INGEST</text>
+<rect class="hd2" x="262" y="100" width="218" height="32" rx="7"/><text x="371" y="121" text-anchor="middle" class="h2t">2 · RESOLVE</text>
+<rect class="hd2" x="500" y="100" width="218" height="32" rx="7"/><text x="609" y="121" text-anchor="middle" class="h2t">3 · ANALYZE</text>
+<rect class="hd2" x="738" y="100" width="218" height="32" rx="7"/><text x="847" y="121" text-anchor="middle" class="h2t">4 · ACT</text>
+<line class="cn" x1="242" y1="116" x2="262" y2="116" marker-end="url(#ar2)"/>
+<line class="cn" x1="480" y1="116" x2="500" y2="116" marker-end="url(#ar2)"/>
+<line class="cn" x1="718" y1="116" x2="738" y2="116" marker-end="url(#ar2)"/>
+<rect class="st" x="24" y="146" width="218" height="30" rx="6"/><text x="133" y="165" text-anchor="middle" class="stt">Stratus upload</text>
+<rect class="st" x="24" y="184" width="218" height="30" rx="6"/><text x="133" y="203" text-anchor="middle" class="stt">Signal → Event Function</text>
+<rect class="st" x="24" y="222" width="218" height="30" rx="6"/><text x="133" y="241" text-anchor="middle" class="stt">Zia OCR + Qwen extract</text>
+<rect class="st" x="24" y="260" width="218" height="30" rx="6"/><text x="133" y="279" text-anchor="middle" class="stt">Human review queue</text>
+<rect class="stx" x="262" y="146" width="218" height="30" rx="6"/><text x="371" y="165" text-anchor="middle" class="stt">★ Entity resolution</text>
+<rect class="st" x="262" y="184" width="218" height="30" rx="6"/><text x="371" y="203" text-anchor="middle" class="stt">Geocode + gazetteer</text>
+<rect class="st" x="262" y="222" width="218" height="30" rx="6"/><text x="371" y="241" text-anchor="middle" class="stt">MO fingerprint</text>
+<rect class="st" x="500" y="146" width="218" height="30" rx="6"/><text x="609" y="165" text-anchor="middle" class="stt">Predictive · PAI/PEI</text>
+<rect class="stx" x="500" y="184" width="218" height="30" rx="6"/><text x="609" y="203" text-anchor="middle" class="stt">★ Network + centrality</text>
+<rect class="st" x="500" y="222" width="218" height="30" rx="6"/><text x="609" y="241" text-anchor="middle" class="stt">Anomaly + series</text>
+<rect class="st" x="738" y="146" width="218" height="30" rx="6"/><text x="847" y="165" text-anchor="middle" class="stt">Patrol optimization</text>
+<rect class="st" x="738" y="184" width="218" height="30" rx="6"/><text x="847" y="203" text-anchor="middle" class="stt">Push alerts</text>
+<rect class="st" x="738" y="222" width="218" height="30" rx="6"/><text x="847" y="241" text-anchor="middle" class="stt">SmartBrowz + Mail brief</text>
+<rect class="bn" x="24" y="302" width="932" height="36" rx="8"/>
+<text x="490" y="325" text-anchor="middle" class="bnt">GOVERNANCE (every step)   ·   RBAC + field masking   ·   audit log   ·   bias monitor   ·   human-in-the-loop</text>
+<text x="24" y="360" class="ft">DATA: Data Store (SQL + full-text) · NoSQL (graph / embeddings) · Stratus (files / PDF) · Cache</text>
+<text x="24" y="380" class="ft">SCHEDULING: Job Scheduling (Cron is EOL) · ORCHESTRATION: Circuits · ML RUNTIME: AppSail (Python/FastAPI) · AUTH: Authentication + API Gateway</text>
+</svg>

@@ -1,0 +1,7 @@
+# GARUDA AppSail (Phase 1 hello-world) — keep minimal.
+# Heavy ML libs (pandas, scikit-learn, lightgbm, networkx, hdbscan,
+# sentence-transformers, splink, shap, statsmodels, zcatalyst-sdk-python)
+# are added in Phases 4-7. Plain `uvicorn` (not uvicorn[standard]) keeps the
+# dependency tree cross-platform — uvloop has no Windows wheel for local runs.
+fastapi
+uvicorn

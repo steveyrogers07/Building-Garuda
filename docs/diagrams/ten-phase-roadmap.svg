@@ -1,0 +1,77 @@
+<svg viewBox="0 0 1000 470" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif" role="img">
+<title>GARUDA ten-phase build roadmap with exit gates</title>
+<rect x="0" y="0" width="1000" height="470" fill="#FFFFFF"/>
+<defs>
+<marker id="arp" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto-start-reverse"><path d="M0,0 L7,3 L0,6 Z" fill="#8A93A0"/></marker>
+<style>
+.pt{fill:#1B2230;font-weight:700;font-size:15px;}
+.nm{fill:#FFFFFF;font-weight:700;font-size:13px;}
+.pti{fill:#1B2230;font-weight:700;font-size:11.5px;}
+.gt{fill:#5B6472;font-size:9px;}
+.cn{stroke:#8A93A0;stroke-width:1.8;fill:none;}
+.gd{fill:#1B2230;font-size:10.5px;}
+</style>
+</defs>
+<text x="20" y="26" class="pt">GARUDA · the 10-phase march — advance only when a phase's gate is green</text>
+<rect x="20" y="64" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="40" cy="86" r="13" fill="#2F6F9F"/><text x="40" y="90" text-anchor="middle" class="nm">1</text>
+<text x="64" y="118" class="pti">Foundation</text>
+<text x="32" y="138" class="pti">&amp; Setup</text>
+<text x="32" y="158" class="gt">✓ Dev app + login live</text>
+<rect x="216" y="64" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="236" cy="86" r="13" fill="#2F6F9F"/><text x="236" y="90" text-anchor="middle" class="nm">2</text>
+<text x="260" y="118" class="pti">Data Layer</text>
+<text x="228" y="138" class="pti">+ Synthetic</text>
+<text x="228" y="158" class="gt">✓ 50k rows queryable</text>
+<rect x="412" y="64" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="432" cy="86" r="13" fill="#2F6F9F"/><text x="432" y="90" text-anchor="middle" class="nm">3</text>
+<text x="456" y="118" class="pti">Ingestion</text>
+<text x="424" y="138" class="pti">&amp; Extraction</text>
+<text x="424" y="158" class="gt">✓ FIR → review queue</text>
+<rect x="608" y="64" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="628" cy="86" r="13" fill="#2F6F9F"/><text x="628" y="90" text-anchor="middle" class="nm">4</text>
+<text x="652" y="118" class="pti">Entity Resolution</text>
+<text x="620" y="138" class="pti">+ MO fingerprint</text>
+<text x="620" y="158" class="gt">✓ aliases merged</text>
+<rect x="804" y="64" width="176" height="104" rx="9" fill="#E7F0F8" stroke="#2F6F9F" stroke-width="1.8"/>
+<circle cx="824" cy="86" r="13" fill="#1F567E"/><text x="824" y="90" text-anchor="middle" class="nm">5</text>
+<text x="848" y="118" class="pti">Core Analytics</text>
+<text x="816" y="138" class="pti">Network ★</text>
+<text x="816" y="158" class="gt">✓ hero reveal works</text>
+<rect x="804" y="300" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="824" cy="322" r="13" fill="#2F6F9F"/><text x="824" y="326" text-anchor="middle" class="nm">6</text>
+<text x="848" y="354" class="pti">Predictive</text>
+<text x="816" y="374" class="pti">+ Explainable</text>
+<text x="816" y="394" class="gt">✓ PAI/PEI + SHAP</text>
+<rect x="608" y="300" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="628" cy="322" r="13" fill="#2F6F9F"/><text x="628" y="326" text-anchor="middle" class="nm">7</text>
+<text x="652" y="354" class="pti">Copilot</text>
+<text x="620" y="374" class="pti">(Hybrid RAG)</text>
+<text x="620" y="394" class="gt">✓ cited answers</text>
+<rect x="412" y="300" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="432" cy="322" r="13" fill="#2F6F9F"/><text x="432" y="326" text-anchor="middle" class="nm">8</text>
+<text x="456" y="354" class="pti">Frontend</text>
+<text x="424" y="374" class="pti">Platform</text>
+<text x="424" y="394" class="gt">✓ all views live</text>
+<rect x="216" y="300" width="176" height="104" rx="9" fill="#F5F3EE" stroke="#D3CDBF" stroke-width="1.5"/>
+<circle cx="236" cy="322" r="13" fill="#2F6F9F"/><text x="236" y="326" text-anchor="middle" class="nm">9</text>
+<text x="260" y="354" class="pti">Automation</text>
+<text x="228" y="374" class="pti">&amp; Hardening</text>
+<text x="228" y="394" class="gt">✓ alerts + RBAC</text>
+<rect x="20" y="300" width="176" height="104" rx="9" fill="#1F567E" stroke="#1F567E"/>
+<circle cx="40" cy="322" r="13" fill="#FFFFFF"/><text x="40" y="326" text-anchor="middle" fill="#1F567E" font-weight="700" font-size="13px">10</text>
+<text x="64" y="354" fill="#FFFFFF" font-weight="700" font-size="11.5px">Test · Deploy</text>
+<text x="32" y="374" fill="#FFFFFF" font-weight="700" font-size="11.5px">· Demo</text>
+<text x="32" y="394" fill="#D7E6F2" font-size="9px">✓ prod URL + video</text>
+<line class="cn" x1="196" y1="116" x2="216" y2="116" marker-end="url(#arp)"/>
+<line class="cn" x1="392" y1="116" x2="412" y2="116" marker-end="url(#arp)"/>
+<line class="cn" x1="588" y1="116" x2="608" y2="116" marker-end="url(#arp)"/>
+<line class="cn" x1="784" y1="116" x2="804" y2="116" marker-end="url(#arp)"/>
+<line class="cn" x1="892" y1="168" x2="892" y2="300" marker-end="url(#arp)"/>
+<line class="cn" x1="804" y1="352" x2="784" y2="352" marker-end="url(#arp)"/>
+<line class="cn" x1="608" y1="352" x2="588" y2="352" marker-end="url(#arp)"/>
+<line class="cn" x1="412" y1="352" x2="392" y2="352" marker-end="url(#arp)"/>
+<line class="cn" x1="216" y1="352" x2="196" y2="352" marker-end="url(#arp)"/>
+<text x="20" y="438" class="gd">Parallel-friendly: Phase 2 unblocks everything · Phase 8 (frontend) can start on mocked endpoints during 4–7 · Phase 6 can run alongside 5.</text>
+<text x="20" y="456" class="gd">Testing is continuous (each gate is a test) plus a dedicated QA pass in Phase 10. ★ = the hero your whole product builds toward.</text>
+</svg>

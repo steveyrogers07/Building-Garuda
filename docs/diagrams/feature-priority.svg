@@ -1,0 +1,48 @@
+<svg viewBox="0 0 940 600" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif" role="img">
+<title>Feature investment map: what to build versus what to pitch</title>
+<rect x="0" y="0" width="940" height="600" fill="#FFFFFF"/>
+<defs><style>
+.f1{fill:#1B2230;font-weight:700;font-size:12px;}
+.f2{fill:#5B6472;font-size:11px;}
+.bl{fill:#1B2230;font-weight:700;font-size:12.5px;letter-spacing:.03em;}
+.sub{fill:#5B6472;font-size:10.5px;}
+.tt{fill:#1B2230;font-weight:700;font-size:15px;}
+.ef{fill:#2F6F9F;font-weight:700;font-size:12px;}
+.efw{fill:#FFFFFF;font-weight:700;font-size:12px;}
+.bcore{fill:#E7F0F8;stroke:#2F6F9F;stroke-width:1;}
+.bneu{fill:#F3F1EB;stroke:#D3CDBF;stroke-width:1;}
+.chip{fill:#FFFFFF;stroke:#2F6F9F;stroke-width:1.3;}
+.chero{fill:#1F567E;stroke:#1F567E;}
+.cdiff{fill:#FFFFFF;stroke:#C3BDB0;stroke-width:1.3;}
+.cpitch{fill:#FFFFFF;stroke:#9AA1AC;stroke-width:1.1;stroke-dasharray:4 3;}
+</style></defs>
+<text x="18" y="26" class="tt">Where to invest your 3 weeks — build the spine, differentiate, pitch the rest</text>
+<text x="922" y="26" text-anchor="end" class="f2">effort:  • low   •• med   ••• high</text>
+<rect class="bcore" x="14" y="40" width="912" height="170" rx="10"/>
+<text x="30" y="64" class="bl">(1) MUST-BUILD CORE — the spine (no demo without these)</text>
+<rect class="chip" x="30" y="78" width="288" height="40" rx="8"/><text x="44" y="103" class="f1">Entity resolution</text><text x="304" y="103" text-anchor="end" class="ef">•••</text>
+<rect class="chip" x="326" y="78" width="288" height="40" rx="8"/><text x="340" y="103" class="f1">MO fingerprinting</text><text x="600" y="103" text-anchor="end" class="ef">••</text>
+<rect class="chero" x="622" y="78" width="288" height="40" rx="8"/><text x="636" y="103" class="efw">★ Co-offender network</text><text x="896" y="103" text-anchor="end" class="efw">••</text>
+<rect class="chip" x="30" y="124" width="288" height="40" rx="8"/><text x="44" y="149" class="f1">Predictive + backtest</text><text x="304" y="149" text-anchor="end" class="ef">•••</text>
+<rect class="chip" x="326" y="124" width="288" height="40" rx="8"/><text x="340" y="149" class="f1">Anomaly / trend alerts</text><text x="600" y="149" text-anchor="end" class="ef">••</text>
+<rect class="chip" x="622" y="124" width="288" height="40" rx="8"/><text x="636" y="149" class="f1">Explainability (SHAP)</text><text x="896" y="149" text-anchor="end" class="ef">•</text>
+<rect class="chip" x="30" y="170" width="288" height="40" rx="8"/><text x="44" y="195" class="f1">OCR + review queue</text><text x="304" y="195" text-anchor="end" class="ef">•••</text>
+<rect class="chip" x="326" y="170" width="288" height="40" rx="8"/><text x="340" y="195" class="f1">Synthetic + planted data</text><text x="600" y="195" text-anchor="end" class="ef">••</text>
+<rect class="chip" x="622" y="170" width="288" height="40" rx="8"/><text x="636" y="195" class="f1">RAG with citations</text><text x="896" y="195" text-anchor="end" class="ef">••</text>
+<rect class="bneu" x="14" y="222" width="912" height="124" rx="10"/>
+<text x="30" y="246" class="bl">(2) HIGH-ROI DIFFERENTIATORS — build if time, these win the prize</text>
+<rect class="cdiff" x="30" y="260" width="288" height="38" rx="8"/><text x="44" y="284" class="f1">Fairness / bias audit</text><text x="304" y="284" text-anchor="end" class="ef">••</text>
+<rect class="cdiff" x="326" y="260" width="288" height="38" rx="8"/><text x="340" y="284" class="f1">Privacy + RBAC + audit</text><text x="600" y="284" text-anchor="end" class="ef">••</text>
+<rect class="cdiff" x="622" y="260" width="288" height="38" rx="8"/><text x="636" y="284" class="f1">Patrol optimization</text><text x="896" y="284" text-anchor="end" class="ef">•••</text>
+<rect class="cdiff" x="30" y="304" width="288" height="38" rx="8"/><text x="44" y="328" class="f1">Cross-jurisdiction link</text><text x="304" y="328" text-anchor="end" class="ef">••</text>
+<rect class="cdiff" x="326" y="304" width="288" height="38" rx="8"/><text x="340" y="328" class="f1">Data-quality dashboard</text><text x="600" y="328" text-anchor="end" class="ef">•</text>
+<rect class="bneu" x="14" y="358" width="912" height="124" rx="10"/>
+<text x="30" y="382" class="bl">(3) PITCH AS VISION — say it, don't build it (shows you thought bigger)</text>
+<rect class="cpitch" x="30" y="396" width="288" height="38" rx="8"/><text x="44" y="420" class="f2">What-if simulation</text>
+<rect class="cpitch" x="326" y="396" width="288" height="38" rx="8"/><text x="340" y="420" class="f2">Kannada + voice copilot</text>
+<rect class="cpitch" x="622" y="396" width="288" height="38" rx="8"/><text x="636" y="420" class="f2">Temporal net animation</text>
+<rect class="cpitch" x="30" y="440" width="288" height="38" rx="8"/><text x="44" y="464" class="f2">Model-drift monitor</text>
+<rect class="cpitch" x="326" y="440" width="288" height="38" rx="8"/><text x="340" y="464" class="f2">Offline field app</text>
+<text x="18" y="506" class="sub">Rule: finish ALL of (1) before touching (2). A complete (1)-only demo beats a half-built (1)+(2) demo every time.</text>
+<text x="18" y="528" class="sub">★ = the hero reveal your whole demo builds toward.</text>
+</svg>

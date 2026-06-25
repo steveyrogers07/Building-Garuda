@@ -1,0 +1,89 @@
+<svg viewBox="0 0 1000 660" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif" role="img">
+<title>GARUDA six-layer architecture mapped to Catalyst services</title>
+<rect x="0" y="0" width="1000" height="660" fill="#FFFFFF"/>
+<defs>
+<marker id="ar1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto-start-reverse"><path d="M0,0 L7,3 L0,6 Z" fill="#8A93A0"/></marker>
+<style>
+.t1{fill:#1B2230;font-weight:700;font-size:12.5px;}
+.t2{fill:#5B6472;font-size:10px;}
+.ttl{fill:#1B2230;font-weight:700;font-size:15px;}
+.lbl{fill:#5B6472;font-weight:700;font-size:10px;letter-spacing:.08em;}
+.box{fill:#F5F3EE;stroke:#D3CDBF;stroke-width:1.5;}
+.band{fill:#E7F0F8;stroke:#B9D2E6;stroke-width:1;}
+.acc{fill:#E7F0F8;stroke:#2F6F9F;stroke-width:1.5;}
+.hero{fill:#1F567E;stroke:#1F567E;}
+.tw{fill:#FFFFFF;font-weight:700;font-size:12.5px;}
+.twf{fill:#D7E6F2;font-size:10px;}
+.twt{fill:#FFFFFF;font-weight:700;font-size:9.5px;letter-spacing:.05em;}
+.tag{fill:#2F6F9F;font-weight:700;font-size:9.5px;letter-spacing:.05em;}
+.conn{stroke:#8A93A0;stroke-width:1.5;fill:none;}
+</style>
+</defs>
+<text x="35" y="26" class="ttl">GARUDA · six-layer architecture, mapped to Catalyst</text>
+<rect class="box" x="35" y="44" width="930" height="50" rx="8"/>
+<text x="500" y="68" text-anchor="middle" class="t1">Frontend · Web Client Hosting (React SPA)</text>
+<text x="500" y="85" text-anchor="middle" class="t2">Interactive maps · network graph · dashboards · NL copilot</text>
+<rect class="box" x="35" y="114" width="455" height="46" rx="8"/>
+<text x="262" y="135" text-anchor="middle" class="t1">API Gateway</text>
+<text x="262" y="151" text-anchor="middle" class="t2">Routing · throttling · auth</text>
+<rect class="box" x="510" y="114" width="455" height="46" rx="8"/>
+<text x="737" y="135" text-anchor="middle" class="t1">Authentication</text>
+<text x="737" y="151" text-anchor="middle" class="t2">Role-based officer access</text>
+<rect class="box" x="35" y="180" width="930" height="46" rx="8"/>
+<text x="500" y="201" text-anchor="middle" class="t1">Serverless Functions (Node) + AppSail (Python ML brain)</text>
+<text x="500" y="217" text-anchor="middle" class="t2">Advanced I/O APIs · event glue · FastAPI ML service</text>
+<rect class="band" x="25" y="246" width="950" height="138" rx="10"/>
+<text x="40" y="265" class="lbl">AI / ML INTELLIGENCE CORE — THE ANALYTICAL HEART</text>
+<rect class="acc" x="35" y="278" width="210" height="96" rx="8"/>
+<text x="140" y="306" text-anchor="middle" class="tag">WHERE</text>
+<text x="140" y="330" text-anchor="middle" class="t1">Hotspots &amp; Forecast</text>
+<text x="140" y="350" text-anchor="middle" class="t2">AppSail · Zia AutoML</text>
+<rect class="hero" x="275" y="278" width="210" height="96" rx="8"/>
+<text x="380" y="306" text-anchor="middle" class="twt">WHO  ★</text>
+<text x="380" y="330" text-anchor="middle" class="tw">Network &amp; MO Linkage</text>
+<text x="380" y="349" text-anchor="middle" class="twf">Graph + entity match</text>
+<text x="380" y="367" text-anchor="middle" class="twt">HERO FEATURE</text>
+<rect class="acc" x="515" y="278" width="210" height="96" rx="8"/>
+<text x="620" y="306" text-anchor="middle" class="tag">WHY</text>
+<text x="620" y="330" text-anchor="middle" class="t1">Risk Scoring</text>
+<text x="620" y="350" text-anchor="middle" class="t2">SHAP · explainable</text>
+<rect class="acc" x="755" y="278" width="210" height="96" rx="8"/>
+<text x="860" y="306" text-anchor="middle" class="tag">WHAT NEXT</text>
+<text x="860" y="330" text-anchor="middle" class="t1">Anomaly + Copilot</text>
+<text x="860" y="350" text-anchor="middle" class="t2">QuickML · Qwen RAG</text>
+<text x="35" y="410" class="lbl">DATA &amp; STORAGE</text>
+<rect class="box" x="35" y="418" width="210" height="68" rx="8"/>
+<text x="140" y="448" text-anchor="middle" class="t1">Data Store</text>
+<text x="140" y="467" text-anchor="middle" class="t2">Records + full-text</text>
+<rect class="box" x="275" y="418" width="210" height="68" rx="8"/>
+<text x="380" y="448" text-anchor="middle" class="t1">NoSQL</text>
+<text x="380" y="467" text-anchor="middle" class="t2">Graphs · embeddings</text>
+<rect class="box" x="515" y="418" width="210" height="68" rx="8"/>
+<text x="620" y="448" text-anchor="middle" class="t1">Stratus</text>
+<text x="620" y="467" text-anchor="middle" class="t2">Files · PDF reports</text>
+<rect class="box" x="755" y="418" width="210" height="68" rx="8"/>
+<text x="860" y="448" text-anchor="middle" class="t1">Cache</text>
+<text x="860" y="467" text-anchor="middle" class="t2">Fast aggregations</text>
+<text x="35" y="510" class="lbl">AUTOMATION &amp; INGESTION — the Catalyst event loop</text>
+<rect class="box" x="35" y="518" width="210" height="68" rx="8"/>
+<text x="140" y="548" text-anchor="middle" class="t1">Zia OCR + Circuits</text>
+<text x="140" y="567" text-anchor="middle" class="t2">Scanned FIR → data</text>
+<rect class="box" x="275" y="518" width="210" height="68" rx="8"/>
+<text x="380" y="548" text-anchor="middle" class="t1">Job Scheduling</text>
+<text x="380" y="567" text-anchor="middle" class="t2">Nightly recompute</text>
+<rect class="box" x="515" y="518" width="210" height="68" rx="8"/>
+<text x="620" y="548" text-anchor="middle" class="t1">Signals + Events</text>
+<text x="620" y="567" text-anchor="middle" class="t2">New FIR → alert</text>
+<rect class="box" x="755" y="518" width="210" height="68" rx="8"/>
+<text x="860" y="548" text-anchor="middle" class="t1">Mail + Push</text>
+<text x="860" y="567" text-anchor="middle" class="t2">Briefs &amp; alerts</text>
+<line class="conn" x1="500" y1="94" x2="500" y2="114" marker-end="url(#ar1)"/>
+<line class="conn" x1="500" y1="160" x2="500" y2="180" marker-end="url(#ar1)"/>
+<line class="conn" x1="500" y1="226" x2="500" y2="246" marker-end="url(#ar1)"/>
+<line class="conn" x1="500" y1="384" x2="500" y2="418" marker-end="url(#ar1)" marker-start="url(#ar1)"/>
+<line class="conn" x1="500" y1="518" x2="500" y2="486" marker-end="url(#ar1)"/>
+<rect class="acc" x="300" y="624" width="14" height="14" rx="3"/>
+<text x="320" y="635" class="t2">AI / ML layer</text>
+<rect class="hero" x="430" y="624" width="14" height="14" rx="3"/>
+<text x="450" y="635" class="t2">Hero feature ★</text>
+</svg>

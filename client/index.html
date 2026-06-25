@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>GARUDA — Crime Analytics &amp; Visualization (SCRB)</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="main.css" />
+</head>
+
+<body>
+	<main class="wrap">
+		<h1>&#129413; GARUDA</h1>
+		<p class="tag">AI Crime Analytics &amp; Visualization &mdash; Karnataka State Crime Records Bureau</p>
+		<p class="phase">Phase 1 &middot; Foundation &mdash; Web Client Hosting is live.</p>
+
+		<section class="card">
+			<h2>Status</h2>
+			<ul id="status">
+				<li>Client hosting: <strong class="ok">loaded</strong></li>
+			</ul>
+		</section>
+
+		<nav class="actions">
+			<a class="btn" href="protected.html">Open protected area &rarr;</a>
+			<a class="btn ghost" href="login.html">Sign in</a>
+		</nav>
+
+		<p class="note">The real React dashboard (map, network graph, copilot) lands in Phase 8.
+			This is the deploy-proof placeholder for the foundation gate.</p>
+	</main>
+
+	<!-- Catalyst Web SDK: confirm the exact version/snippet from
+	     Console -> Authentication. See docs/PHASE_1_RUNBOOK.md section 6. -->
+	<script src="https://static.zohocdn.com/catalyst/sdk/js/4.5.0/catalyst-web-sdk.min.js"></script>
+	<script src="config.js"></script>
+	<script src="main.js"></script>
+	<script>
+		document.getElementById('status').insertAdjacentHTML('beforeend',
+			'<li>Auth SDK: <strong class="' +
+			(window.GARUDA && GARUDA.sdkReady() ? 'ok">detected' : 'warn">not loaded (enable Authentication)') +
+			'</strong></li>');
+	</script>
+</body>
+
+</html>

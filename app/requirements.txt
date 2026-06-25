@@ -10,6 +10,10 @@ rapidfuzz             # Jaro-Winkler name similarity
 jellyfish             # NYSIIS / Metaphone phonetic keys (blocking)
 indic-transliteration # Kannada <-> Latin so script variants align
 
+# Phase 5: co-offender network + crime-series + anomaly (all local/free).
+networkx              # graph build, degree/betweenness centrality, Louvain communities
+statsmodels           # STL de-seasonalisation for the anomaly baseline (robust z-score fallback)
+
 # Account-gated batch write-back (/resolve/run, /mo/run with GARUDA_BACKEND=zcql).
 zcatalyst-sdk-python
 

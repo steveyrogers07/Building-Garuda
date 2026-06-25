@@ -22,6 +22,11 @@ SYN_DIR = Path(os.environ.get("GARUDA_SYN_DIR", REPO / "data" / "synthetic"))
 BACKEND = os.environ.get("GARUDA_BACKEND", "local").lower()
 ZCQL_BATCH = 200
 
+# Phase-5 outputs (crime_series / alerts / cached ego-subgraphs) land here. Defaults
+# to a repo-local dir; point GARUDA_HOME at an external folder to keep generated
+# artifacts out of the repo (the local PoC runner uses ~/…/Desktop/garuda).
+OUT_DIR = Path(os.environ.get("GARUDA_HOME", REPO / "data" / "local"))
+
 
 # --------------------------------------------------------------------------- #
 # local CSV helpers
@@ -166,3 +171,124 @@ def write_mo_clusters(clusters):
         w.writeheader()
         w.writerows(clusters)
     return len(clusters)
+
+
+# --------------------------------------------------------------------------- #
+# Phase-5 reads — prefer the Phase-4 resolved/MO outputs, fall back to base CSVs
+# so the network/series engines run even before Phase 4 has been executed.
+# --------------------------------------------------------------------------- #
+def _read_first_existing(*names):
+    for n in names:
+        p = SYN_DIR / n
+        if p.exists():
+            return _read_csv(p)
+    return []
+
+
+_P5_INC_COLS = ("incident_id", "crime_type", "occurred_at", "lat", "long",
+                "district_code", "mo_cluster_id", "series_id", "address_text")
+
+
+def fetch_incidents_p5():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        rows = zcql.execute_query("SELECT " + ", ".join(_P5_INC_COLS) + " FROM Incidents")
+        return _zcql_rows("Incidents", rows)
+    rows = _read_first_existing("incidents_mo.csv", "incidents.csv")
+    return [{k: r.get(k, "") for k in _P5_INC_COLS} for r in rows]
+
+
+def fetch_entities_p5():
+    """Canonical entities for the network graph. canonical_id falls back to
+    entity_id when resolution hasn't run, so the graph is always buildable."""
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        rows = _zcql_rows("Entities", zcql.execute_query(
+            "SELECT entity_id, canonical_id, type, value FROM Entities"))
+    else:
+        rows = _read_first_existing("entities_resolved.csv", "entities.csv")
+    out = []
+    for r in rows:
+        cid = (r.get("canonical_id") or "").strip() or r.get("entity_id")
+        out.append({"entity_id": r.get("entity_id"), "canonical_id": cid,
+                    "type": r.get("type", ""), "value": r.get("value", "")})
+    return out
+
+
+def fetch_edges_p5():
+    cols = ("incident_id", "entity_id", "role", "edge_weight", "evidence_type")
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        rows = zcql.execute_query("SELECT " + ", ".join(cols) + " FROM Incident_Edges")
+        return _zcql_rows("Incident_Edges", rows)
+    return [{k: r.get(k, "") for k in cols}
+            for r in _read_csv(SYN_DIR / "incident_edges.csv")]
+
+
+# --------------------------------------------------------------------------- #
+# Phase-5 writes — Crime_Series / Alerts / Incidents.series_id / cached subgraphs
+# --------------------------------------------------------------------------- #
+_CRIME_SERIES_COLS = ["series_id", "crime_type", "district_code", "locality",
+                      "start_date", "end_date", "incident_count", "method"]
+_ALERTS_COLS = ["alert_id", "type", "district_code", "crime_type", "severity",
+                "window_start", "window_end", "detail", "status"]
+
+
+def _write_out_csv(name, rows, cols):
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    with open(OUT_DIR / name, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
+        w.writeheader()
+        w.writerows(rows)
+    return OUT_DIR / name
+
+
+def write_crime_series(series):
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        for i in range(0, len(series), ZCQL_BATCH):
+            for s in series[i:i + ZCQL_BATCH]:
+                vals = ", ".join(
+                    str(int(s["incident_count"])) if k == "incident_count"
+                    else f"'{_sql_escape(s.get(k, ''))}'" for k in _CRIME_SERIES_COLS)
+                zcql.execute_query(
+                    f"INSERT INTO Crime_Series ({', '.join(_CRIME_SERIES_COLS)}) "
+                    f"VALUES ({vals})")
+        return len(series)
+    _write_out_csv("crime_series.csv", series, _CRIME_SERIES_COLS)
+    return len(series)
+
+
+def write_incident_series(assignments):
+    """assignments: {incident_id: series_id}."""
+    if BACKEND == "zcql":
+        stmts = [f"UPDATE Incidents SET series_id='{_sql_escape(sid)}' "
+                 f"WHERE incident_id='{_sql_escape(iid)}'"
+                 for iid, sid in assignments.items() if sid]
+        return _zcql_update_batches(stmts)
+    rows = [{"incident_id": k, "series_id": v} for k, v in assignments.items()]
+    _write_out_csv("incidents_series.csv", rows, ["incident_id", "series_id"])
+    return len(rows)
+
+
+def write_alerts(alerts):
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        for i in range(0, len(alerts), ZCQL_BATCH):
+            for al in alerts[i:i + ZCQL_BATCH]:
+                vals = ", ".join(f"'{_sql_escape(al.get(k, ''))}'" for k in _ALERTS_COLS)
+                zcql.execute_query(
+                    f"INSERT INTO Alerts ({', '.join(_ALERTS_COLS)}) VALUES ({vals})")
+        return len(alerts)
+    _write_out_csv("alerts.csv", alerts, _ALERTS_COLS)
+    return len(alerts)
+
+
+def write_network_cache(center, payload):
+    """Cache an ego-subgraph JSON (NoSQL/Cache in prod; a local file for the PoC)."""
+    import json
+    d = OUT_DIR / "network"
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"{center}.json"
+    p.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    return str(p)

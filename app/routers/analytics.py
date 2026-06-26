@@ -143,12 +143,12 @@ def network_top(n: int = 10, node_type: str = "person"):
 
 
 @router.get("/network/rings")
-def network_rings(min_persons: int = 3, min_districts: int = 2, top: int = 20):
+def network_rings(min_districts: int = 2, min_incidents: int = 4, top: int = 20):
     """Organized cross-district rings — the 'show me the gangs' query."""
     a = _network_analysis()
     return {"rings": net_engine.cross_district_rings(
-        a["graph"], a["communities"], min_persons=min_persons,
-        min_districts=min_districts, top=top)}
+        a["graph"], a["communities"], min_districts=min_districts,
+        min_incidents=min_incidents, top=top)}
 
 
 @router.get("/network/{canonical_id}")
@@ -304,3 +304,50 @@ def copilot(body: CopilotIn):
     res = cp.answer(body.query, st["incidents"], st["index"], st["refs"], top_k=body.top_k)
     store.write_audit_log(cp.audit_entry(body.query, res, actor=body.actor, role=body.role))
     return res
+
+
+# --------------------------------------------------------------------------- #
+# Phase 8 — lightweight read endpoints for the frontend (stats + geo)
+# --------------------------------------------------------------------------- #
+@router.get("/stats")
+def stats():
+    """Headline counts for the Overview dashboard."""
+    from collections import Counter
+    inc = store.fetch_incidents_p5()
+    cc = Counter(r.get("crime_type", "") for r in inc if r.get("crime_type"))
+    dates = [r["occurred_at"][:10] for r in inc if r.get("occurred_at")]
+    return {"incidents": len(inc), "entities": len(store.fetch_entities_p5()),
+            "districts": len({r.get("district_code") for r in inc if r.get("district_code")}),
+            "crime_types": len(cc), "by_crime": cc.most_common(10),
+            "date_from": min(dates) if dates else None,
+            "date_to": max(dates) if dates else None}
+
+
+@router.get("/geo/districts")
+def geo_districts():
+    """Per-district centroid + incident load + top crime — powers the hotspot map."""
+    inc = store.fetch_incidents_p5()
+    socio = {s.get("area_code"): s for s in store.fetch_socioeconomic()}
+    agg = {}
+    for r in inc:
+        d = r.get("district_code")
+        if not d:
+            continue
+        a = agg.setdefault(d, {"n": 0, "lat": 0.0, "lng": 0.0, "k": 0, "crimes": {}})
+        a["n"] += 1
+        try:
+            a["lat"] += float(r.get("lat")); a["lng"] += float(r.get("long")); a["k"] += 1
+        except (TypeError, ValueError):
+            pass
+        ct = r.get("crime_type")
+        if ct:
+            a["crimes"][ct] = a["crimes"].get(ct, 0) + 1
+    out = []
+    for d, a in agg.items():
+        k = a["k"] or 1
+        top = max(a["crimes"].items(), key=lambda x: x[1])[0] if a["crimes"] else None
+        out.append({"code": d, "name": (socio.get(d) or {}).get("district_name", d),
+                    "incidents": a["n"], "lat": round(a["lat"] / k, 4),
+                    "lng": round(a["lng"] / k, 4), "top_crime": top})
+    out.sort(key=lambda x: -x["incidents"])
+    return {"districts": out}

@@ -1,47 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<title>GARUDA — Crime Analytics &amp; Visualization (SCRB)</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<link rel="stylesheet" href="main.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GARUDA — Crime Intelligence Console</title>
+<link rel="stylesheet" href="assets/app.css" />
 </head>
-
 <body>
-	<main class="wrap">
-		<h1>&#129413; GARUDA</h1>
-		<p class="tag">AI Crime Analytics &amp; Visualization &mdash; Karnataka State Crime Records Bureau</p>
-		<p class="phase">Phase 1 &middot; Foundation &mdash; Web Client Hosting is live.</p>
+<!-- icon sprite (Lucide-style, stroke) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="i-shield" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/><path d="M9.5 12l2 2 3.5-4"/></g>
+<g id="i-grid" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></g>
+<g id="i-net" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7.8 7.6l3 7M16.4 8.8l-3 6.4M8 6.4h7.6"/></g>
+<g id="i-map" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></g>
+<g id="i-chat" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-5.2A8 8 0 1 1 21 12z"/><path d="M8.5 11.5h7M8.5 14h4"/></g>
+<g id="i-siren" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18v-4a6 6 0 0 1 12 0v4"/><path d="M4 18h16v2H4z"/><path d="M12 4V2M19 7l1.4-1.4M5 7L3.6 5.6"/></g>
+<g id="i-search" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></g>
+<g id="i-act" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></g>
+<g id="i-users" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M21 20a5.5 5.5 0 0 0-4-5.3"/></g>
+<g id="i-alert" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></g>
+<g id="i-target" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></g>
+<g id="i-send" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3.5-6.5z"/></g>
+<g id="i-pin" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></g>
+<g id="i-doc" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></g>
+</defs></svg>
 
-		<section class="card">
-			<h2>Status</h2>
-			<ul id="status">
-				<li>Client hosting: <strong class="ok">loaded</strong></li>
-			</ul>
-		</section>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="mark"><svg><use href="#i-shield"/></svg></span>
+      <div><h1>GARUDA</h1><div class="sub">Crime Intelligence</div></div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="lbl">Operations</div>
+      <a data-view="overview" class="active"><svg><use href="#i-grid"/></svg> Overview</a>
+      <a data-view="network"><svg><use href="#i-net"/></svg> Network Reveal <span class="pip" id="nav-rings">·</span></a>
+      <a data-view="map"><svg><use href="#i-map"/></svg> Hotspot Map</a>
+      <div class="lbl">Intelligence</div>
+      <a data-view="copilot"><svg><use href="#i-chat"/></svg> Copilot</a>
+      <a data-view="alerts"><svg><use href="#i-siren"/></svg> Alerts &amp; Risk <span class="pip" id="nav-alerts">·</span></a>
+    </nav>
+    <div class="sidewho">
+      <span class="avatar">SR</span>
+      <div><div class="nm">S. Rogers</div><div class="rl">SCRB · Admin</div></div>
+    </div>
+  </aside>
 
-		<nav class="actions">
-			<a class="btn" href="protected.html">Open protected area &rarr;</a>
-			<a class="btn ghost" href="login.html">Sign in</a>
-		</nav>
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">GARUDA <b id="crumb">/ Overview</b></div>
+      <div class="searchbox">
+        <svg><use href="#i-search"/></svg>
+        <input id="globalq" placeholder="Ask the copilot — e.g. chain snatching in BNU…" />
+        <kbd>↵</kbd>
+      </div>
+      <div class="env"><span class="dot ok"></span> DEV · synthetic</div>
+    </header>
 
-		<p class="note">The real React dashboard (map, network graph, copilot) lands in Phase 8.
-			This is the deploy-proof placeholder for the foundation gate.</p>
-	</main>
+    <main class="content">
+      <section id="view-overview" class="view active"></section>
+      <section id="view-network" class="view"></section>
+      <section id="view-map" class="view"></section>
+      <section id="view-copilot" class="view"></section>
+      <section id="view-alerts" class="view"></section>
+    </main>
+  </div>
+</div>
 
-	<!-- Catalyst Web SDK: confirm the exact version/snippet from
-	     Console -> Authentication. See docs/PHASE_1_RUNBOOK.md section 6. -->
-	<script src="https://static.zohocdn.com/catalyst/sdk/js/4.5.0/catalyst-web-sdk.min.js"></script>
-	<script src="config.js"></script>
-	<script src="main.js"></script>
-	<script>
-		document.getElementById('status').insertAdjacentHTML('beforeend',
-			'<li>Auth SDK: <strong class="' +
-			(window.GARUDA && GARUDA.sdkReady() ? 'ok">detected' : 'warn">not loaded (enable Authentication)') +
-			'</strong></li>');
-	</script>
+<div class="tip" id="tip"></div>
+<script src="assets/graph.js?v=1"></script>
+<script src="assets/app.js?v=1"></script>
 </body>
-
 </html>

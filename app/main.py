@@ -42,3 +42,22 @@ def root():
         "service": "garuda-appsail",
         "message": "GARUDA ML brain - Phase 1 hello-world. See /health.",
     }
+
+
+# --- Phase 8 local console (GARUDA_LOCAL=1): serve the client SPA same-origin so it
+# can call the analytics API directly. In production the SPA is on Web Client Hosting
+# and reaches AppSail via the API Gateway; this block is skipped there. ---
+import os  # noqa: E402
+
+if os.environ.get("GARUDA_LOCAL") == "1":
+    from pathlib import Path
+    from fastapi.responses import RedirectResponse
+    from fastapi.staticfiles import StaticFiles
+
+    _CLIENT = Path(__file__).resolve().parent.parent / "client"
+
+    @app.get("/console")
+    def _console():
+        return RedirectResponse("/ui/")
+
+    app.mount("/ui", StaticFiles(directory=str(_CLIENT), html=True), name="ui")

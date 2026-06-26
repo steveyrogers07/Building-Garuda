@@ -33,9 +33,11 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
+from automation import briefs
+from governance import audit as gaudit, masking, rbac
 from engines import copilot as cp
 from engines import forecasting as fc
 from engines import mo as mo_engine
@@ -351,3 +353,65 @@ def geo_districts():
                     "lng": round(a["lng"] / k, 4), "top_crime": top})
     out.sort(key=lambda x: -x["incidents"])
     return {"districts": out}
+
+
+# --------------------------------------------------------------------------- #
+# Phase 9 — governance (RBAC + PII masking + audit) + automation (briefs)
+# --------------------------------------------------------------------------- #
+def get_principal(x_actor: Optional[str] = Header(None),
+                  x_role: Optional[str] = Header(None),
+                  x_scope: Optional[str] = Header(None)) -> rbac.Principal:
+    """Resolve the caller (Catalyst Web SDK / API Gateway in prod; headers locally)."""
+    return rbac.Principal(actor=x_actor or "demo", role=(x_role or "analyst"), scope=x_scope)
+
+
+@router.get("/governed/incidents")
+def governed_incidents(limit: int = 50, principal: rbac.Principal = Depends(get_principal)):
+    """Incident list filtered to the caller's jurisdiction; access audited."""
+    rows = rbac.jurisdiction_filter(store.fetch_incidents_copilot(), principal)[:limit]
+    gaudit.record(principal, "read", "Incidents", "governed/incidents")
+    return {"count": len(rows), "viewer": {"role": principal.role, "scope": principal.scope},
+            "incidents": [{k: r.get(k) for k in ("incident_id", "fir_no", "district_code",
+                           "crime_type", "occurred_at", "status")} for r in rows]}
+
+
+@router.get("/case/{incident_id}/parties")
+def case_parties(incident_id: str, principal: rbac.Principal = Depends(get_principal)):
+    """Parties on a FIR with victim/witness PII masked by role (IPC 228A / POCSO)."""
+    inc = store.fetch_incident(incident_id)
+    if not inc:
+        return {"error": "not found", "incident_id": incident_id}
+    rbac.authorize(principal, "read", "incident_pii")           # ethics denied
+    if principal.role in ("district", "station") and not rbac.in_scope(
+            principal, district=inc.get("district_code"), station=inc.get("station_code")):
+        raise HTTPException(403, "outside your jurisdiction")
+    parties = masking.mask_parties(store.fetch_incident_parties(incident_id),
+                                   principal.role, principal.scope,
+                                   crime_type=inc.get("crime_type"),
+                                   district=inc.get("district_code"),
+                                   station=inc.get("station_code"))
+    gaudit.record(principal, "read", "Incident:" + incident_id, "case/parties")
+    return {"incident": inc, "protected": masking.is_protected(inc.get("crime_type")),
+            "viewer": {"role": principal.role, "scope": principal.scope}, "parties": parties}
+
+
+@router.get("/audit")
+def audit_log(limit: int = 100, principal: rbac.Principal = Depends(get_principal)):
+    """The governance audit trail — restricted to admin / ethics."""
+    if principal.role not in ("scrb-admin", "ethics"):
+        raise HTTPException(403, "audit log restricted to admin/ethics")
+    return {"entries": store.read_audit_log(limit)}
+
+
+@router.post("/brief/run")
+def brief_run(scope: str = "STATE"):
+    """Assemble the intelligence brief (SmartBrowz renders HTML→PDF in prod)."""
+    a = _network_analysis()
+    inc = store.fetch_incidents_p5()
+    st = _risk_state()
+    brief = briefs.build_brief(
+        scope, stats=stats(),
+        rings=net_engine.cross_district_rings(a["graph"], a["communities"], top=5),
+        alerts=detect_anomalies(inc)["alerts"], series=link_series(inc)["series"][:5],
+        risk=_risk_rows(st, n=5), fairness=st["fair"][1])
+    return {"ok": True, "brief": brief, "html_bytes": len(briefs.render_html(brief))}

@@ -372,3 +372,58 @@ def write_audit_log(entries):
             w.writeheader()
         w.writerows(entries)
     return len(entries)
+
+
+def read_audit_log(limit=100):
+    """Most-recent audit entries (admin/ethics only — gated at the API layer)."""
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Audit_Log", zcql.execute_query(
+            "SELECT " + ", ".join(_AUDIT_COLS) + " FROM Audit_Log"))[:limit]
+    p = OUT_DIR / "audit_log.csv"
+    return list(reversed(_read_csv(p)))[:limit] if p.exists() else []
+
+
+# --------------------------------------------------------------------------- #
+# Phase-9 reads — incident + its parties (governed: masking applied at API layer)
+# --------------------------------------------------------------------------- #
+_CASE_COLS = ("incident_id", "fir_no", "occurred_at", "district_code", "station_code",
+              "crime_type", "ipc_bns_code", "status", "source_fir_url")
+
+
+def fetch_incident(incident_id):
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        rows = _zcql_rows("Incidents", zcql.execute_query(
+            "SELECT " + ", ".join(_CASE_COLS) + " FROM Incidents WHERE incident_id='"
+            + _sql_escape(incident_id) + "'"))
+        return rows[0] if rows else None
+    for r in _read_first_existing("incidents_mo.csv", "incidents.csv"):
+        if r.get("incident_id") == incident_id:
+            return {k: r.get(k, "") for k in _CASE_COLS}
+    return None
+
+
+def fetch_incident_parties(incident_id):
+    """Persons / vehicles / phones linked to an incident, with role — for the case
+    view. Raw values; the governance layer masks victim/witness PII by role."""
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        rows = _zcql_rows("Incident_Edges", zcql.execute_query(
+            "SELECT entity_id, role, evidence_type FROM Incident_Edges WHERE incident_id='"
+            + _sql_escape(incident_id) + "'"))
+        ents = {e["entity_id"]: e for e in _zcql_rows("Entities", zcql.execute_query(
+            "SELECT entity_id, canonical_id, type, value, age, gender FROM Entities"))}
+    else:
+        rows = [e for e in _read_csv(SYN_DIR / "incident_edges.csv")
+                if e.get("incident_id") == incident_id]
+        ents = {e["entity_id"]: e for e in _read_first_existing("entities_resolved.csv", "entities.csv")}
+    out = []
+    for e in rows:
+        ent = ents.get(e.get("entity_id"), {})
+        out.append({"role": e.get("role"), "entity_id": e.get("entity_id"),
+                    "canonical_id": ent.get("canonical_id") or e.get("entity_id"),
+                    "type": ent.get("type"), "value": ent.get("value"),
+                    "age": ent.get("age"), "gender": ent.get("gender"),
+                    "evidence_type": e.get("evidence_type")})
+    return out

@@ -331,3 +331,44 @@ def write_predictive_risk(rows):
         return len(rows)
     _write_out_csv("predictive_risk.csv", rows, _PRED_RISK_COLS)
     return len(rows)
+
+
+# --------------------------------------------------------------------------- #
+# Phase-7 reads/writes — copilot narratives + Audit_Log
+# --------------------------------------------------------------------------- #
+_COPILOT_INC_COLS = ("incident_id", "fir_no", "occurred_at", "district_code",
+                     "station_code", "crime_type", "ipc_bns_code", "mo_text",
+                     "address_text", "source_fir_url")
+_AUDIT_COLS = ["log_id", "actor", "role", "action", "resource", "query_text", "ts", "ip"]
+
+
+def fetch_incidents_copilot():
+    """Incidents with narrative + citation columns for the copilot."""
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Incidents", zcql.execute_query(
+            "SELECT " + ", ".join(_COPILOT_INC_COLS) + " FROM Incidents"))
+    rows = _read_first_existing("incidents_mo.csv", "incidents.csv")
+    return [{k: r.get(k, "") for k in _COPILOT_INC_COLS} for r in rows]
+
+
+def write_audit_log(entries):
+    """Append copilot queries to Audit_Log (governance trail; never overwrite)."""
+    if isinstance(entries, dict):
+        entries = [entries]
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        for e in entries:
+            vals = ", ".join(f"'{_sql_escape(e.get(k, ''))}'" for k in _AUDIT_COLS)
+            zcql.execute_query(
+                f"INSERT INTO Audit_Log ({', '.join(_AUDIT_COLS)}) VALUES ({vals})")
+        return len(entries)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    p = OUT_DIR / "audit_log.csv"
+    new = not p.exists()
+    with open(p, "a", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=_AUDIT_COLS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(entries)
+    return len(entries)

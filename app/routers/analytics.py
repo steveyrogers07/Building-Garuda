@@ -18,6 +18,10 @@ Phase 6 — predictive & explainable risk forecasting (places x times, not peopl
   GET  /risk/explain        : SHAP drivers for one area x crime-type prediction.
   GET  /risk/fairness       : per-ward predicted-vs-actual bias audit.
 
+Phase 7 — intelligence copilot (hybrid RAG over FIRs):
+  POST /copilot             : NL -> structured filters + semantic retrieval -> cited answer
+                              (guardrails: never asserts guilt; refuses out-of-scope; audited).
+
 Reads/writes go through shared.store (local CSV by default; Catalyst Data Store via ZCQL
 when GARUDA_BACKEND=zcql). The heavy ML stays here on AppSail; Node stays thin.
 """
@@ -32,6 +36,7 @@ import pandas as pd
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from engines import copilot as cp
 from engines import forecasting as fc
 from engines import mo as mo_engine
 from engines import network as net_engine
@@ -269,3 +274,33 @@ def risk_fairness():
     st = _risk_state()
     fair_df, fair_sum = st["fair"]
     return {"summary": fair_sum, "wards": fair_df.to_dict("records")}
+
+
+# --------------------------------------------------------------------------- #
+# Phase 7 — intelligence copilot (hybrid RAG over FIRs)
+# --------------------------------------------------------------------------- #
+_COPILOT_CACHE = {"state": None}
+
+
+def _copilot_state(rebuild=False):
+    if _COPILOT_CACHE["state"] is None or rebuild:
+        inc = store.fetch_incidents_copilot()
+        index, refs = cp.prepare(inc, store.fetch_socioeconomic())
+        _COPILOT_CACHE["state"] = {"incidents": inc, "index": index, "refs": refs}
+    return _COPILOT_CACHE["state"]
+
+
+class CopilotIn(BaseModel):
+    query: str
+    actor: Optional[str] = "demo"
+    role: Optional[str] = "analyst"
+    top_k: int = 10
+
+
+@router.post("/copilot")
+def copilot(body: CopilotIn):
+    """Plain-English Q&A over FIRs: hybrid retrieval + mandatory citations + guardrails."""
+    st = _copilot_state()
+    res = cp.answer(body.query, st["incidents"], st["index"], st["refs"], top_k=body.top_k)
+    store.write_audit_log(cp.audit_entry(body.query, res, actor=body.actor, role=body.role))
+    return res

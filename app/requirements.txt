@@ -19,6 +19,11 @@ lightgbm              # gradient-boosted hotspot model + native pred_contrib (Tr
 holidays              # India/Karnataka holiday calendar flag (graceful no-op if absent)
 pandas                # feature-table aggregation (also used across the engines)
 
+# Phase 7: intelligence copilot — hybrid RAG (TF-IDF retrieval; $0, no torch).
+#   uses scikit-learn (above) + rapidfuzz (above); no new required deps.
+#   Opt-in (NOT default): COPILOT_EMBEDDER=sbert -> sentence-transformers (pulls torch);
+#   EXTRACTOR=qwen -> QuickML Qwen for NL parsing + fluent answers (credit-costly).
+
 # Account-gated batch write-back (/resolve/run, /mo/run with GARUDA_BACKEND=zcql).
 zcatalyst-sdk-python
 

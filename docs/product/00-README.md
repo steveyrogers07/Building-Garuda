@@ -36,6 +36,7 @@ layer.
 | [04 — UI/UX Design](04-UI-UX-DESIGN.md) | Design system + 22-screen inventory + interaction/data-viz/a11y specs. | designing screens |
 | [05 — Backend Schema](05-BACKEND-SCHEMA.md) | Canonical + derived data model, source mapping, storage strategy, data dictionary. | modeling data |
 | [06 — Implementation Plan](06-IMPLEMENTATION-PLAN.md) | What's built (P1–8), gap analysis, prioritized backlog, the next iterations. | planning work |
+| [07 — Intelligence Blueprint](07-INTELLIGENCE-BLUEPRINT.md) | The master capability catalogue (~60 features, A–K) to make it police-grade intelligent + Catalyst-native; triages the "17 enterprise ideas"; prioritized hackathon tiers + the 5 "wow" moments. | deciding what makes it *win* |
 
 ## Current state vs the vision
 

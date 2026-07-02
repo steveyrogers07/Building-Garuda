@@ -381,7 +381,7 @@ def case_parties(incident_id: str, principal: rbac.Principal = Depends(get_princ
     inc = store.fetch_incident(incident_id)
     if not inc:
         return {"error": "not found", "incident_id": incident_id}
-    rbac.authorize(principal, "read", "incident_pii")           # ethics denied
+    _authz(principal, "read", "incident_pii")                   # ethics denied -> 403
     if principal.role in ("district", "station") and not rbac.in_scope(
             principal, district=inc.get("district_code"), station=inc.get("station_code")):
         raise HTTPException(403, "outside your jurisdiction")
@@ -401,6 +401,54 @@ def audit_log(limit: int = 100, principal: rbac.Principal = Depends(get_principa
     if principal.role not in ("scrb-admin", "ethics"):
         raise HTTPException(403, "audit log restricted to admin/ethics")
     return {"entries": store.read_audit_log(limit)}
+
+
+# --------------------------------------------------------------------------- #
+# Iteration 11 — investigation workbench (dossier / case file / universal search)
+# --------------------------------------------------------------------------- #
+from engines import workbench as wb  # noqa: E402
+
+
+def _authz(principal, action, resource):
+    """rbac.authorize mapped to a proper 403 (not a 500)."""
+    try:
+        rbac.authorize(principal, action, resource)
+    except PermissionError as exc:
+        raise HTTPException(403, str(exc)) from exc
+
+
+@router.get("/entity/{canonical_id}")
+def entity_dossier(canonical_id: str, principal: rbac.Principal = Depends(get_principal)):
+    """360-degree dossier: aliases, appearances, associates, timeline — masked by role."""
+    _authz(principal, "read", "incident_pii")                   # ethics denied -> 403
+    res = wb.dossier(canonical_id, principal)
+    if res.get("error"):
+        raise HTTPException(404, "unknown entity: " + canonical_id)
+    gaudit.record(principal, "read", "Entity:" + res["canonical_id"], "workbench/dossier")
+    return res
+
+
+@router.get("/case/{incident_id}")
+def case_full(incident_id: str, principal: rbac.Principal = Depends(get_principal)):
+    """Full case file: FIR + parties (masked) + linked cases with explained reasons."""
+    _authz(principal, "read", "incident_pii")
+    res = wb.case_file(incident_id, principal)
+    if res.get("error"):
+        raise HTTPException(404, "unknown case: " + incident_id)
+    inc = res["incident"]
+    if principal.role in ("district", "station") and not rbac.in_scope(
+            principal, district=inc.get("district_code"), station=inc.get("station_code")):
+        raise HTTPException(403, "outside your jurisdiction")
+    gaudit.record(principal, "read", "Incident:" + incident_id, "workbench/case")
+    return res
+
+
+@router.get("/search")
+def universal_search(q: str, principal: rbac.Principal = Depends(get_principal)):
+    """Universal search across cases, people, vehicles, phones, places (+semantic)."""
+    res = wb.search(q, principal)
+    gaudit.record(principal, "read", "Search", q[:200])
+    return res
 
 
 @router.post("/brief/run")

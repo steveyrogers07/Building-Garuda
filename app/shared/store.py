@@ -427,3 +427,19 @@ def fetch_incident_parties(incident_id):
                     "age": ent.get("age"), "gender": ent.get("gender"),
                     "evidence_type": e.get("evidence_type")})
     return out
+
+
+_FULL_INC_COLS = ("incident_id", "fir_no", "occurred_at", "reported_at", "district_code",
+                  "station_code", "crime_type", "ipc_bns_code", "lat", "long",
+                  "address_text", "mo_text", "status", "mo_cluster_id", "series_id",
+                  "source_fir_url")
+
+
+def fetch_incidents_full():
+    """Every incident with the full column set — the workbench working set."""
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Incidents", zcql.execute_query(
+            "SELECT " + ", ".join(_FULL_INC_COLS) + " FROM Incidents"))
+    rows = _read_first_existing("incidents_mo.csv", "incidents.csv")
+    return [{k: r.get(k, "") for k in _FULL_INC_COLS} for r in rows]

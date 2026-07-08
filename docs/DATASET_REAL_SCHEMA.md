@@ -60,6 +60,8 @@ year `2026`, serial `00001`. (UDR=3, Zero-FIR=8, PAR=4.) `CaseNo` = last 9 digit
 | `Incidents.gravity` **[BUILT]** | `CaseMaster.GravityOffenceID` → `GravityOffence.LookupValue` (Heinous/Non-Heinous) |
 | `Incidents.officer_id` → `Officers` **[BUILT]** | `CaseMaster.PolicePersonID` → `Employee` (narrowed to Rank/Designation/posting — see `schema/canonical_schema.yaml`) |
 | `Chargesheets` (`cs_id, incident_id, cs_date, cs_type, officer_id`) **[BUILT]** | `ChargesheetDetails` (CSID, csdate, cstype A/B/C, PolicePersonID) |
+| `Arrests` (`arrest_id, incident_id, entity_id, event_type, event_date, district_code, court_id, io_officer_id`) **[BUILT]** | `ArrestSurrender` (→ Accused via `inv_arrestsurrenderaccused`, IOID→Employee, CourtID) |
+| `Case_Sections` (`incident_id, act_code, section_code, section_order`) **[BUILT]** | `ActSectionAssociation` → `Act.ActCode` + `Section.SectionCode` (one-to-many) |
 
 ## Implications for our pipeline (important)
 
@@ -72,16 +74,18 @@ year `2026`, serial `00001`. (UDR=3, Zero-FIR=8, PAR=4.) `CaseNo` = last 9 digit
    entities (Phase 4); `Accused.PersonID` (A1/A2…) is per-case ordering, not a global id.
 3. **Crime type is a two-level hierarchy** (`CrimeHead`→`CrimeSubHead`). Map our 16
    synthetic crime types onto `CrimeSubHead`; keep the head for rollups.
-4. **Legal sections** come from `ActSectionAssociation` (many per case) — our single
-   `ipc_bns_code` should become the primary/most-serious section, with the rest retained.
+4. **Legal sections** come from `ActSectionAssociation` (many per case) — **[BUILT]** the
+   `Case_Sections` table now retains every act+section (`section_order` 1 = the
+   primary/most-serious, which is what `ipc_bns_code` continues to hold).
 5. **Geo:** `latitude`/`longitude` are present on `CaseMaster` → our geocoder is a fallback,
    not the primary path, on real data.
 6. **Outcomes** (`ChargesheetDetails`, `CaseStatus`) — **[BUILT]** the District Command Card
    (blueprint §B1, `app/engines/district.py`) computes clearance rate = A / (A+B+C) from
    `Chargesheets.cs_type` per district, plus backlog aging and an officer leaderboard, via
-   `GET /district/{code}/command` and `GET /district/rank`. `ArrestSurrender` is not yet modeled
-   (needed for the statutory chargesheet-deadline tracker — see
-   [08 — Field-Officer Intelligence §9](product/08-FIELD-OFFICER-INTELLIGENCE.md)).
+   `GET /district/{code}/command` and `GET /district/rank`. **[BUILT]** `ArrestSurrender` is
+   modeled as `Arrests` — the statutory chargesheet-deadline tracker and absconding board
+   ([08 — Field-Officer Intelligence §1/§6/§9](product/08-FIELD-OFFICER-INTELLIGENCE.md))
+   now have their event source.
 
 ## Adapter checklist (Phase-2 column-map, when the extract lands)
 Run `docs/GARUDA_DATA_READINESS.md` runbook → set the column-map to the table above →

@@ -61,11 +61,11 @@ dashboard-style feature captures "police work" better than this one, and no othe
 will have built it because it requires actually reading `ArrestSurrender` + `GravityOffence`
 together, which the ER diagram doesn't spell out as a workflow — you have to know the law to see it.
 
-**Data needed:** `ArrestSurrender.ArrestSurrenderDate` (**built** — analogous to our
-`officer_id`/arrest modeling, needs an `Arrests` table, see §9), `Incidents.gravity` (**built this
-session**). Zero new NER/ML — pure date arithmetic.
+**Data needed:** `ArrestSurrender.ArrestSurrenderDate` (**built** — the `Arrests` table, §9),
+`Incidents.gravity` (**built**). Zero new NER/ML — pure date arithmetic.
 
-**Feasibility:** High. This is a half-day build once an `Arrests` table exists (§9 dependency).
+**Feasibility:** High. This is a half-day build now that the `Arrests` table exists (§9 — done;
+`tests/test_arrests_sections.py` gate A4 already proves all four urgency buckets are populated).
 
 ---
 
@@ -150,10 +150,10 @@ person, keeps this squarely in "surfaces and explains, never accuses" territory 
 own ethics law) while giving real prosecutorial value.
 
 **Data needed:** `Incident_Edges.evidence_type` (**built**), `ActSectionAssociation` — multiple
-sections per case (**not yet modeled**, see §9), `Chargesheets` (**built this session**).
+sections per case (**built** as `Case_Sections`, §9), `Chargesheets` (**built**).
 
-**Feasibility:** Medium — needs the multi-section model (§9) to be genuinely useful; a
-narrower v1 (evidence-type completeness only) is buildable today.
+**Feasibility:** High — the multi-section model (§9) is in place; the full
+evidence-per-section version is buildable now, not just the narrower v1.
 
 ---
 
@@ -170,9 +170,10 @@ exists at all, rarely cross-referenced against other stations). Statewide visibi
 accused is exactly the kind of cross-jurisdiction value SCRB exists to provide and no individual
 station can build alone.
 
-**Data needed:** `Accused` (**built**) joined against `ArrestSurrender` (§9 dependency).
+**Data needed:** `Accused` (**built**) joined against `ArrestSurrender` (**built** as
+`Arrests`, §9 — suspects with no arrest row are exactly this board).
 
-**Feasibility:** Medium — depends on §9's Arrests table; otherwise straightforward.
+**Feasibility:** High — §9's Arrests table exists; the join is straightforward.
 
 ---
 
@@ -225,17 +226,20 @@ extraction patterns for account/UPI/email formats (regex-heavy, tractable withou
 
 ---
 
-## 9. Fill the schema gaps that make §1/§5/§6 possible: Arrests + multi-section (P0 infra)
+## 9. Fill the schema gaps that make §1/§5/§6 possible: Arrests + multi-section (P0 infra) — [BUILT]
 
-**What:** Two organizer tables GARUDA doesn't model yet, both load-bearing for the features above:
-- **`Arrests`** (organizer: `ArrestSurrender`) — `arrest_id, incident_id, accused_ref, event_type
-  {arrest|surrender}, event_date, district_code, court_id, io_officer_id`. Powers §1 (deadline
-  clock starts at arrest date), §6 (absconding board), and real arrest-rate reporting.
-- **`Case_Sections`** (organizer: `ActSectionAssociation`, one-to-many) — today GARUDA collapses
-  every case to one `ipc_bns_code`; real cases invoke **multiple** sections. A proper
-  `Case_Sections` table (`incident_id, act_code, section_code, order`) unlocks accurate legal
-  classification, powers §5's evidence-per-section gap analysis, and is the correct long-term
-  home for the primary/most-serious-section logic `DATASET_REAL_SCHEMA.md` already calls for.
+**What:** Two organizer tables GARUDA didn't model until now, both load-bearing for the features above:
+- **`Arrests`** (organizer: `ArrestSurrender`) — **[BUILT]** `arrest_id, incident_id, entity_id,
+  event_type {arrest|surrender}, event_date, district_code, court_id, io_officer_id`. Powers §1
+  (deadline clock starts at arrest date), §6 (absconding board), and real arrest-rate reporting.
+- **`Case_Sections`** (organizer: `ActSectionAssociation`, one-to-many) — **[BUILT]** GARUDA no
+  longer collapses a case to one `ipc_bns_code`; real cases invoke **multiple** sections. The
+  `Case_Sections` table (`incident_id, act_code, section_code, section_order`; order 1 = the
+  primary/most-serious section, which `ipc_bns_code` continues to hold) unlocks accurate legal
+  classification and powers §5's evidence-per-section gap analysis. Companion sections are
+  act-matched (a BNS-coded case cites BNS companions) with IT-Act sections on cyber/cheating
+  cases; every IPC/BNS pair is covered by `data/reference/ipc_bns_map.csv`.
+  Gates: `tests/test_arrests_sections.py`.
 
 **Why it matters:** this is the same category of gap that this session's audit found with
 `ChargesheetDetails`/`CaseCategory`/`GravityOffence`/`Employee` — documented as needed, never
@@ -301,8 +305,9 @@ the person actually running the case.
 session — they are the exact prerequisites §1, §2, §6 and part of §5 needed. That makes the
 next-highest-leverage sequence:
 
-1. **§9 infra** (`Arrests` + `Case_Sections`) — unlocks everything below it. Half a day each,
-   same pattern as `Officers`/`Chargesheets`.
+1. **§9 infra** (`Arrests` + `Case_Sections`) — **[BUILT]** — unlocks everything below it.
+   Landed with the same pattern as `Officers`/`Chargesheets` (generator config + generate.py
+   + canonical schema + column map + store readers + `tests/test_arrests_sections.py`).
 2. **§1 Statutory Deadline Tracker** — the single most "this is real police work" feature
    possible, and now cheap given §9.
 3. **§2 "My Cases" worklist** — makes the whole platform feel like a tool an IO opens daily,

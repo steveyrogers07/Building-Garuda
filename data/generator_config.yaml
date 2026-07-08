@@ -122,6 +122,45 @@ chargesheet:
   cstype_weights: { A: 0.72, B: 0.10, C: 0.18 }
   days_to_chargesheet: [30, 180]
 
+# ArrestSurrender — arrest/surrender events per accused suspect. Starts the CrPC/BNSS
+# 60/90-day default-bail clock (docs/product/08 §1); suspects with no row here on an
+# open case are the absconding-accused board (08 §6).
+arrests:
+  surrender_fraction: 0.08          # share of events that are surrenders, not arrests
+  p_arrested_by_posture:            # P(a named suspect has been arrested), per case posture
+    chargesheeted_A: 0.85           # final report filed — accused mostly in custody/on bail
+    false_or_undetected: 0.05       # cs_type B/C — (correctly) nobody in custody
+    pending_trial: 0.90
+    under_investigation: 0.55       # the live 60/90-day-clock population (08 §1)
+  days_after_report: [0, 45]        # arrest lag for pending-trial cases: report -> arrest
+  open_case_recency_days: 100       # open-case arrests skew recent: old arrests resolve
+                                    # (chargesheet or default bail) and leave the pool
+
+# ActSectionAssociation — real FIRs invoke several act+sections, not one. The incident's
+# ipc_bns_code stays the primary/most-serious (section_order 1); companions add 2..n.
+# Companion {ipc,bns} pairs must exist in data/reference/ipc_bns_map.csv (the coverage
+# reference); {act,section} entries are statute-fixed (IT Act cites the same section
+# whether the case is coded IPC or BNS).
+case_sections:
+  extra_weights: { 0: 0.30, 1: 0.40, 2: 0.22, 3: 0.08 }   # companions per case
+  companions:
+    Two-wheeler theft:        [ { ipc: "411", bns: "317(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Theft:                    [ { ipc: "411", bns: "317(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Motor vehicle theft:      [ { ipc: "411", bns: "317(2)" }, { ipc: "34", bns: "3(5)" } ]
+    House burglary:           [ { ipc: "380", bns: "305" }, { ipc: "411", bns: "317(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Chain snatching:          [ { ipc: "379", bns: "303(2)" }, { ipc: "411", bns: "317(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Assault:                  [ { ipc: "506", bns: "351(2)" }, { ipc: "341", bns: "126(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Cheating:                 [ { ipc: "406", bns: "316(2)" }, { ipc: "120B", bns: "61(2)" }, { act: IT_ACT, section: "66D" } ]
+    Robbery:                  [ { ipc: "384", bns: "308(2)" }, { ipc: "506", bns: "351(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Cybercrime:               [ { act: IT_ACT, section: "66C" }, { act: IT_ACT, section: "66D" }, { ipc: "120B", bns: "61(2)" } ]
+    Grievous hurt:            [ { ipc: "326", bns: "118(1)" }, { ipc: "506", bns: "351(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Criminal breach of trust: [ { ipc: "420", bns: "318(4)" }, { ipc: "120B", bns: "61(2)" } ]
+    Rioting:                  [ { ipc: "149", bns: "190" }, { ipc: "323", bns: "115(2)" }, { ipc: "506", bns: "351(2)" } ]
+    Criminal trespass:        [ { ipc: "506", bns: "351(2)" }, { ipc: "341", bns: "126(2)" } ]
+    Dacoity:                  [ { ipc: "412", bns: "317(3)" }, { ipc: "120B", bns: "61(2)" }, { ipc: "34", bns: "3(5)" } ]
+    Murder:                   [ { ipc: "201", bns: "238" }, { ipc: "34", bns: "3(5)" }, { ipc: "120B", bns: "61(2)" } ]
+    Kidnapping:               [ { ipc: "364A", bns: "140(2)" }, { ipc: "506", bns: "351(2)" }, { ipc: "34", bns: "3(5)" } ]
+
 planted:
   network:
     crime_type: Chain snatching

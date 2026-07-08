@@ -510,3 +510,34 @@ def fetch_chargesheets():
     p = SYN_DIR / "chargesheets.csv"
     rows = _read_csv(p) if p.exists() else []
     return [{k: r.get(k, "") for k in _CHARGESHEET_COLS} for r in rows]
+
+
+# --------------------------------------------------------------------------- #
+# Arrests / Case_Sections — organizer schema's ArrestSurrender + ActSectionAssociation.
+# Arrests start the 60/90-day default-bail clock (docs/product/08 §1) and define the
+# absconding board (§6: suspects on open cases with no arrest row); Case_Sections is
+# the one-to-many legal classification behind §5's per-section evidence gaps.
+# --------------------------------------------------------------------------- #
+_ARREST_COLS = ("arrest_id", "incident_id", "entity_id", "event_type", "event_date",
+                "district_code", "court_id", "io_officer_id")
+_CASE_SECTION_COLS = ("incident_id", "act_code", "section_code", "section_order")
+
+
+def fetch_arrests():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Arrests", zcql.execute_query(
+            "SELECT " + ", ".join(_ARREST_COLS) + " FROM Arrests"))
+    p = SYN_DIR / "arrests.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _ARREST_COLS} for r in rows]
+
+
+def fetch_case_sections():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Case_Sections", zcql.execute_query(
+            "SELECT " + ", ".join(_CASE_SECTION_COLS) + " FROM Case_Sections"))
+    p = SYN_DIR / "case_sections.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _CASE_SECTION_COLS} for r in rows]

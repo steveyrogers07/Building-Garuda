@@ -7,6 +7,10 @@ ground_truth.json of the planted patterns used to score later phases:
     data/synthetic/incidents.csv
     data/synthetic/entities.csv
     data/synthetic/incident_edges.csv
+    data/synthetic/officers.csv
+    data/synthetic/chargesheets.csv
+    data/synthetic/arrests.csv
+    data/synthetic/case_sections.csv
     data/synthetic/ground_truth.json
 
 Everything is driven by data/generator_config.yaml and a fixed seed, so the output
@@ -536,6 +540,106 @@ def generate(cfg, out_dir):
             cs_type=str(weighted_choice(rng2, cs_types, cs_w)),
             officer_id=inc["officer_id"]))
 
+    # ---- ActSectionAssociation — every case invokes >=1 act+section (one-to-many).
+    # The incident's ipc_bns_code stays the primary/most-serious (section_order 1);
+    # crime-type companion sections follow at 2..n. Isolated stream again (see the
+    # rng2 note): these draws must not perturb any existing output — and sections
+    # and arrests each get their OWN stream so future changes to one never
+    # reshuffle the other.
+    rng_sec = np.random.default_rng(seed + 330044)
+    sec_cfg = cfg["case_sections"]
+    extra_k = [int(k) for k in sec_cfg["extra_weights"]]
+    extra_w = np.array(list(sec_cfg["extra_weights"].values()), float)
+    companions = sec_cfg["companions"]
+    case_sections = []
+    for inc in incidents:
+        crime = crime_by_name[inc["crime_type"]]
+        act = "BNS" if inc["ipc_bns_code"] == crime["bns"] else "IPC"
+        seen = {(act, inc["ipc_bns_code"])}
+        case_sections.append(dict(incident_id=inc["incident_id"], act_code=act,
+                                  section_code=inc["ipc_bns_code"], section_order=1))
+        pool = companions.get(inc["crime_type"], [])
+        k = min(int(weighted_choice(rng_sec, extra_k, extra_w)), len(pool))
+        if k == 0:
+            continue
+        order = 2
+        for idx in rng_sec.choice(len(pool), size=k, replace=False):
+            comp = pool[int(idx)]
+            if "act" in comp:   # statute-fixed (e.g. IT Act) — same code under IPC or BNS
+                c_act, c_sec = str(comp["act"]), str(comp["section"])
+            else:               # act-matched: follow how this case is coded
+                c_act, c_sec = act, str(comp["bns" if act == "BNS" else "ipc"])
+            if (c_act, c_sec) in seen:
+                continue
+            seen.add((c_act, c_sec))
+            case_sections.append(dict(incident_id=inc["incident_id"], act_code=c_act,
+                                      section_code=c_sec, section_order=order))
+            order += 1
+
+    # ---- ArrestSurrender — arrest/surrender events per accused suspect ----
+    # Starts the CrPC/BNSS 60/90-day default-bail clock (docs/product/08 §1); a
+    # suspect edge with no row here on an open case is the absconding board (08 §6).
+    rng_arr = np.random.default_rng(seed + 440055)
+    arr_cfg = cfg["arrests"]
+    p_posture = arr_cfg["p_arrested_by_posture"]
+    surrender_frac = float(arr_cfg["surrender_fraction"])
+    lag_lo, lag_hi = arr_cfg["days_after_report"]
+    recency = float(arr_cfg["open_case_recency_days"])
+    end_dt = end.to_pydatetime()
+    cs_by_inc = {c["incident_id"]: c for c in chargesheets}
+    # suspects per incident in edge order (never a set — str hashing is per-process,
+    # so set iteration order would break rerun-to-rerun reproducibility)
+    suspects_by_inc = {}
+    for e in edges:
+        if e["role"] == "suspect":
+            lst = suspects_by_inc.setdefault(e["incident_id"], [])
+            if e["entity_id"] not in lst:
+                lst.append(e["entity_id"])
+    arrests = []
+    arr_n = 0
+    for inc in incidents:
+        suspects = suspects_by_inc.get(inc["incident_id"], [])
+        if not suspects:
+            continue
+        cs = cs_by_inc.get(inc["incident_id"])
+        if cs:
+            posture = "chargesheeted_A" if cs["cs_type"] == "A" else "false_or_undetected"
+        elif inc["status"] == "Pending Trial":
+            posture = "pending_trial"
+        else:
+            posture = "under_investigation"
+        p = float(p_posture[posture])
+        reported = datetime.strptime(inc["reported_at"], "%Y-%m-%d %H:%M:%S")
+        for ent_id in suspects:
+            if rng_arr.random() >= p:
+                continue          # never arrested -> absconding while the case is open
+            if cs:
+                # custody must precede the final report: arrest in [reported, cs_date]
+                cs_dt = datetime.strptime(cs["cs_date"], "%Y-%m-%d")
+                span = max((cs_dt - reported).days, 1)
+                event = reported + timedelta(days=float(rng_arr.uniform(0, span)))
+            elif posture == "pending_trial":
+                event = reported + timedelta(days=float(rng_arr.uniform(lag_lo, lag_hi)))
+            else:
+                # open cases: the surviving live-clock population skews recent — old
+                # arrests resolve (chargesheet or default bail) and leave this pool
+                event = max(reported + timedelta(days=float(rng_arr.uniform(0, 3))),
+                            end_dt - timedelta(days=float(rng_arr.uniform(0, recency))))
+            event = max(min(event, end_dt), reported)   # never future-dated / pre-FIR
+            arr_n += 1
+            officer_pool = officers_by_district.get(inc["district_code"])
+            arrests.append(dict(
+                arrest_id=f"ARR{arr_n:06d}", incident_id=inc["incident_id"],
+                entity_id=ent_id,
+                event_type="surrender" if rng_arr.random() < surrender_frac else "arrest",
+                event_date=event.strftime("%Y-%m-%d"),
+                district_code=inc["district_code"],
+                # production court (organizer: ArrestSurrender.CourtID) — no Court
+                # master yet, so a stable district-scoped placeholder id
+                court_id=f"CRT-{inc['district_code']}-{int(rng_arr.integers(1, 4)):02d}",
+                io_officer_id=inc["officer_id"] if rng_arr.random() < 0.85 or not officer_pool
+                else str(rng_arr.choice(officer_pool))))
+
     # ---- write ----
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -544,11 +648,15 @@ def generate(cfg, out_dir):
     edge_df = pd.DataFrame(edges)
     off_df = pd.DataFrame(officers)
     cs_df = pd.DataFrame(chargesheets)
+    arr_df = pd.DataFrame(arrests)
+    sec_df = pd.DataFrame(case_sections)
     inc_df.to_csv(out_dir / "incidents.csv", index=False, encoding="utf-8")
     ent_df.to_csv(out_dir / "entities.csv", index=False, encoding="utf-8")
     edge_df.to_csv(out_dir / "incident_edges.csv", index=False, encoding="utf-8")
     off_df.to_csv(out_dir / "officers.csv", index=False, encoding="utf-8")
     cs_df.to_csv(out_dir / "chargesheets.csv", index=False, encoding="utf-8")
+    arr_df.to_csv(out_dir / "arrests.csv", index=False, encoding="utf-8")
+    sec_df.to_csv(out_dir / "case_sections.csv", index=False, encoding="utf-8")
     (out_dir / "ground_truth.json").write_text(
         json.dumps(ground, ensure_ascii=False, indent=2), encoding="utf-8")
 

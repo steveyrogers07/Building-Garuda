@@ -47,6 +47,24 @@ Chargesheets:
     cs_type:     { source: cs_type }
     officer_id:  { source: officer_id }
 
+Arrests:
+  fields:
+    arrest_id:     { source: arrest_id }
+    incident_id:   { source: incident_id }
+    entity_id:     { source: entity_id }
+    event_type:    { source: event_type }
+    event_date:    { source: event_date, transform: datetime }
+    district_code: { source: district_code }
+    court_id:      { source: court_id }
+    io_officer_id: { source: io_officer_id }
+
+Case_Sections:
+  fields:
+    incident_id:   { source: incident_id }
+    act_code:      { source: act_code }
+    section_code:  { source: section_code }
+    section_order: { source: section_order, transform: int }
+
 Entities:
   fields:
     entity_id:        { source: entity_id }

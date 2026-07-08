@@ -130,6 +130,39 @@ tables:
       - { name: cs_type,     type: Text, nullable: false }   # A=Chargesheet | B=False Case | C=Undetected
       - { name: officer_id,  type: Text, nullable: true, ref: Officers.officer_id }
 
+  Arrests:
+    phase: 2
+    populate: true
+    description: >
+      Arrest/surrender events per accused (organizer schema's ArrestSurrender, joined to
+      Accused via inv_arrestsurrenderaccused). Starts the CrPC/BNSS 60/90-day default-bail
+      clock (docs/product/08 §1); a suspect in an open case with no row here is the
+      absconding-accused board (08 §6).
+    business_key: arrest_id
+    columns:
+      - { name: arrest_id,     type: Text, nullable: false, unique: true }
+      - { name: incident_id,   type: Text, nullable: false, ref: Incidents.incident_id }
+      - { name: entity_id,     type: Text, nullable: false, ref: Entities.entity_id }  # the accused
+      - { name: event_type,    type: Text, nullable: false }   # arrest | surrender
+      - { name: event_date,    type: Date, nullable: false }
+      - { name: district_code, type: Text, nullable: true }
+      - { name: court_id,      type: Text, nullable: true }    # production court (ArrestSurrender.CourtID)
+      - { name: io_officer_id, type: Text, nullable: true, ref: Officers.officer_id }  # ArrestSurrender.IOID
+
+  Case_Sections:
+    phase: 2
+    populate: true
+    description: >
+      Every act+section invoked per case (organizer schema's ActSectionAssociation ->
+      Act.ActCode + Section.SectionCode), one-to-many. Incidents.ipc_bns_code stays the
+      primary/most-serious section (section_order 1) per docs/DATASET_REAL_SCHEMA.md;
+      powers per-section evidence-gap analysis (docs/product/08 §5).
+    columns:
+      - { name: incident_id,   type: Text, nullable: false, ref: Incidents.incident_id }
+      - { name: act_code,      type: Text, nullable: false }   # IPC | BNS | IT_ACT
+      - { name: section_code,  type: Text, nullable: false }
+      - { name: section_order, type: Int,  nullable: false }   # 1 = primary/most serious
+
   # ---------- DERIVED (created empty in Phase 2; filled later) ----------
 
   MO_Clusters:

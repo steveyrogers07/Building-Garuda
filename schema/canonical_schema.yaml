@@ -42,6 +42,9 @@ tables:
       - { name: address_text,  type: Text,     nullable: true }
       - { name: mo_text,       type: Text,     nullable: true }
       - { name: status,        type: Text,     nullable: true }
+      - { name: case_category, type: Text,     nullable: true }   # FIR|UDR|PAR|Zero-FIR (CaseMaster.CaseCategoryID)
+      - { name: gravity,       type: Text,     nullable: true }   # Heinous|Non-Heinous (CaseMaster.GravityOffenceID)
+      - { name: officer_id,    type: Text,     nullable: true, ref: Officers.officer_id }  # CaseMaster.PolicePersonID
       - { name: mo_cluster_id, type: Text,     nullable: true }   # filled in Phase 4
       - { name: series_id,     type: Text,     nullable: true }   # filled in Phase 5
       - { name: source_fir_url,type: Text,     nullable: true }
@@ -95,6 +98,37 @@ tables:
       - { name: area_code, type: Text, nullable: false, unique: true }
       - { name: level,     type: Text, nullable: false }   # state|district|taluk
       - { name: polygon,   type: Text, nullable: false }   # GeoJSON geometry as a string
+
+  Officers:
+    phase: 2
+    populate: true
+    description: >
+      Investigating/registering officers (organizer schema's Employee, narrowed to what
+      the platform needs — Rank + Designation + posting). Powers "who registered this FIR"
+      on the case file and "who worked cases like this" (D3).
+    business_key: officer_id
+    columns:
+      - { name: officer_id,    type: Text, nullable: false, unique: true }
+      - { name: name,          type: Text, nullable: false }
+      - { name: rank,          type: Text, nullable: true }    # Constable..DySP (Rank.RankName)
+      - { name: designation,   type: Text, nullable: true }    # Investigating Officer|SHO|... (Designation.DesignationName)
+      - { name: district_code, type: Text, nullable: true }    # Employee.DistrictID
+      - { name: unit_code,     type: Text, nullable: true }    # Employee.UnitID (station)
+
+  Chargesheets:
+    phase: 2
+    populate: true
+    description: >
+      Final-report outcome per case (organizer schema's ChargesheetDetails) — the
+      clearance/conviction signal nobody else in the dataset computes (blueprint §B1).
+      Only cases that reached a terminal status get a row.
+    business_key: cs_id
+    columns:
+      - { name: cs_id,       type: Text, nullable: false, unique: true }
+      - { name: incident_id, type: Text, nullable: false, ref: Incidents.incident_id }
+      - { name: cs_date,     type: Date, nullable: true }
+      - { name: cs_type,     type: Text, nullable: false }   # A=Chargesheet | B=False Case | C=Undetected
+      - { name: officer_id,  type: Text, nullable: true, ref: Officers.officer_id }
 
   # ---------- DERIVED (created empty in Phase 2; filled later) ----------
 

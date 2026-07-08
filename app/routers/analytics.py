@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from typing import Optional
 
 import numpy as np
@@ -39,6 +40,7 @@ from pydantic import BaseModel
 from automation import briefs
 from governance import audit as gaudit, masking, rbac
 from engines import copilot as cp
+from engines import district as district_engine
 from engines import forecasting as fc
 from engines import mo as mo_engine
 from engines import network as net_engine
@@ -52,6 +54,29 @@ router = APIRouter(tags=["analytics"])
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MO_VECTOR_PATH = os.path.join(REPO, "data", "synthetic", "mo_vectors.npz")
+
+
+class _Lazy:
+    """Thread-safe memoize-once for an expensive build (graph analysis, LightGBM
+    walk-forward, TF-IDF index, anomaly scan). Plain "if cache is None: build()"
+    is fine for a single request thread, but the background warm-up thread
+    (main.py startup) can race a live request hitting the same cold cache —
+    without a lock both would redundantly run the full computation at once,
+    doubling CPU contention right when someone is watching. The lock only
+    guards the (rare) build path; reads of an already-warm cache never block."""
+
+    def __init__(self, build):
+        self._build = build
+        self._lock = threading.Lock()
+        self._value = None
+
+    def get(self, rebuild=False):
+        if self._value is not None and not rebuild:
+            return self._value
+        with self._lock:
+            if self._value is None or rebuild:
+                self._value = self._build()
+        return self._value
 
 
 class RunIn(BaseModel):
@@ -126,14 +151,12 @@ def geocode_backfill(body: RunIn):
 # Phase 5 — co-offender network / crime-series / anomaly
 # --------------------------------------------------------------------------- #
 # The graph is expensive to build, so cache it in-process. /network/run rebuilds.
-_NET_CACHE = {"analysis": None}
+_NET_CACHE = _Lazy(lambda: net_engine.analyze(
+    store.fetch_incidents_p5(), store.fetch_entities_p5(), store.fetch_edges_p5()))
 
 
 def _network_analysis(rebuild=False):
-    if _NET_CACHE["analysis"] is None or rebuild:
-        _NET_CACHE["analysis"] = net_engine.analyze(
-            store.fetch_incidents_p5(), store.fetch_entities_p5(), store.fetch_edges_p5())
-    return _NET_CACHE["analysis"]
+    return _NET_CACHE.get(rebuild=rebuild)
 
 
 @router.get("/network/top")
@@ -190,10 +213,20 @@ def series_run(body: RunIn):
             "sample": res["series"][:10]}
 
 
+# The z-score/MAD scan is O(months^2) per (district, crime) series in pure Python
+# and the frontend calls this (as a read, write=False) from both the Overview and
+# Alerts screens on every mount — cache the detection result the same way the
+# network/risk/copilot state is cached, and only rescan on an explicit write run.
+_ANOMALY_CACHE = _Lazy(lambda: detect_anomalies(store.fetch_incidents_p5()))
+
+
+def _anomaly_result(rebuild=False):
+    return _ANOMALY_CACHE.get(rebuild=rebuild)
+
+
 @router.post("/anomaly/run")
 def anomaly_run(body: RunIn):
-    rows = store.fetch_incidents_p5()
-    res = detect_anomalies(rows)
+    res = _anomaly_result(rebuild=body.write)
     written = store.write_alerts(res["alerts"]) if body.write else 0
     return {"ok": True, "alerts": len(res["alerts"]), "written": written,
             "sample": res["alerts"][:20]}
@@ -203,22 +236,23 @@ def anomaly_run(body: RunIn):
 # Phase 6 — predictive & explainable risk forecasting
 # --------------------------------------------------------------------------- #
 # Training is expensive; cache the model + backtest + current risk surface.
-_RISK_CACHE = {"state": None}
+def _build_risk_state():
+    t, feats = fc.build_feature_table(store.fetch_incidents_p5(), store.fetch_socioeconomic())
+    wf = fc.walk_forward(t, feats, n_folds=3)
+    model = fc.fit(t, feats)
+    cur, last = fc.forecast_next(t, feats, model)
+    samp = t.sample(min(40000, len(t)), random_state=0).copy()
+    samp["score"] = model.predict_proba(samp[feats])[:, 1]
+    fair_df, fair_sum = fc.fairness_audit(samp, "score")
+    return {"t": t, "feats": feats, "model": model, "cur": cur,
+            "last": last, "wf": wf, "fair": (fair_df, fair_sum)}
+
+
+_RISK_CACHE = _Lazy(_build_risk_state)
 
 
 def _risk_state(rebuild=False):
-    if _RISK_CACHE["state"] is None or rebuild:
-        t, feats = fc.build_feature_table(store.fetch_incidents_p5(),
-                                          store.fetch_socioeconomic())
-        wf = fc.walk_forward(t, feats, n_folds=3)
-        model = fc.fit(t, feats)
-        cur, last = fc.forecast_next(t, feats, model)
-        samp = t.sample(min(40000, len(t)), random_state=0).copy()
-        samp["score"] = model.predict_proba(samp[feats])[:, 1]
-        fair_df, fair_sum = fc.fairness_audit(samp, "score")
-        _RISK_CACHE["state"] = {"t": t, "feats": feats, "model": model, "cur": cur,
-                                "last": last, "wf": wf, "fair": (fair_df, fair_sum)}
-    return _RISK_CACHE["state"]
+    return _RISK_CACHE.get(rebuild=rebuild)
 
 
 def _risk_rows(st, n=None):
@@ -281,15 +315,17 @@ def risk_fairness():
 # --------------------------------------------------------------------------- #
 # Phase 7 — intelligence copilot (hybrid RAG over FIRs)
 # --------------------------------------------------------------------------- #
-_COPILOT_CACHE = {"state": None}
+def _build_copilot_state():
+    inc = store.fetch_incidents_copilot()
+    index, refs = cp.prepare(inc, store.fetch_socioeconomic())
+    return {"incidents": inc, "index": index, "refs": refs}
+
+
+_COPILOT_CACHE = _Lazy(_build_copilot_state)
 
 
 def _copilot_state(rebuild=False):
-    if _COPILOT_CACHE["state"] is None or rebuild:
-        inc = store.fetch_incidents_copilot()
-        index, refs = cp.prepare(inc, store.fetch_socioeconomic())
-        _COPILOT_CACHE["state"] = {"incidents": inc, "index": index, "refs": refs}
-    return _COPILOT_CACHE["state"]
+    return _COPILOT_CACHE.get(rebuild=rebuild)
 
 
 class CopilotIn(BaseModel):
@@ -451,6 +487,36 @@ def universal_search(q: str, principal: rbac.Principal = Depends(get_principal))
     return res
 
 
+# --------------------------------------------------------------------------- #
+# District Command Card (blueprint §B1/§B2) — clearance/conviction rate from
+# ChargesheetDetails.cs_type, backlog aging, officer leaderboard. district/
+# station roles are scoped to their own jurisdiction; others may query any.
+# --------------------------------------------------------------------------- #
+@router.get("/district/{code}/command")
+def district_command(code: str, principal: rbac.Principal = Depends(get_principal)):
+    """One district's cockpit — load, backlog, clearance rate, top officers."""
+    if principal.role in ("district", "station") and not rbac.in_scope(principal, district=code):
+        raise HTTPException(403, "outside your jurisdiction")
+    card = district_engine.command_card(
+        code, store.fetch_incidents_full(), store.fetch_chargesheets(),
+        store.fetch_officers())
+    gaudit.record(principal, "read", "District:" + code, "district/command")
+    return card
+
+
+@router.get("/district/rank")
+def district_rank(principal: rbac.Principal = Depends(get_principal)):
+    """All districts ranked by clearance rate — "who's improving, who's slipping" (§B2)."""
+    if principal.role in ("district", "station"):
+        raise HTTPException(403, "statewide ranking requires SP/analyst clearance or higher")
+    inc = store.fetch_incidents_full()
+    codes = sorted({r["district_code"] for r in inc if r.get("district_code")})
+    ranked = district_engine.rank_districts(
+        codes, inc, store.fetch_chargesheets(), store.fetch_officers())
+    gaudit.record(principal, "read", "District:ALL", "district/rank")
+    return {"districts": ranked}
+
+
 @router.post("/brief/run")
 def brief_run(scope: str = "STATE"):
     """Assemble the intelligence brief (SmartBrowz renders HTML→PDF in prod)."""
@@ -460,6 +526,22 @@ def brief_run(scope: str = "STATE"):
     brief = briefs.build_brief(
         scope, stats=stats(),
         rings=net_engine.cross_district_rings(a["graph"], a["communities"], top=5),
-        alerts=detect_anomalies(inc)["alerts"], series=link_series(inc)["series"][:5],
+        alerts=_anomaly_result()["alerts"], series=link_series(inc)["series"][:5],
         risk=_risk_rows(st, n=5), fairness=st["fair"][1])
     return {"ok": True, "brief": brief, "html_bytes": len(briefs.render_html(brief))}
+
+
+# --------------------------------------------------------------------------- #
+# Cache warm-up — the network graph / LightGBM walk-forward / copilot TF-IDF
+# index / anomaly scan / workbench state are each expensive exactly once and
+# cheap forever after (module-level caches above). Left lazy, that one-time
+# cost lands on whichever user's click happens to be first — a multi-second
+# stall right when someone is looking. Precompute them at process start
+# instead, off the request path.
+# --------------------------------------------------------------------------- #
+def warm():
+    _network_analysis()
+    _risk_state()
+    _copilot_state()
+    _anomaly_result()
+    wb.state()

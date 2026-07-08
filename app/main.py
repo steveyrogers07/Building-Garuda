@@ -24,7 +24,27 @@ except Exception as _exc:  # noqa: BLE001
 # Phase 4 analytics endpoints (/resolve/run, /mo/run, /geocode/backfill). Same guard.
 try:
     from routers.analytics import router as analytics_router
+    from routers.analytics import warm as _warm_analytics
     app.include_router(analytics_router)
+
+    @app.on_event("startup")
+    def _warm_caches():
+        # The network graph, LightGBM walk-forward model, copilot TF-IDF index,
+        # anomaly scan and workbench state are each expensive exactly once
+        # (in-process caches thereafter). Build them off the request path in a
+        # background thread so the console is reachable immediately, but the
+        # first real click doesn't stall on a multi-second cold-start.
+        import logging
+        import threading
+
+        def _run():
+            try:
+                _warm_analytics()
+            except Exception as exc:  # noqa: BLE001
+                logging.getLogger("garuda").warning("cache warm-up failed: %s", exc)
+
+        threading.Thread(target=_run, daemon=True, name="garuda-warmup").start()
+
 except Exception as _exc:  # noqa: BLE001
     import logging
     logging.getLogger("garuda").warning("analytics router not loaded: %s", _exc)
@@ -54,7 +74,12 @@ if os.environ.get("GARUDA_LOCAL") == "1":
     from fastapi.responses import RedirectResponse
     from fastapi.staticfiles import StaticFiles
 
-    _CLIENT = Path(__file__).resolve().parent.parent / "client"
+    _REPO = Path(__file__).resolve().parent.parent
+    # Prefer the built React console (client-react/dist); fall back to the
+    # legacy static SPA so `python app/run_phase8.py` works before any build.
+    _CLIENT = _REPO / "client-react" / "dist"
+    if not (_CLIENT / "index.html").exists():
+        _CLIENT = _REPO / "client"
 
     @app.get("/console")
     def _console():

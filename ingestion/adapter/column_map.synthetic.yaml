@@ -23,9 +23,29 @@ Incidents:
     address_text:   { source: address_text }
     mo_text:        { source: mo_text }
     status:         { source: status }
+    case_category:  { source: case_category }
+    gravity:        { source: gravity }
+    officer_id:     { source: officer_id }
     source_fir_url: { source: source_fir_url }
     confidence:     { source: confidence, transform: float }
     created_by:     { source: created_by }
+
+Officers:
+  fields:
+    officer_id:    { source: officer_id }
+    name:          { source: name }
+    rank:          { source: rank }
+    designation:   { source: designation }
+    district_code: { source: district_code }
+    unit_code:     { source: unit_code }
+
+Chargesheets:
+  fields:
+    cs_id:       { source: cs_id }
+    incident_id: { source: incident_id }
+    cs_date:     { source: cs_date, transform: datetime }
+    cs_type:     { source: cs_type }
+    officer_id:  { source: officer_id }
 
 Entities:
   fields:

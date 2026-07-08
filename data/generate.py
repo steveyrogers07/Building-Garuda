@@ -220,6 +220,36 @@ def generate(cfg, out_dir):
         n = max(3, round(d["weight"]))
         stations[d["code"]] = [f"{d['code']}{i:02d}" for i in range(1, n + 1)]
 
+    # Isolated RNG stream for the new organizer-schema fields (officer roster,
+    # case_category, chargesheets). Drawing these from the shared rng/random/fake
+    # streams would shift every subsequent draw downstream — including entity names,
+    # planted-scenario identities (kingpin, shared phone/vehicle) and incident_ids —
+    # breaking ground_truth.json reproducibility and every test that hardcodes them.
+    # Keep them on a separate, independently-seeded stream instead.
+    rng2 = np.random.default_rng(seed + 990011)
+    random2 = random.Random(seed + 990011)
+    fake2 = Faker("en_IN")
+    fake2.seed_instance(seed + 990011)
+
+    # ---- Employee roster (organizer schema: Rank/Designation/District posting) ----
+    off_cfg = cfg["officers"]
+    off_rank_names = [r["name"] for r in off_cfg["ranks"]]
+    off_rank_w = np.array([r["weight"] for r in off_cfg["ranks"]], float)
+    officers, officers_by_district = [], {d["code"]: [] for d in districts}
+    for i in range(int(off_cfg["n_officers"])):
+        oid = f"OFF{i + 1:04d}"
+        dc = str(weighted_choice(rng2, [d["code"] for d in districts], dweights))
+        officers.append(dict(
+            officer_id=oid, name=fake2.name(),
+            rank=str(weighted_choice(rng2, off_rank_names, off_rank_w)),
+            designation=str(rng2.choice(off_cfg["designations"])),
+            district_code=dc, unit_code=random2.choice(stations[dc])))
+        officers_by_district[dc].append(oid)
+
+    cc_items = [c["code"] for c in cfg["case_categories"]]
+    cc_w = np.array([c["weight"] for c in cfg["case_categories"]], float)
+    heinous_crimes = set(cfg.get("heinous_crimes", []))
+
     # ---- date sampling distribution with weekend / month-end / festival skew ----
     start = pd.to_datetime(cfg["dates"]["start"])
     end = pd.to_datetime(cfg["dates"]["end"])
@@ -322,6 +352,8 @@ def generate(cfg, out_dir):
         else:
             addr = f"{rng.choice(LOCALITIES)}, {d['name']}"
         reported = when + timedelta(hours=round(float(rng.uniform(0.5, 72)), 1))
+        officer_pool = officers_by_district.get(district_code) or [o["officer_id"] for o in officers]
+        officer_id = str(random2.choice(officer_pool))
         incidents.append(dict(
             incident_id=iid, fir_no=f"{st}/{yr}/{fir_seq[st]:04d}",
             occurred_at=when.strftime("%Y-%m-%d %H:%M:%S"),
@@ -329,9 +361,15 @@ def generate(cfg, out_dir):
             district_code=district_code, station_code=st, crime_type=crime_name,
             ipc_bns_code=code, lat=lat, long=long, address_text=addr, mo_text=mo,
             status=str(weighted_choice(rng, status_items, status_w)),
+            case_category=str(weighted_choice(rng2, cc_items, cc_w)),
+            gravity="Heinous" if crime_name in heinous_crimes else "Non-Heinous",
+            officer_id=officer_id,
             mo_cluster_id="", series_id="",
             source_fir_url=f"stratus://raw-fir/{iid}.pdf",
             confidence=round(float(rng.uniform(0.75, 0.99)), 2),
+            # unchanged from the original expression — keeps rng's per-incident draw
+            # count identical, so planted-scenario identities downstream (kingpin,
+            # shared phone/vehicle) stay reproducible from the same seed.
             created_by=f"{st}-OFF{int(rng.integers(1, 40)):02d}"))
         return iid, crime_name
 
@@ -478,15 +516,39 @@ def generate(cfg, out_dir):
         })
     ground["anomalies"] = anomalies
 
+    # ---- ChargesheetDetails — only cases that reached a final-report status get one ----
+    cs_cfg = cfg["chargesheet"]
+    eligible = set(cs_cfg["eligible_statuses"])
+    cs_types = list(cs_cfg["cstype_weights"].keys())
+    cs_w = np.array(list(cs_cfg["cstype_weights"].values()), float)
+    lo, hi = cs_cfg["days_to_chargesheet"]
+    chargesheets = []
+    cs_n = 0
+    for inc in incidents:
+        if inc["status"] not in eligible:
+            continue
+        cs_n += 1
+        occurred = datetime.strptime(inc["occurred_at"], "%Y-%m-%d %H:%M:%S")
+        csdate = occurred + timedelta(days=int(rng2.integers(int(lo), int(hi) + 1)))
+        chargesheets.append(dict(
+            cs_id=f"CS{cs_n:06d}", incident_id=inc["incident_id"],
+            cs_date=csdate.strftime("%Y-%m-%d"),
+            cs_type=str(weighted_choice(rng2, cs_types, cs_w)),
+            officer_id=inc["officer_id"]))
+
     # ---- write ----
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     inc_df = pd.DataFrame(incidents)
     ent_df = pd.DataFrame(entities)
     edge_df = pd.DataFrame(edges)
+    off_df = pd.DataFrame(officers)
+    cs_df = pd.DataFrame(chargesheets)
     inc_df.to_csv(out_dir / "incidents.csv", index=False, encoding="utf-8")
     ent_df.to_csv(out_dir / "entities.csv", index=False, encoding="utf-8")
     edge_df.to_csv(out_dir / "incident_edges.csv", index=False, encoding="utf-8")
+    off_df.to_csv(out_dir / "officers.csv", index=False, encoding="utf-8")
+    cs_df.to_csv(out_dir / "chargesheets.csv", index=False, encoding="utf-8")
     (out_dir / "ground_truth.json").write_text(
         json.dumps(ground, ensure_ascii=False, indent=2), encoding="utf-8")
 

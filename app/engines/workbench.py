@@ -12,6 +12,7 @@ State is built lazily once and reused; `refresh()` drops it (nightly job).
 from __future__ import annotations
 
 import re
+import threading
 import time
 from collections import Counter, defaultdict
 
@@ -23,6 +24,10 @@ from governance import masking
 from shared import store
 
 _STATE = {"v": None}
+# guards the (rare) build path only — a background cache-warm thread (see
+# app/main.py startup) can otherwise race a live dossier/case/search request
+# into rebuilding this same expensive state twice at once.
+_STATE_LOCK = threading.Lock()
 
 # linked-case evidence weights: a shared burner phone/plate is the strongest tie
 _LINK_W = {"shared_phone": 4, "shared_vehicle": 4, "shared_person": 3,
@@ -34,55 +39,67 @@ NEAR_KM, NEAR_DAYS = 2.0, 14
 # state
 # --------------------------------------------------------------------------- #
 def state(rebuild=False):
-    if _STATE["v"] is None or rebuild:
-        t0 = time.time()
-        inc = store.fetch_incidents_full()
-        ents = store.fetch_entities_p5()          # canonical_id always set
-        edges = store.fetch_edges_p5()
-
-        by_inc = {r["incident_id"]: r for r in inc}
-        ent_by_id = {e["entity_id"]: e for e in ents}
-        canon_meta = {}                            # canonical_id -> {type,value}
-        aliases = defaultdict(list)                # canonical_id -> [entity rows]
-        for e in ents:
-            cid = e["canonical_id"]
-            aliases[cid].append(e)
-            if cid not in canon_meta or e["entity_id"] == cid:
-                canon_meta[cid] = {"type": e["type"], "value": e["value"]}
-
-        inc_canon = defaultdict(set)               # incident -> {canonical}
-        canon_apps = defaultdict(list)             # canonical -> [(incident_id, role, evidence)]
-        canon_roles = defaultdict(set)
-        for ed in edges:
-            e = ent_by_id.get(ed["entity_id"])
-            if not e:
-                continue
-            cid = e["canonical_id"]
-            inc_canon[ed["incident_id"]].add(cid)
-            canon_apps[cid].append((ed["incident_id"], ed.get("role", ""), ed.get("evidence_type", "")))
-            canon_roles[cid].add(ed.get("role", ""))
-
-        # protected flag: canonical appears in any statutorily protected case
-        canon_protected = {
-            cid: any(masking.is_protected(by_inc.get(i, {}).get("crime_type"))
-                     for i, _r, _e in apps)
-            for cid, apps in canon_apps.items()
-        }
-
-        G = net.build_graph(inc, ents, edges)      # fast: no centrality here
-        series = link_series(inc)                  # {assignments, series}
-
-        _STATE["v"] = {
-            "incidents": inc, "by_inc": by_inc, "entities": ents,
-            "canon_meta": canon_meta, "aliases": aliases, "inc_canon": inc_canon,
-            "canon_apps": canon_apps, "canon_roles": canon_roles,
-            "canon_protected": canon_protected, "graph": G,
-            "series_of": series["assignments"],
-            "series_rows": {s["series_id"]: s for s in series["series"]},
-            "copilot": cp.prepare(inc),            # (index, refs) for semantic search
-            "built_s": round(time.time() - t0, 1),
-        }
+    if _STATE["v"] is not None and not rebuild:
+        return _STATE["v"]
+    with _STATE_LOCK:
+        if _STATE["v"] is None or rebuild:
+            _build_state()
     return _STATE["v"]
+
+
+def _build_state():
+    t0 = time.time()
+    inc = store.fetch_incidents_full()
+    ents = store.fetch_entities_p5()          # canonical_id always set
+    edges = store.fetch_edges_p5()
+    officers_by_id = {o["officer_id"]: o for o in store.fetch_officers()}
+    cs_by_inc = defaultdict(list)
+    for c in store.fetch_chargesheets():
+        cs_by_inc[c["incident_id"]].append(c)
+
+    by_inc = {r["incident_id"]: r for r in inc}
+    ent_by_id = {e["entity_id"]: e for e in ents}
+    canon_meta = {}                            # canonical_id -> {type,value}
+    aliases = defaultdict(list)                # canonical_id -> [entity rows]
+    for e in ents:
+        cid = e["canonical_id"]
+        aliases[cid].append(e)
+        if cid not in canon_meta or e["entity_id"] == cid:
+            canon_meta[cid] = {"type": e["type"], "value": e["value"]}
+
+    inc_canon = defaultdict(set)               # incident -> {canonical}
+    canon_apps = defaultdict(list)             # canonical -> [(incident_id, role, evidence)]
+    canon_roles = defaultdict(set)
+    for ed in edges:
+        e = ent_by_id.get(ed["entity_id"])
+        if not e:
+            continue
+        cid = e["canonical_id"]
+        inc_canon[ed["incident_id"]].add(cid)
+        canon_apps[cid].append((ed["incident_id"], ed.get("role", ""), ed.get("evidence_type", "")))
+        canon_roles[cid].add(ed.get("role", ""))
+
+    # protected flag: canonical appears in any statutorily protected case
+    canon_protected = {
+        cid: any(masking.is_protected(by_inc.get(i, {}).get("crime_type"))
+                 for i, _r, _e in apps)
+        for cid, apps in canon_apps.items()
+    }
+
+    G = net.build_graph(inc, ents, edges)      # fast: no centrality here
+    series = link_series(inc)                  # {assignments, series}
+
+    _STATE["v"] = {
+        "incidents": inc, "by_inc": by_inc, "entities": ents,
+        "canon_meta": canon_meta, "aliases": aliases, "inc_canon": inc_canon,
+        "canon_apps": canon_apps, "canon_roles": canon_roles,
+        "canon_protected": canon_protected, "graph": G,
+        "officers_by_id": officers_by_id, "chargesheets_by_inc": cs_by_inc,
+        "series_of": series["assignments"],
+        "series_rows": {s["series_id"]: s for s in series["series"]},
+        "copilot": cp.prepare(inc),            # (index, refs) for semantic search
+        "built_s": round(time.time() - t0, 1),
+    }
 
 
 def refresh():
@@ -268,15 +285,27 @@ def case_file(incident_id, principal, max_links=12):
                        "occurred_at": r.get("occurred_at"),
                        "strength": ln["strength"], "reasons": reasons[:4]})
 
+    officer = st["officers_by_id"].get(inc.get("officer_id"))
+    cs_rows = st["chargesheets_by_inc"].get(incident_id, [])
+    chargesheet = cs_rows[0] if cs_rows else None
+
     timeline = [{"ts": inc.get("occurred_at"), "label": "Incident occurred"}]
     if inc.get("reported_at"):
         timeline.append({"ts": inc.get("reported_at"), "label": "FIR registered"})
     if inc.get("status"):
         timeline.append({"ts": None, "label": "Status: " + inc["status"]})
+    if chargesheet:
+        cs_label = {"A": "Chargesheet filed", "B": "Closed — false case",
+                    "C": "Closed — undetected"}.get(chargesheet.get("cs_type"), "Final report filed")
+        timeline.append({"ts": chargesheet.get("cs_date"), "label": cs_label})
 
     return {"incident": inc, "protected": masking.is_protected(inc.get("crime_type")),
             "parties": parties, "linked_cases": linked, "timeline": timeline,
             "series_id": sid,
+            "officer": ({"name": officer.get("name"), "rank": officer.get("rank"),
+                        "designation": officer.get("designation")} if officer else None),
+            "chargesheet": ({"cs_type": chargesheet.get("cs_type"),
+                             "cs_date": chargesheet.get("cs_date")} if chargesheet else None),
             "viewer": {"role": principal.role, "scope": principal.scope}}
 
 

@@ -18,6 +18,10 @@ env/
 .catalyst/
 catalyst-deploy/
 *.zip
+# scripts/bundle_data_for_deploy.py copies data/{synthetic,reference,gazetteer}
+# in here right before `catalyst deploy`, so app/'s AppSail bundle is
+# self-contained. Deploy-time artifact, not source — never commit it.
+app/data/
 
 # Secrets & env
 .env

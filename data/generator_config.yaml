@@ -91,6 +91,37 @@ crime_types:
   - { name: Murder,                    weight: 1,  ipc: "302", bns: "103(1)" }
   - { name: Kidnapping,                weight: 1,  ipc: "363", bns: "137(2)" }
 
+# Organizer schema: CaseMaster.CaseCategoryID -> CaseCategory (FIR/UDR/PAR/Zero-FIR).
+# `digit` is the leading digit of the real CrimeNo format (1+4+4+4+5).
+case_categories:
+  - { code: FIR,      digit: "1", weight: 90 }
+  - { code: Zero-FIR,  digit: "8", weight: 4 }
+  - { code: UDR,       digit: "3", weight: 4 }
+  - { code: PAR,       digit: "4", weight: 2 }
+
+# GravityOffence.LookupValue — crimes not listed default to Non-Heinous.
+heinous_crimes: [Murder, Dacoity, Kidnapping, Robbery]
+
+# Employee roster (Rank/Designation/Unit posting) — who registers/investigates FIRs.
+officers:
+  n_officers: 220
+  ranks:
+    - { name: Constable,      weight: 40 }
+    - { name: Head Constable, weight: 20 }
+    - { name: ASI,            weight: 15 }
+    - { name: PSI,            weight: 12 }
+    - { name: PI,             weight: 8 }
+    - { name: CPI,            weight: 3 }
+    - { name: DySP,           weight: 2 }
+  designations: [Investigating Officer, SHO, Beat Officer, Cyber Cell, Traffic]
+
+# ChargesheetDetails — only cases past investigation get a final-report row.
+# cstype: A=Chargesheet, B=False Case, C=Undetected (per the organizer schema).
+chargesheet:
+  eligible_statuses: [Chargesheeted, Closed, Final Report]
+  cstype_weights: { A: 0.72, B: 0.10, C: 0.18 }
+  days_to_chargesheet: [30, 180]
+
 planted:
   network:
     crime_type: Chain snatching

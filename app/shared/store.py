@@ -17,7 +17,19 @@ import csv
 import os
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+# Locally, data/ sits two levels up from shared/store.py (repo_root/app/shared/).
+# But Catalyst AppSail's build_path bundles only the *contents* of app/ as the
+# deployment root, so in production data/ (once bundled — see
+# docs/CATALYST_CREDITS_AND_DEPLOYMENT.md) sits just one level up instead. Try
+# both so the same code runs unchanged from a full checkout or a deployed
+# instance, instead of hard-failing with FileNotFoundError in prod.
+_HERE = Path(__file__).resolve()
+for _candidate in (_HERE.parents[2], _HERE.parents[1]):
+    if (_candidate / "data").is_dir():
+        REPO = _candidate
+        break
+else:
+    REPO = _HERE.parents[2]
 SYN_DIR = Path(os.environ.get("GARUDA_SYN_DIR", REPO / "data" / "synthetic"))
 BACKEND = os.environ.get("GARUDA_BACKEND", "local").lower()
 ZCQL_BATCH = 200
@@ -31,9 +43,31 @@ OUT_DIR = Path(os.environ.get("GARUDA_HOME", REPO / "data" / "local"))
 # --------------------------------------------------------------------------- #
 # local CSV helpers
 # --------------------------------------------------------------------------- #
+# Every analytics/workbench read (stats, geo, anomaly, dossier, search, ...) goes
+# through this on every request with no caller-side caching. Re-opening and
+# re-parsing multi-thousand-row CSVs on each API call is the single biggest
+# source of perceived UI lag (every screen navigation re-pays it). Cache the
+# parsed rows keyed by (path, mtime, size); writers use plain open(path, "w"),
+# which changes mtime, so the cache self-invalidates on the next read with no
+# extra plumbing.
+_CSV_CACHE: dict[str, tuple[float, int, list[dict]]] = {}
+
+
 def _read_csv(path):
+    path = str(path)
+    try:
+        st = os.stat(path)
+    except OSError:
+        with open(path, encoding="utf-8") as f:
+            return list(csv.DictReader(f))
+    key = (st.st_mtime, st.st_size)
+    cached = _CSV_CACHE.get(path)
+    if cached is not None and cached[:2] == key:
+        return cached[2]
     with open(path, encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+        rows = list(csv.DictReader(f))
+    _CSV_CACHE[path] = (st.st_mtime, st.st_size, rows)
+    return rows
 
 
 def _zcatalyst_zcql():
@@ -109,8 +143,9 @@ def write_entity_resolution(assignments):
         for r in src:
             a = assignments.get(r["entity_id"])
             if a:
-                r["canonical_id"] = a["canonical_id"]
-                r["match_confidence"] = a["match_confidence"]
+                # copy before mutating — `src` rows are shared with the cached
+                # entities.csv parse; writing in place would corrupt that cache
+                r = {**r, "canonical_id": a["canonical_id"], "match_confidence": a["match_confidence"]}
             w.writerow(r)
     return len(src)
 
@@ -130,7 +165,9 @@ def write_incident_mo(assignments):
         w = csv.DictWriter(f, fieldnames=list(src[0].keys()))
         w.writeheader()
         for r in src:
-            r["mo_cluster_id"] = assignments.get(r["incident_id"], "")
+            # copy before mutating — `src` rows are shared with the cached
+            # incidents.csv parse; writing in place would corrupt that cache
+            r = {**r, "mo_cluster_id": assignments.get(r["incident_id"], "")}
             w.writerow(r)
     return len(src)
 
@@ -388,7 +425,8 @@ def read_audit_log(limit=100):
 # Phase-9 reads — incident + its parties (governed: masking applied at API layer)
 # --------------------------------------------------------------------------- #
 _CASE_COLS = ("incident_id", "fir_no", "occurred_at", "district_code", "station_code",
-              "crime_type", "ipc_bns_code", "status", "source_fir_url")
+              "crime_type", "ipc_bns_code", "status", "source_fir_url",
+              "case_category", "gravity", "officer_id")
 
 
 def fetch_incident(incident_id):
@@ -432,7 +470,7 @@ def fetch_incident_parties(incident_id):
 _FULL_INC_COLS = ("incident_id", "fir_no", "occurred_at", "reported_at", "district_code",
                   "station_code", "crime_type", "ipc_bns_code", "lat", "long",
                   "address_text", "mo_text", "status", "mo_cluster_id", "series_id",
-                  "source_fir_url")
+                  "source_fir_url", "case_category", "gravity", "officer_id")
 
 
 def fetch_incidents_full():
@@ -443,3 +481,32 @@ def fetch_incidents_full():
             "SELECT " + ", ".join(_FULL_INC_COLS) + " FROM Incidents"))
     rows = _read_first_existing("incidents_mo.csv", "incidents.csv")
     return [{k: r.get(k, "") for k in _FULL_INC_COLS} for r in rows]
+
+
+# --------------------------------------------------------------------------- #
+# Officers / Chargesheets — organizer schema's Employee + ChargesheetDetails.
+# Powers the District Command Card (clearance/conviction rate — blueprint §B1)
+# and "who registered/investigated this FIR" on the case file.
+# --------------------------------------------------------------------------- #
+_OFFICER_COLS = ("officer_id", "name", "rank", "designation", "district_code", "unit_code")
+_CHARGESHEET_COLS = ("cs_id", "incident_id", "cs_date", "cs_type", "officer_id")
+
+
+def fetch_officers():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Officers", zcql.execute_query(
+            "SELECT " + ", ".join(_OFFICER_COLS) + " FROM Officers"))
+    p = SYN_DIR / "officers.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _OFFICER_COLS} for r in rows]
+
+
+def fetch_chargesheets():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Chargesheets", zcql.execute_query(
+            "SELECT " + ", ".join(_CHARGESHEET_COLS) + " FROM Chargesheets"))
+    p = SYN_DIR / "chargesheets.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _CHARGESHEET_COLS} for r in rows]

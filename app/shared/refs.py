@@ -11,7 +11,19 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+# Locally, data/ sits two levels up from shared/refs.py (repo_root/app/shared/).
+# But Catalyst AppSail's build_path bundles only the *contents* of app/ as the
+# deployment root, so in production data/ (once bundled — see
+# docs/CATALYST_CREDITS_AND_DEPLOYMENT.md) sits just one level up instead. Try
+# both so the same code runs unchanged from a full checkout or a deployed
+# instance, instead of hard-failing with FileNotFoundError in prod.
+_HERE = Path(__file__).resolve()
+for _candidate in (_HERE.parents[2], _HERE.parents[1]):
+    if (_candidate / "data").is_dir():
+        REPO = _candidate
+        break
+else:
+    REPO = _HERE.parents[2]
 REF_DIR = Path(os.environ.get("GARUDA_REF_DIR", REPO / "data" / "reference"))
 GAZ_DIR = Path(os.environ.get("GARUDA_GAZ_DIR", REPO / "data" / "gazetteer"))
 

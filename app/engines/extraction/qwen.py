@@ -18,7 +18,16 @@ from pathlib import Path
 
 from engines.extraction.rules import extract_fir as _rules_extract
 
-PROMPT_PATH = Path(__file__).resolve().parents[3] / "ingestion" / "extraction" / "prompt.md"
+# ingestion/ sits three levels up locally (repo_root/app/engines/extraction/);
+# in a deployed AppSail bundle (app/ becomes the root) it would be two levels
+# up instead — try both, same reasoning as shared/store.py and shared/refs.py.
+_HERE = Path(__file__).resolve()
+for _candidate in (_HERE.parents[3], _HERE.parents[2]):
+    if (_candidate / "ingestion").is_dir():
+        PROMPT_PATH = _candidate / "ingestion" / "extraction" / "prompt.md"
+        break
+else:
+    PROMPT_PATH = _HERE.parents[3] / "ingestion" / "extraction" / "prompt.md"
 
 
 def _build_prompt(text):

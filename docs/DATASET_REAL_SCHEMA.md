@@ -56,6 +56,10 @@ year `2026`, serial `00001`. (UDR=3, Zero-FIR=8, PAR=4.) `CaseNo` = last 9 digit
 | `Incidents.mo_text` / `address_text` | `BriefFacts` |
 | `Incidents.status` | `CaseStatusMaster.CaseStatusName` |
 | `Entities` (person) + `Incident_Edges` | `Complainant`/`Victim`/`Accused` rows → role = complainant/victim/suspect; `value`=Name, `age`=AgeYear, `gender`=GenderID |
+| `Incidents.case_category` **[BUILT]** | `CaseMaster.CaseCategoryID` → `CaseCategory.LookupValue` (FIR/UDR/PAR/Zero-FIR) |
+| `Incidents.gravity` **[BUILT]** | `CaseMaster.GravityOffenceID` → `GravityOffence.LookupValue` (Heinous/Non-Heinous) |
+| `Incidents.officer_id` → `Officers` **[BUILT]** | `CaseMaster.PolicePersonID` → `Employee` (narrowed to Rank/Designation/posting — see `schema/canonical_schema.yaml`) |
+| `Chargesheets` (`cs_id, incident_id, cs_date, cs_type, officer_id`) **[BUILT]** | `ChargesheetDetails` (CSID, csdate, cstype A/B/C, PolicePersonID) |
 
 ## Implications for our pipeline (important)
 
@@ -72,8 +76,12 @@ year `2026`, serial `00001`. (UDR=3, Zero-FIR=8, PAR=4.) `CaseNo` = last 9 digit
    `ipc_bns_code` should become the primary/most-serious section, with the rest retained.
 5. **Geo:** `latitude`/`longitude` are present on `CaseMaster` → our geocoder is a fallback,
    not the primary path, on real data.
-6. **Outcomes available** (`ChargesheetDetails`, `ArrestSurrender`, `CaseStatus`) — future
-   signal for Phase 6 (detection/clearance) and Phase 9 governance.
+6. **Outcomes** (`ChargesheetDetails`, `CaseStatus`) — **[BUILT]** the District Command Card
+   (blueprint §B1, `app/engines/district.py`) computes clearance rate = A / (A+B+C) from
+   `Chargesheets.cs_type` per district, plus backlog aging and an officer leaderboard, via
+   `GET /district/{code}/command` and `GET /district/rank`. `ArrestSurrender` is not yet modeled
+   (needed for the statutory chargesheet-deadline tracker — see
+   [08 — Field-Officer Intelligence §9](product/08-FIELD-OFFICER-INTELLIGENCE.md)).
 
 ## Adapter checklist (Phase-2 column-map, when the extract lands)
 Run `docs/GARUDA_DATA_READINESS.md` runbook → set the column-map to the table above →

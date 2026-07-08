@@ -22,10 +22,11 @@ CREATORID, CREATEDTIME, MODIFIEDTIME` to every table.
 | **Stratus** | raw FIR scans, generated PDFs/briefs, model artifacts, large GeoJSON | object storage |
 | **Cache** | hot analytics (risk surface, top rings, dashboard stats) | sub-300ms reads, TTL |
 
-## 3. Canonical core (built — Phase 2)
+## 3. Canonical core (built — Phase 2; Officers/Chargesheets built Iteration 12)
 
 **`Incidents`** (spine; business key `incident_id`): `fir_no, occurred_at, reported_at,
 district_code, station_code, crime_type, ipc_bns_code, lat, long, address_text, mo_text, status,
+case_category{FIR|UDR|PAR|Zero-FIR}, gravity{Heinous|Non-Heinous}, officer_id,
 mo_cluster_id`(P4)`, series_id`(P5)`, source_fir_url, confidence, created_by`.
 **`Entities`** (`entity_id`): `canonical_id, type{person|vehicle|phone}, value, alias_of, age,
 gender, match_confidence`.
@@ -33,6 +34,12 @@ gender, match_confidence`.
 phone_used}, edge_weight, evidence_type{fir_named|cctv|recovered|call_record|witness}`.
 **`Socioeconomic`** (`area_code`): `population, density, literacy, urbanization`.
 **`Geo_Boundaries`** (`area_code`): `level, polygon(GeoJSON text)`.
+**`Officers`** (`officer_id` — organizer `Employee`, narrowed): `name, rank, designation,
+district_code, unit_code`.
+**`Chargesheets`** (`cs_id` — organizer `ChargesheetDetails`): `incident_id, cs_date,
+cs_type{A=Chargesheet|B=False Case|C=Undetected}, officer_id`. Powers the District Command
+Card's clearance rate (`app/engines/district.py`, `GET /district/{code}/command`,
+`GET /district/rank`) — blueprint §B1, no longer just planned.
 
 ## 4. Derived / analytics tables (built P4–P6)
 
@@ -74,7 +81,7 @@ From `docs/DATASET_REAL_SCHEMA.md`. The adapter's column-map targets these:
 | `lat`/`long`, `mo_text`/`address_text`, `status` | `latitude`/`longitude`, `BriefFacts`, `CaseStatusMaster` |
 | `Entities`(person) + `Incident_Edges` | `Complainant`/`Victim`/`Accused` → role; value/age/gender |
 | `Entities`(phone/vehicle) | **not structured in source → Phase-3 NER over `BriefFacts`** |
-| outcomes (future) | `ChargesheetDetails`, `ArrestSurrender` (clearance/conviction analytics, E17) |
+| outcomes | `ChargesheetDetails` → `Chargesheets` **[built]** (clearance rate, District Command §B1); `ArrestSurrender` still future (needed for the statutory deadline tracker, [08 §9](08-FIELD-OFFICER-INTELLIGENCE.md)) |
 
 > **Critical:** the source has **no phone/vehicle tables** — the co-offender hero depends on the
 > ingestion NER mining `BriefFacts` (possibly Kannada). Keep that extractor strong.
@@ -110,7 +117,8 @@ erDiagram
 
 - **Enums:** `crime_type` (16 synthetic → real `CrimeSubHead`); `role`; `evidence_type`; `severity`
   {high|medium}; `status` (FIR: Under Investigation|Chargesheeted|Closed); `type` {person|vehicle|phone};
-  case category {FIR|UDR|PAR|Zero-FIR}; gravity {Heinous|Non-Heinous}.
+  `case_category` {FIR|UDR|PAR|Zero-FIR} **[built]**; `gravity` {Heinous|Non-Heinous} **[built]**;
+  `cs_type` {A=Chargesheet|B=False Case|C=Undetected} **[built]**.
 - **PII classification:** *High* — person names, ages, addresses, phones (mask to initials/partial by
   role). *Medium* — vehicle plates (mask for non-jurisdiction). *Low* — crime_type, district, dates,
   sections. **Never used as model features:** caste, religion, gender.

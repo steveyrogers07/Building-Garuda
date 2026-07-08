@@ -118,15 +118,22 @@ series, alerts — ranked by connection strength with the reason. The web you pu
 Past choropleths into **command intelligence per jurisdiction**, using the real hierarchy
 (`State → District → Unit/Station`, `Employee`, `CaseStatus`, `ChargesheetDetails`).
 
-### B1. District Command Card **[NEW]** — the SP's cockpit, one per district:
-- Load vs baseline, **active series/rings touching the district**, open vs disposed, top spikes.
-- **Clearance & conviction rate** (from `ChargesheetDetails.cstype` A/B/C + `CaseStatus`) —
-  the metric that actually rates a district. It's sitting unused in the schema; nobody else computes it.
-- **Backlog & aging** — cases "Under Investigation" > N days. Station/officer drill-down.
+### B1. District Command Card **[BUILT]** — the SP's cockpit, one per district
+(`app/engines/district.py`, `GET /district/{code}/command`, `client-react` District Command page):
+- Load, open vs disposed, **backlog aging** (open cases past a threshold relative to the
+  dataset's own timeline, not wall-clock) — done.
+- **Clearance rate** (from `Chargesheets.cs_type` A/B/C, sourced from the organizer's
+  `ChargesheetDetails`) — the metric that actually rates a district. It sat unused in the
+  schema; nobody else was computing it — done.
+- Top crime mix + an **officer leaderboard** (case load + own clearance rate, from the new
+  `Officers` table / organizer `Employee`) — done. Active series/rings touching the district and
+  true conviction (vs. chargesheet-filed) still open — needs `ArrestSurrender`/court-outcome
+  data (see [08 — Field-Officer Intelligence §9](08-FIELD-OFFICER-INTELLIGENCE.md)).
 
-### B2. District comparison & ranking **[NEW]** — compare/rank all 31: crime mix, clearance %,
-response lag (`InfoReceivedPSDate − IncidentFromDate`), repeat-offender density, socioeconomic
-context. The DGP's real question: *who's improving, who's slipping, why.*
+### B2. District comparison & ranking **[BUILT — partial]** — `GET /district/rank` returns all 31
+ranked by clearance rate, surfaced statewide in the District Command page. Response lag
+(`InfoReceivedPSDate − IncidentFromDate`), repeat-offender density and socioeconomic overlay
+still open. The DGP's real question: *who's improving, who's slipping, why.*
 
 ### B3. Cross-jurisdiction coordination view **[NEW]** — when a ring spans BNU/RMN/TMK/KLR:
 which SPs/stations are involved, which officers worked linked cases, one-click **notify
@@ -317,10 +324,10 @@ rest as a credible roadmap (this document *is* that roadmap — show it to judge
 ### Tier 0 — the winning demo (build/finish these)
 1. **A1 similar-cases + A3 auto-context brief** on the case file — the "it thinks" moment.
 2. **A2/A5 related-everything rails** + **A4 connection path** (you have the graph).
-3. **B1 District Command Card** with **clearance & conviction rate** (unused schema gold).
+3. **B1 District Command Card** with **clearance & conviction rate** (unused schema gold) — **[BUILT]**.
 4. **D2 copilot next-step reasoning** + **D3 "who worked cases like this."**
 5. **F1–F3 clearance tiers + break-glass**, shown live via the role switcher.
-6. **J1 KSP branding + login/landing** — makes it look official, not "AI-generated."
+6. **J1 KSP branding + login/landing** — makes it look official, not "AI-generated." — **[BUILT]**.
 7. **G1 watchlist/BOLO auto-match** — insight → operational action.
 
 ### Tier 1 — strong differentiators (if time)

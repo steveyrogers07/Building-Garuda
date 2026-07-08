@@ -1,0 +1,169 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── GARUDA operations palette — dark-first (docs/product/04-UI-UX-DESIGN.md §2) ── */
+:root {
+  --background: #080d18;
+  --foreground: #e8eef9;
+  --card: #0e1626;
+  --card-foreground: #e8eef9;
+  --popover: #10192c;
+  --popover-foreground: #e8eef9;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --primary-deep: #1e40af;
+  --secondary: #131d31;
+  --secondary-foreground: #e8eef9;
+  --muted: #131d31;
+  --muted-foreground: #94a3bd;
+  --accent: #18233c;
+  --accent-foreground: #e8eef9;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #22304e;
+  --input: #1a2740;
+  --ring: #3b82f6;
+  --radius: 0.625rem;
+
+  --surface: #0e1626;
+  --surface-2: #131d31;
+  --elevated: #18233c;
+  --border-soft: #1a2740;
+  --grid-line: rgba(120, 150, 200, 0.05);
+  --faint: #5d6c89;
+
+  --amber: #f9a825;
+  --amber-deep: #d97706;
+  --amber-soft: rgba(249, 168, 37, 0.12);
+  --ok: #22c55e;
+  --ok-soft: rgba(34, 197, 94, 0.12);
+  --warn: #f59e0b;
+  --warn-soft: rgba(245, 158, 11, 0.12);
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.12);
+  --info: #38bdf8;
+  --info-soft: rgba(56, 189, 248, 0.12);
+
+  --chart-1: #3b82f6;
+  --chart-2: #f9a825;
+  --chart-3: #22c55e;
+  --chart-4: #a78bfa;
+  --chart-5: #38bdf8;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-deep: var(--primary-deep);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-elevated: var(--elevated);
+  --color-border-soft: var(--border-soft);
+  --color-faint: var(--faint);
+  --color-amber: var(--amber);
+  --color-amber-deep: var(--amber-deep);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.35);
+
+  --animate-pulse-hot: pulse-hot 2.4s infinite ease-out;
+}
+
+@keyframes pulse-hot {
+  0% { opacity: 0.55; transform: scale(1); }
+  70% { opacity: 0; transform: scale(1.8); }
+  100% { opacity: 0; }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 14px;
+  }
+  h1, h2, h3, h4 {
+    @apply font-mono tracking-tight;
+  }
+  ::selection {
+    background: rgba(59, 130, 246, 0.35);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 8px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* tabular figures for data cells and KPIs */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  /* faint blueprint grid used on login + empty stages */
+  .grid-field {
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  /* section eyebrow label */
+  .k-label {
+    @apply font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint;
+  }
+}

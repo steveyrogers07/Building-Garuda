@@ -60,8 +60,14 @@ year `2026`, serial `00001`. (UDR=3, Zero-FIR=8, PAR=4.) `CaseNo` = last 9 digit
 | `Incidents.gravity` **[BUILT]** | `CaseMaster.GravityOffenceID` → `GravityOffence.LookupValue` (Heinous/Non-Heinous) |
 | `Incidents.officer_id` → `Officers` **[BUILT]** | `CaseMaster.PolicePersonID` → `Employee` (narrowed to Rank/Designation/posting — see `schema/canonical_schema.yaml`) |
 | `Chargesheets` (`cs_id, incident_id, cs_date, cs_type, officer_id`) **[BUILT]** | `ChargesheetDetails` (CSID, csdate, cstype A/B/C, PolicePersonID) |
-| `Arrests` (`arrest_id, incident_id, entity_id, event_type, event_date, district_code, court_id, io_officer_id`) **[BUILT]** | `ArrestSurrender` (→ Accused via `inv_arrestsurrenderaccused`, IOID→Employee, CourtID) |
-| `Case_Sections` (`incident_id, act_code, section_code, section_order`) **[BUILT]** | `ActSectionAssociation` → `Act.ActCode` + `Section.SectionCode` (one-to-many) |
+| `Arrests` (`arrest_id, incident_id, entity_id, event_type, event_date, district_code, court_id, io_officer_id, is_accused, is_complainant_accused`) **[BUILT]** | `ArrestSurrender` (→ Accused via `inv_arrestsurrenderaccused`, IOID→Employee, CourtID, IsAccused, IsComplainantAccused) |
+| `Case_Sections` (`incident_id, act_code, section_code, section_order, act_order`) **[BUILT]** | `ActSectionAssociation` → `Act.ActCode` + `Section.SectionCode` (one-to-many, ActOrderID/SectionOrderID) |
+| `Incidents.incident_to_date` / `info_received_ps_date` **[BUILT]** | `CaseMaster.IncidentToDate` / `InfoReceivedPSDate` |
+| `Incidents.court_id` + `Courts` (`court_id, name, district_code, state_code`) **[BUILT]** | `CaseMaster.CourtID` → `Court` (also referenced by `Arrests.court_id`) |
+| `Incident_Edges.is_police` **[BUILT]** | `Victim.VictimPolice` (meaningful only when `role == victim`) |
+| `Officers.kgid/dob/blood_group/appointment_date` **[BUILT]** | `Employee.KGID/EmployeeDOB/BloodGroupID/AppointmentDate` |
+| `Case_Status` (`status_code, status_name`) **[BUILT]** | `CaseStatusMaster` — reference-only; `Incidents.status` stays denormalized text |
+| `Crime_Head_Sections` (`crime_head, act_code, section_code`) **[BUILT]** | `CrimeHeadActSection` — reference map, derived from crime_types + companions |
 
 ## Implications for our pipeline (important)
 

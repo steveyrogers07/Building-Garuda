@@ -33,7 +33,13 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 | long | Decimal | yes |
 | address_text | Text | yes |
 | mo_text | Text | yes |
-| status | Text | yes |
+| status | Text | yes (denormalized from Case_Status.status_name) |
+| case_category | Text | yes (FIR/UDR/PAR/Zero-FIR — CaseMaster.CaseCategoryID) |
+| gravity | Text | yes (Heinous/Non-Heinous — CaseMaster.GravityOffenceID) |
+| officer_id | Text | yes (→ Officers.officer_id — CaseMaster.PolicePersonID) |
+| incident_to_date | DateTime | yes (CaseMaster.IncidentToDate) |
+| info_received_ps_date | DateTime | yes (CaseMaster.InfoReceivedPSDate) |
+| court_id | Text | yes (→ Courts.court_id — CaseMaster.CourtID, set once trial-eligible) |
 | mo_cluster_id | Text | yes (Phase 4) |
 | series_id | Text | yes (Phase 5) |
 | source_fir_url | Text | yes |
@@ -60,6 +66,7 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 | role | Text | no (suspect/victim/witness/vehicle_used/phone_used) |
 | edge_weight | Decimal | yes |
 | evidence_type | Text | yes |
+| is_police | Boolean | yes (Victim.VictimPolice — meaningful only when role = victim) |
 
 ### Socioeconomic
 | Column | Type | Null? |
@@ -76,6 +83,80 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 | area_code | Text | no (unique) |
 | level | Text | no (state/district/taluk) |
 | polygon | Text | no (GeoJSON geometry as string) |
+
+### Officers
+*(organizer schema: Employee, narrowed to what the platform needs)*
+| Column | Type | Null? |
+|---|---|---|
+| officer_id | Text | no (unique) |
+| name | Text | no |
+| rank | Text | yes (Constable..DySP) |
+| designation | Text | yes (Investigating Officer/SHO/...) |
+| district_code | Text | yes |
+| unit_code | Text | yes (station) |
+| kgid | Text | yes |
+| dob | Date | yes |
+| blood_group | Text | yes |
+| appointment_date | Date | yes |
+
+### Chargesheets
+*(organizer schema: ChargesheetDetails — the clearance/conviction signal, blueprint §B1)*
+| Column | Type | Null? |
+|---|---|---|
+| cs_id | Text | no (unique) |
+| incident_id | Text | no (→ Incidents.incident_id) |
+| cs_date | Date | yes |
+| cs_type | Text | no (A=Chargesheet / B=False Case / C=Undetected) |
+| officer_id | Text | yes (→ Officers.officer_id) |
+
+### Arrests
+*(organizer schema: ArrestSurrender, joined to Accused via inv_arrestsurrenderaccused)*
+| Column | Type | Null? |
+|---|---|---|
+| arrest_id | Text | no (unique) |
+| incident_id | Text | no (→ Incidents.incident_id) |
+| entity_id | Text | no (→ Entities.entity_id — the accused) |
+| event_type | Text | no (arrest/surrender) |
+| event_date | Date | no |
+| district_code | Text | yes |
+| court_id | Text | yes (→ Courts.court_id — production court) |
+| io_officer_id | Text | yes (→ Officers.officer_id) |
+| is_accused | Boolean | yes (primary vs co-accused) |
+| is_complainant_accused | Boolean | yes (rare cross-role/false-case signal) |
+
+### Case_Sections
+*(organizer schema: ActSectionAssociation → Act.ActCode + Section.SectionCode, one-to-many)*
+| Column | Type | Null? |
+|---|---|---|
+| incident_id | Text | no (→ Incidents.incident_id) |
+| act_code | Text | no (IPC/BNS/IT_ACT) |
+| section_code | Text | no |
+| section_order | Int | no (1 = primary/most serious, matches Incidents.ipc_bns_code) |
+| act_order | Int | no (orders the ACT, distinct from section_order) |
+
+### Courts
+*(organizer schema: Court)*
+| Column | Type | Null? |
+|---|---|---|
+| court_id | Text | no (unique) |
+| name | Text | no |
+| district_code | Text | yes |
+| state_code | Text | yes |
+
+### Case_Status
+*(organizer schema: CaseStatusMaster — reference-only; Incidents.status denormalizes status_name)*
+| Column | Type | Null? |
+|---|---|---|
+| status_code | Text | no (unique) |
+| status_name | Text | no |
+
+### Crime_Head_Sections
+*(organizer schema: CrimeHeadActSection — the 2-level crime classification's reference map)*
+| Column | Type | Null? |
+|---|---|---|
+| crime_head | Text | no |
+| act_code | Text | no |
+| section_code | Text | no |
 
 ---
 

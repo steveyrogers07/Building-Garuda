@@ -250,15 +250,27 @@ actually check, and it's the prerequisite for the three most operationally valua
 generator config + generate.py extension + canonical schema entry + a store.py reader. A half-day
 each, and both should land *before* §1/§5/§6 since those depend on them.
 
+**Schema-completeness pass (P2, [BUILT] the same day):** eight more organizer columns that don't
+gate any of the above but round out the ER-diagram alignment so nothing an ER-literate judge
+checks for is a bare text field: `Incidents.incident_to_date/info_received_ps_date` (CaseMaster),
+`Arrests.is_accused/is_complainant_accused` (ArrestSurrender), `Case_Status` master (reference,
+`Incidents.status` stays denormalized text), `Courts` master + `Incidents.court_id` (Court —
+assigned once a case is trial-eligible; **this closes half of §10 below**), `Incident_Edges.is_police`
+(Victim.VictimPolice), `Officers.kgid/dob/blood_group/appointment_date` (Employee), and
+`Crime_Head_Sections` (CrimeHeadActSection, a reference map derived from crime_types + companion
+sections). Gates: `tests/test_p2_fields.py`.
+
 ---
 
-## 10. Court-Date & Hearing Tracker (P1)
+## 10. Court-Date & Hearing Tracker (P1 — half [BUILT])
 
-**What:** Once `Court` is modeled with actual hearing dates (today the schema only carries which
-court a case is assigned to, not a hearing calendar — a reasonable next real-data field to ask
-the organizers about, or model as a lightweight `Hearings` table), surface upcoming hearings per
-IO/case with lead time for evidence/witness prep, and flag cases with no scheduled hearing despite
-being chargesheeted (a process-stall signal, closing the loop §B5 in the main blueprint already
+**What:** `Courts` (master) + `Incidents.court_id`/`Arrests.court_id` are now modeled — a case
+gets assigned a real court once it's trial-eligible (chargesheeted/pending-trial/closed/final
+report). What's still missing is a **hearing calendar**: the schema (ours and the organizer's)
+carries *which* court, not *when* the next hearing is. Once that exists (a lightweight `Hearings`
+table, or a real-data field to ask the organizers about), surface upcoming hearings per IO/case
+with lead time for evidence/witness prep, and flag cases with no scheduled hearing despite being
+chargesheeted (a process-stall signal, closing the loop §B5 in the main blueprint already
 gestures at).
 
 **Why it matters:** IOs are frequently required to produce evidence or witnesses in court with

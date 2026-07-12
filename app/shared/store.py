@@ -426,7 +426,8 @@ def read_audit_log(limit=100):
 # --------------------------------------------------------------------------- #
 _CASE_COLS = ("incident_id", "fir_no", "occurred_at", "district_code", "station_code",
               "crime_type", "ipc_bns_code", "status", "source_fir_url",
-              "case_category", "gravity", "officer_id")
+              "case_category", "gravity", "officer_id",
+              "incident_to_date", "info_received_ps_date", "court_id")
 
 
 def fetch_incident(incident_id):
@@ -448,8 +449,8 @@ def fetch_incident_parties(incident_id):
     if BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = _zcql_rows("Incident_Edges", zcql.execute_query(
-            "SELECT entity_id, role, evidence_type FROM Incident_Edges WHERE incident_id='"
-            + _sql_escape(incident_id) + "'"))
+            "SELECT entity_id, role, evidence_type, is_police FROM Incident_Edges "
+            "WHERE incident_id='" + _sql_escape(incident_id) + "'"))
         ents = {e["entity_id"]: e for e in _zcql_rows("Entities", zcql.execute_query(
             "SELECT entity_id, canonical_id, type, value, age, gender FROM Entities"))}
     else:
@@ -463,14 +464,17 @@ def fetch_incident_parties(incident_id):
                     "canonical_id": ent.get("canonical_id") or e.get("entity_id"),
                     "type": ent.get("type"), "value": ent.get("value"),
                     "age": ent.get("age"), "gender": ent.get("gender"),
-                    "evidence_type": e.get("evidence_type")})
+                    "evidence_type": e.get("evidence_type"),
+                    # VictimPolice (P2 #12) — only meaningful when role == "victim"
+                    "is_police": e.get("is_police") or None})
     return out
 
 
 _FULL_INC_COLS = ("incident_id", "fir_no", "occurred_at", "reported_at", "district_code",
                   "station_code", "crime_type", "ipc_bns_code", "lat", "long",
                   "address_text", "mo_text", "status", "mo_cluster_id", "series_id",
-                  "source_fir_url", "case_category", "gravity", "officer_id")
+                  "source_fir_url", "case_category", "gravity", "officer_id",
+                  "incident_to_date", "info_received_ps_date", "court_id")
 
 
 def fetch_incidents_full():
@@ -488,7 +492,8 @@ def fetch_incidents_full():
 # Powers the District Command Card (clearance/conviction rate — blueprint §B1)
 # and "who registered/investigated this FIR" on the case file.
 # --------------------------------------------------------------------------- #
-_OFFICER_COLS = ("officer_id", "name", "rank", "designation", "district_code", "unit_code")
+_OFFICER_COLS = ("officer_id", "name", "rank", "designation", "district_code", "unit_code",
+                 "kgid", "dob", "blood_group", "appointment_date")
 _CHARGESHEET_COLS = ("cs_id", "incident_id", "cs_date", "cs_type", "officer_id")
 
 
@@ -519,8 +524,9 @@ def fetch_chargesheets():
 # the one-to-many legal classification behind §5's per-section evidence gaps.
 # --------------------------------------------------------------------------- #
 _ARREST_COLS = ("arrest_id", "incident_id", "entity_id", "event_type", "event_date",
-                "district_code", "court_id", "io_officer_id")
-_CASE_SECTION_COLS = ("incident_id", "act_code", "section_code", "section_order")
+                "district_code", "court_id", "io_officer_id",
+                "is_accused", "is_complainant_accused")
+_CASE_SECTION_COLS = ("incident_id", "act_code", "section_code", "section_order", "act_order")
 
 
 def fetch_arrests():
@@ -541,3 +547,44 @@ def fetch_case_sections():
     p = SYN_DIR / "case_sections.csv"
     rows = _read_csv(p) if p.exists() else []
     return [{k: r.get(k, "") for k in _CASE_SECTION_COLS} for r in rows]
+
+
+# --------------------------------------------------------------------------- #
+# Courts / Case_Status / Crime_Head_Sections — organizer schema's Court,
+# CaseStatusMaster and CrimeHeadActSection. Reference/master tables (schema
+# completeness — P2 #10/#11/#14); Incidents.status/court_id stay denormalized
+# text so no engine changes are needed to consume them.
+# --------------------------------------------------------------------------- #
+_COURT_COLS = ("court_id", "name", "district_code", "state_code")
+_CASE_STATUS_COLS = ("status_code", "status_name")
+_CRIME_HEAD_SECTION_COLS = ("crime_head", "act_code", "section_code")
+
+
+def fetch_courts():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Courts", zcql.execute_query(
+            "SELECT " + ", ".join(_COURT_COLS) + " FROM Courts"))
+    p = SYN_DIR / "courts.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _COURT_COLS} for r in rows]
+
+
+def fetch_case_status():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Case_Status", zcql.execute_query(
+            "SELECT " + ", ".join(_CASE_STATUS_COLS) + " FROM Case_Status"))
+    p = SYN_DIR / "case_status.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _CASE_STATUS_COLS} for r in rows]
+
+
+def fetch_crime_head_sections():
+    if BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Crime_Head_Sections", zcql.execute_query(
+            "SELECT " + ", ".join(_CRIME_HEAD_SECTION_COLS) + " FROM Crime_Head_Sections"))
+    p = SYN_DIR / "crime_head_sections.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _CRIME_HEAD_SECTION_COLS} for r in rows]

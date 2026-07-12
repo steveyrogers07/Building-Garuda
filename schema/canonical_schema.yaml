@@ -45,6 +45,9 @@ tables:
       - { name: case_category, type: Text,     nullable: true }   # FIR|UDR|PAR|Zero-FIR (CaseMaster.CaseCategoryID)
       - { name: gravity,       type: Text,     nullable: true }   # Heinous|Non-Heinous (CaseMaster.GravityOffenceID)
       - { name: officer_id,    type: Text,     nullable: true, ref: Officers.officer_id }  # CaseMaster.PolicePersonID
+      - { name: incident_to_date,        type: DateTime, nullable: true }   # CaseMaster.IncidentToDate (end of a continuing offence)
+      - { name: info_received_ps_date,   type: DateTime, nullable: true }   # CaseMaster.InfoReceivedPSDate (informal info reaches PS, precedes formal reported_at)
+      - { name: court_id,      type: Text,     nullable: true, ref: Courts.court_id }  # CaseMaster.CourtID — court trying the case, once trial-eligible
       - { name: mo_cluster_id, type: Text,     nullable: true }   # filled in Phase 4
       - { name: series_id,     type: Text,     nullable: true }   # filled in Phase 5
       - { name: source_fir_url,type: Text,     nullable: true }
@@ -76,6 +79,7 @@ tables:
       - { name: role,         type: Text,    nullable: false }   # suspect|victim|witness|vehicle_used|phone_used
       - { name: edge_weight,  type: Decimal, nullable: true }
       - { name: evidence_type,type: Text,    nullable: true }    # fir_named|cctv|recovered|call_record|witness
+      - { name: is_police,    type: Boolean, nullable: true }    # Victim.VictimPolice — only meaningful when role == victim
 
   Socioeconomic:
     phase: 2
@@ -114,6 +118,10 @@ tables:
       - { name: designation,   type: Text, nullable: true }    # Investigating Officer|SHO|... (Designation.DesignationName)
       - { name: district_code, type: Text, nullable: true }    # Employee.DistrictID
       - { name: unit_code,     type: Text, nullable: true }    # Employee.UnitID (station)
+      - { name: kgid,             type: Text, nullable: true }   # Employee.KGID — not analytics-load-bearing (P2 #13), schema-complete
+      - { name: dob,              type: Date, nullable: true }   # Employee.EmployeeDOB
+      - { name: blood_group,      type: Text, nullable: true }   # Employee.BloodGroupID
+      - { name: appointment_date, type: Date, nullable: true }   # Employee.AppointmentDate
 
   Chargesheets:
     phase: 2
@@ -146,8 +154,10 @@ tables:
       - { name: event_type,    type: Text, nullable: false }   # arrest | surrender
       - { name: event_date,    type: Date, nullable: false }
       - { name: district_code, type: Text, nullable: true }
-      - { name: court_id,      type: Text, nullable: true }    # production court (ArrestSurrender.CourtID)
+      - { name: court_id,      type: Text, nullable: true, ref: Courts.court_id }  # production court (ArrestSurrender.CourtID)
       - { name: io_officer_id, type: Text, nullable: true, ref: Officers.officer_id }  # ArrestSurrender.IOID
+      - { name: is_accused,             type: Boolean, nullable: true }   # ArrestSurrender.IsAccused (P2 #9) — primary vs co-accused
+      - { name: is_complainant_accused, type: Boolean, nullable: true }   # ArrestSurrender.IsComplainantAccused (P2 #9) — rare cross-role/false-case signal
 
   Case_Sections:
     phase: 2
@@ -162,6 +172,45 @@ tables:
       - { name: act_code,      type: Text, nullable: false }   # IPC | BNS | IT_ACT
       - { name: section_code,  type: Text, nullable: false }
       - { name: section_order, type: Int,  nullable: false }   # 1 = primary/most serious
+      - { name: act_order,     type: Int,  nullable: false }   # ActSectionAssociation.ActOrderID (P2 #15) — orders the ACT, distinct from section_order
+
+  Courts:
+    phase: 2
+    populate: true
+    description: >
+      Court master (organizer schema's Court) — referenced by Incidents.court_id (case
+      trial court) and Arrests.court_id (production court). 3 per district (P2 #11).
+    business_key: court_id
+    columns:
+      - { name: court_id,      type: Text, nullable: false, unique: true }
+      - { name: name,          type: Text, nullable: false }
+      - { name: district_code, type: Text, nullable: true }
+      - { name: state_code,    type: Text, nullable: true }
+
+  Case_Status:
+    phase: 2
+    populate: true
+    description: >
+      CaseStatusMaster (P2 #10) — the master lookup Incidents.status denormalizes
+      from. Reference-only; no engine reads this table, it exists so the status
+      field is backed by a proper master rather than a bare string.
+    business_key: status_code
+    columns:
+      - { name: status_code, type: Text, nullable: false, unique: true }
+      - { name: status_name, type: Text, nullable: false }   # matches Incidents.status text exactly
+
+  Crime_Head_Sections:
+    phase: 2
+    populate: true
+    description: >
+      CrimeHeadActSection (P2 #14) — the organizer's 2-level crime classification:
+      which act+sections are typically filed under each major CrimeHead. Reference
+      table derived from crime_types config + case_sections.companions, not
+      per-incident data.
+    columns:
+      - { name: crime_head,   type: Text, nullable: false }   # e.g. "Offences Against Property"
+      - { name: act_code,     type: Text, nullable: false }
+      - { name: section_code, type: Text, nullable: false }
 
   # ---------- DERIVED (created empty in Phase 2; filled later) ----------
 

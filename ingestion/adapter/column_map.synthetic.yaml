@@ -26,6 +26,9 @@ Incidents:
     case_category:  { source: case_category }
     gravity:        { source: gravity }
     officer_id:     { source: officer_id }
+    incident_to_date:      { source: incident_to_date, transform: datetime }
+    info_received_ps_date: { source: info_received_ps_date, transform: datetime }
+    court_id:               { source: court_id }
     source_fir_url: { source: source_fir_url }
     confidence:     { source: confidence, transform: float }
     created_by:     { source: created_by }
@@ -38,6 +41,10 @@ Officers:
     designation:   { source: designation }
     district_code: { source: district_code }
     unit_code:     { source: unit_code }
+    kgid:              { source: kgid }
+    dob:               { source: dob, transform: datetime }
+    blood_group:       { source: blood_group }
+    appointment_date:  { source: appointment_date, transform: datetime }
 
 Chargesheets:
   fields:
@@ -57,6 +64,8 @@ Arrests:
     district_code: { source: district_code }
     court_id:      { source: court_id }
     io_officer_id: { source: io_officer_id }
+    is_accused:              { source: is_accused, transform: int }
+    is_complainant_accused:  { source: is_complainant_accused, transform: int }
 
 Case_Sections:
   fields:
@@ -64,6 +73,25 @@ Case_Sections:
     act_code:      { source: act_code }
     section_code:  { source: section_code }
     section_order: { source: section_order, transform: int }
+    act_order:     { source: act_order, transform: int }
+
+Courts:
+  fields:
+    court_id:      { source: court_id }
+    name:          { source: name }
+    district_code: { source: district_code }
+    state_code:    { source: state_code }
+
+Case_Status:
+  fields:
+    status_code: { source: status_code }
+    status_name: { source: status_name }
+
+Crime_Head_Sections:
+  fields:
+    crime_head:   { source: crime_head }
+    act_code:     { source: act_code }
+    section_code: { source: section_code }
 
 Entities:
   fields:
@@ -83,6 +111,7 @@ Incident_Edges:
     role:          { source: role }
     edge_weight:   { source: edge_weight, transform: float }
     evidence_type: { source: evidence_type }
+    is_police:     { source: is_police, transform: int }
 
 # source file: data/reference/census_2011.csv (district_name column is ignored)
 Socioeconomic:

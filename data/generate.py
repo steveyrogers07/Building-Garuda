@@ -11,6 +11,9 @@ ground_truth.json of the planted patterns used to score later phases:
     data/synthetic/chargesheets.csv
     data/synthetic/arrests.csv
     data/synthetic/case_sections.csv
+    data/synthetic/courts.csv
+    data/synthetic/case_status.csv
+    data/synthetic/crime_head_sections.csv
     data/synthetic/ground_truth.json
 
 Everything is driven by data/generator_config.yaml and a fixed seed, so the output
@@ -235,24 +238,69 @@ def generate(cfg, out_dir):
     fake2 = Faker("en_IN")
     fake2.seed_instance(seed + 990011)
 
+    # A THIRD isolated stream (see the rng2 note above) for the P2 schema-completeness
+    # fields: officer bio fields, incident extra dates, victim-police, and the two
+    # reference tables' court/status assignment. Same reasoning — these must never
+    # perturb rng2 (which case_category/officer_id/chargesheets already consume in a
+    # specific order) or rng_sec/rng_arr.
+    rng3 = np.random.default_rng(seed + 770088)
+
     # ---- Employee roster (organizer schema: Rank/Designation/District posting) ----
     off_cfg = cfg["officers"]
     off_rank_names = [r["name"] for r in off_cfg["ranks"]]
     off_rank_w = np.array([r["weight"] for r in off_cfg["ranks"]], float)
+    bg_names = [b["name"] for b in off_cfg["blood_groups"]]
+    bg_w = np.array([b["weight"] for b in off_cfg["blood_groups"]], float)
+    svc_lo, svc_hi = off_cfg["years_of_service"]
+    age_lo, age_hi = off_cfg["age_at_appointment"]
+    ds_start = pd.to_datetime(cfg["dates"]["start"])
     officers, officers_by_district = [], {d["code"]: [] for d in districts}
     for i in range(int(off_cfg["n_officers"])):
         oid = f"OFF{i + 1:04d}"
         dc = str(weighted_choice(rng2, [d["code"] for d in districts], dweights))
+        years_svc = int(rng3.integers(svc_lo, svc_hi + 1))
+        appointment = (ds_start - pd.DateOffset(years=years_svc)).to_pydatetime()
+        dob = appointment - timedelta(days=365 * int(rng3.integers(age_lo, age_hi + 1)))
         officers.append(dict(
             officer_id=oid, name=fake2.name(),
             rank=str(weighted_choice(rng2, off_rank_names, off_rank_w)),
             designation=str(rng2.choice(off_cfg["designations"])),
-            district_code=dc, unit_code=random2.choice(stations[dc])))
+            district_code=dc, unit_code=random2.choice(stations[dc]),
+            kgid=f"KGID{int(rng3.integers(10_000_000, 99_999_999))}",
+            dob=dob.strftime("%Y-%m-%d"),
+            blood_group=str(weighted_choice(rng3, bg_names, bg_w)),
+            appointment_date=appointment.strftime("%Y-%m-%d")))
         officers_by_district[dc].append(oid)
 
     cc_items = [c["code"] for c in cfg["case_categories"]]
     cc_w = np.array([c["weight"] for c in cfg["case_categories"]], float)
     heinous_crimes = set(cfg.get("heinous_crimes", []))
+
+    # ---- Court (organizer: Court) — 3 per district, matching Arrests' existing
+    # CRT-{district}-{01..03} id scheme so arrests.csv needs no regeneration to gain
+    # valid foreign keys. Pure reference data — no per-row RNG.
+    court_cfg = cfg["courts"]
+    courts, courts_by_district = [], {}
+    for d in districts:
+        dc = d["code"]
+        courts_by_district[dc] = []
+        for i, cname in enumerate(court_cfg["names"][: int(court_cfg["per_district"])], start=1):
+            cid = f"CRT-{dc}-{i:02d}"
+            courts.append(dict(court_id=cid, name=f"{cname}, {d['name']}",
+                               district_code=dc, state_code="KA"))
+            courts_by_district[dc].append(cid)
+    court_eligible = set(court_cfg["eligible_statuses"])
+
+    # ---- CaseStatusMaster (organizer: CaseStatusMaster) — reference-only, straight
+    # from status_weights' keys; Incidents.status stays denormalized text (no engine
+    # touches this table, it exists so the master/lookup layer is schema-complete).
+    case_status_rows = [dict(status_code=s.replace(" ", "_").upper(), status_name=s)
+                        for s in status_items]
+
+    # ---- CrimeHeadActSection (organizer: CrimeHeadActSection) — the 2-level crime
+    # classification's act+section reference, derived from crime_types' primary code
+    # + case_sections.companions below. No incident-level data; built once at the end
+    # once case_sections' companion config is in scope (see the write section).
 
     # ---- date sampling distribution with weekend / month-end / festival skew ----
     start = pd.to_datetime(cfg["dates"]["start"])
@@ -340,6 +388,14 @@ def generate(cfg, out_dir):
 
     fir_seq = {}
 
+    # CaseMaster.IncidentToDate/InfoReceivedPSDate + Court (P2 #8/#11) — all rng3,
+    # all appended after the fields that already exist, so nothing already-generated
+    # (rng/rng2 consumption order) shifts.
+    incx_cfg = cfg["incident_extra"]
+    ithd_lo, ithd_hi = incx_cfg["incident_to_date_hours"]
+    infolag_lo, infolag_hi = incx_cfg["info_received_lag_hours"]
+    p_victim_police = float(incx_cfg["p_victim_is_police"])
+
     def make_incident(district_code, crime_name, when, lat=None, long=None, mo=None):
         d = dcode[district_code]
         st = random.choice(stations[district_code])
@@ -358,16 +414,27 @@ def generate(cfg, out_dir):
         reported = when + timedelta(hours=round(float(rng.uniform(0.5, 72)), 1))
         officer_pool = officers_by_district.get(district_code) or [o["officer_id"] for o in officers]
         officer_id = str(random2.choice(officer_pool))
+        status_val = str(weighted_choice(rng, status_items, status_w))
+
+        incident_to = when + timedelta(hours=float(rng3.uniform(ithd_lo, ithd_hi)))
+        gap_hours = max((reported - when).total_seconds() / 3600, 0.0)
+        info_received = when + timedelta(hours=min(float(rng3.uniform(infolag_lo, infolag_hi)), gap_hours))
+        court_pool = courts_by_district.get(district_code) or [c["court_id"] for c in courts]
+        court_id = str(rng3.choice(court_pool)) if status_val in court_eligible else ""
+
         incidents.append(dict(
             incident_id=iid, fir_no=f"{st}/{yr}/{fir_seq[st]:04d}",
             occurred_at=when.strftime("%Y-%m-%d %H:%M:%S"),
             reported_at=reported.strftime("%Y-%m-%d %H:%M:%S"),
             district_code=district_code, station_code=st, crime_type=crime_name,
             ipc_bns_code=code, lat=lat, long=long, address_text=addr, mo_text=mo,
-            status=str(weighted_choice(rng, status_items, status_w)),
+            status=status_val,
             case_category=str(weighted_choice(rng2, cc_items, cc_w)),
             gravity="Heinous" if crime_name in heinous_crimes else "Non-Heinous",
             officer_id=officer_id,
+            incident_to_date=incident_to.strftime("%Y-%m-%d %H:%M:%S"),
+            info_received_ps_date=info_received.strftime("%Y-%m-%d %H:%M:%S"),
+            court_id=court_id,
             mo_cluster_id="", series_id="",
             source_fir_url=f"stratus://raw-fir/{iid}.pdf",
             confidence=round(float(rng.uniform(0.75, 0.99)), 2),
@@ -378,9 +445,12 @@ def generate(cfg, out_dir):
         return iid, crime_name
 
     def add_edge(iid, entity_id, role, evidence):
+        is_police = ""
+        if role == "victim":
+            is_police = bool(rng3.random() < p_victim_police)
         edges.append(dict(incident_id=iid, entity_id=entity_id, role=role,
                           edge_weight=round(float(rng.uniform(0.5, 1.0)), 2),
-                          evidence_type=evidence))
+                          evidence_type=evidence, is_police=is_police))
 
     def attach_entities(iid, crime_name):
         # always 1 suspect; then up to 2 more (1..3 entities/incident)
@@ -556,8 +626,11 @@ def generate(cfg, out_dir):
         crime = crime_by_name[inc["crime_type"]]
         act = "BNS" if inc["ipc_bns_code"] == crime["bns"] else "IPC"
         seen = {(act, inc["ipc_bns_code"])}
+        act_order = {act: 1}   # ActSectionAssociation.ActOrderID (P2 #15) — distinct
+                               # from section_order: orders the ACT, not each section
         case_sections.append(dict(incident_id=inc["incident_id"], act_code=act,
-                                  section_code=inc["ipc_bns_code"], section_order=1))
+                                  section_code=inc["ipc_bns_code"], section_order=1,
+                                  act_order=1))
         pool = companions.get(inc["crime_type"], [])
         k = min(int(weighted_choice(rng_sec, extra_k, extra_w)), len(pool))
         if k == 0:
@@ -572,8 +645,11 @@ def generate(cfg, out_dir):
             if (c_act, c_sec) in seen:
                 continue
             seen.add((c_act, c_sec))
+            if c_act not in act_order:
+                act_order[c_act] = len(act_order) + 1
             case_sections.append(dict(incident_id=inc["incident_id"], act_code=c_act,
-                                      section_code=c_sec, section_order=order))
+                                      section_code=c_sec, section_order=order,
+                                      act_order=act_order[c_act]))
             order += 1
 
     # ---- ArrestSurrender — arrest/surrender events per accused suspect ----
@@ -585,6 +661,7 @@ def generate(cfg, out_dir):
     surrender_frac = float(arr_cfg["surrender_fraction"])
     lag_lo, lag_hi = arr_cfg["days_after_report"]
     recency = float(arr_cfg["open_case_recency_days"])
+    p_complainant_accused = float(arr_cfg["p_complainant_accused"])
     end_dt = end.to_pydatetime()
     cs_by_inc = {c["incident_id"]: c for c in chargesheets}
     # suspects per incident in edge order (never a set — str hashing is per-process,
@@ -634,11 +711,45 @@ def generate(cfg, out_dir):
                 event_type="surrender" if rng_arr.random() < surrender_frac else "arrest",
                 event_date=event.strftime("%Y-%m-%d"),
                 district_code=inc["district_code"],
-                # production court (organizer: ArrestSurrender.CourtID) — no Court
-                # master yet, so a stable district-scoped placeholder id
+                # production court (organizer: ArrestSurrender.CourtID) — this id
+                # scheme (CRT-{district}-{01..03}) now resolves against the Courts
+                # reference table generated above; unchanged so this file's existing
+                # rng_arr draw sequence (and therefore every other field below) stays
+                # byte-identical to before Courts existed.
                 court_id=f"CRT-{inc['district_code']}-{int(rng_arr.integers(1, 4)):02d}",
                 io_officer_id=inc["officer_id"] if rng_arr.random() < 0.85 or not officer_pool
-                else str(rng_arr.choice(officer_pool))))
+                else str(rng_arr.choice(officer_pool)),
+                # ArrestSurrender.IsAccused/IsComplainantAccused (P2 #9): the
+                # first-listed suspect is the primary accused; co-accused (any
+                # later suspect on a multi-accused case) are secondary.
+                is_accused=bool(ent_id == suspects[0]),
+                is_complainant_accused=bool(rng_arr.random() < p_complainant_accused)))
+
+    # ---- CrimeHeadActSection reference (P2 #14) — head -> every act+section seen
+    # across the crime_types under it (primary code + companions). Deterministic,
+    # no RNG: it's a lookup derived from config, not a per-incident fact.
+    crime_head_rows = []
+    seen_head_triples = set()
+
+    def _add_head_section(head, act_code, sec_code):
+        key = (head, act_code, sec_code)
+        if key not in seen_head_triples:
+            seen_head_triples.add(key)
+            crime_head_rows.append(dict(crime_head=head, act_code=act_code, section_code=sec_code))
+
+    for head, crime_names in cfg["crime_heads"].items():
+        for cn in crime_names:
+            crime = crime_by_name.get(cn)
+            if not crime:
+                continue
+            _add_head_section(head, "IPC", crime["ipc"])
+            _add_head_section(head, "BNS", crime["bns"])
+            for comp in companions.get(cn, []):
+                if "act" in comp:
+                    _add_head_section(head, str(comp["act"]), str(comp["section"]))
+                else:
+                    _add_head_section(head, "IPC", str(comp["ipc"]))
+                    _add_head_section(head, "BNS", str(comp["bns"]))
 
     # ---- write ----
     out_dir = Path(out_dir)
@@ -650,6 +761,9 @@ def generate(cfg, out_dir):
     cs_df = pd.DataFrame(chargesheets)
     arr_df = pd.DataFrame(arrests)
     sec_df = pd.DataFrame(case_sections)
+    court_df = pd.DataFrame(courts)
+    status_df = pd.DataFrame(case_status_rows)
+    head_df = pd.DataFrame(crime_head_rows)
     inc_df.to_csv(out_dir / "incidents.csv", index=False, encoding="utf-8")
     ent_df.to_csv(out_dir / "entities.csv", index=False, encoding="utf-8")
     edge_df.to_csv(out_dir / "incident_edges.csv", index=False, encoding="utf-8")
@@ -657,6 +771,9 @@ def generate(cfg, out_dir):
     cs_df.to_csv(out_dir / "chargesheets.csv", index=False, encoding="utf-8")
     arr_df.to_csv(out_dir / "arrests.csv", index=False, encoding="utf-8")
     sec_df.to_csv(out_dir / "case_sections.csv", index=False, encoding="utf-8")
+    court_df.to_csv(out_dir / "courts.csv", index=False, encoding="utf-8")
+    status_df.to_csv(out_dir / "case_status.csv", index=False, encoding="utf-8")
+    head_df.to_csv(out_dir / "crime_head_sections.csv", index=False, encoding="utf-8")
     (out_dir / "ground_truth.json").write_text(
         json.dumps(ground, ensure_ascii=False, indent=2), encoding="utf-8")
 

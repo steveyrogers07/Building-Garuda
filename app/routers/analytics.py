@@ -40,6 +40,7 @@ from pydantic import BaseModel
 from automation import briefs
 from governance import audit as gaudit, masking, rbac
 from engines import copilot as cp
+from engines import deadlines as dl_engine
 from engines import district as district_engine
 from engines import forecasting as fc
 from engines import mo as mo_engine
@@ -517,6 +518,81 @@ def district_rank(principal: rbac.Principal = Depends(get_principal)):
     return {"districts": ranked}
 
 
+# --------------------------------------------------------------------------- #
+# Field-officer intelligence (docs/product/08 §1/§2/§6) — the default-bail
+# deadline clock, the per-IO worklist, and the absconding-accused board.
+# district/station roles are scoped to their own jurisdiction; ethics sees none.
+# The statewide roster and the absconding pair derivation are each a full pass
+# over the corpus (~100-130ms) and hit on every page mount / filter change —
+# cache them like the network/risk/copilot state; per-request work is only the
+# cheap filter/sort (jurisdiction scoping stays per request, on the principal).
+# --------------------------------------------------------------------------- #
+_ROSTER_CACHE = _Lazy(lambda: dl_engine.officers_roster(
+    store.fetch_incidents_full(), store.fetch_officers(),
+    store.fetch_arrests(), store.fetch_chargesheets()))
+_ABSCONDING_CACHE = _Lazy(lambda: dl_engine.absconding_people(
+    store.fetch_incidents_full(), store.fetch_arrests(),
+    store.fetch_chargesheets(), store.fetch_edges_p5(), store.fetch_entities_p5()))
+
+
+@router.get("/officers")
+def officers_roster(district: Optional[str] = None,
+                    principal: rbac.Principal = Depends(get_principal)):
+    """Officer picker feed: open-case load + urgent-clock count, worst first."""
+    if principal.role == "ethics":
+        raise HTTPException(403, "case data restricted for ethics role")
+    station = None
+    if principal.role == "district":
+        district = principal.scope
+    elif principal.role == "station":
+        station = principal.scope
+    full = _ROSTER_CACHE.get()
+    rows = full["officers"]     # per-officer aggregates: scoping is a row filter
+    if district:
+        rows = [o for o in rows if o["district_code"] == district]
+    if station:
+        rows = [o for o in rows if o["unit_code"] == station]
+    gaudit.record(principal, "read", "Officers:" + (district or station or "ALL"), "officers")
+    return {"as_of": full["as_of"], "officers": rows}
+
+
+@router.get("/officer/{officer_id}/cases")
+def officer_cases(officer_id: str, principal: rbac.Principal = Depends(get_principal)):
+    """§2 — one IO's open cases sorted by default-bail urgency → age → gravity."""
+    off = next((o for o in store.fetch_officers()
+                if o["officer_id"] == officer_id), None)
+    if not off:
+        raise HTTPException(404, "unknown officer: " + officer_id)
+    if not rbac.in_scope(principal, district=off.get("district_code"),
+                         station=off.get("unit_code")):
+        raise HTTPException(403, "outside your jurisdiction")
+    res = dl_engine.officer_worklist(
+        off, store.fetch_incidents_full(), store.fetch_arrests(),
+        store.fetch_chargesheets())
+    gaudit.record(principal, "read", "Officer:" + officer_id, "officer/cases")
+    return res
+
+
+@router.get("/absconding")
+def absconding(district: Optional[str] = None, gravity: Optional[str] = None,
+               min_days: int = 0, limit: int = 100,
+               principal: rbac.Principal = Depends(get_principal)):
+    """§6 — suspects on open cases with no arrest row, grouped by person."""
+    if principal.role == "ethics":
+        raise HTTPException(403, "case data restricted for ethics role")
+    station = None
+    if principal.role == "district":
+        district = principal.scope
+    elif principal.role == "station":
+        station = principal.scope
+    res = dl_engine.absconding_board_from(
+        _ABSCONDING_CACHE.get(), district=district, station=station,
+        gravity=gravity, min_days=min_days, limit=limit)
+    gaudit.record(principal, "read", "Absconding:" + (district or station or "ALL"),
+                  "absconding")
+    return res
+
+
 @router.post("/brief/run")
 def brief_run(scope: str = "STATE"):
     """Assemble the intelligence brief (SmartBrowz renders HTML→PDF in prod)."""
@@ -544,4 +620,6 @@ def warm():
     _risk_state()
     _copilot_state()
     _anomaly_result()
+    _ROSTER_CACHE.get()
+    _ABSCONDING_CACHE.get()
     wb.state()

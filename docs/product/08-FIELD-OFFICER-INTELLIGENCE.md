@@ -46,7 +46,7 @@ carries but nobody is computing.
 
 ---
 
-## 1. Statutory Deadline Tracker — the single highest-value feature (P0)
+## 1. Statutory Deadline Tracker — the single highest-value feature (P0) — [BUILT]
 
 **What:** For every case with an arrested accused, compute and prominently surface: *days
 remaining to file a chargesheet before default bail becomes available*, using
@@ -64,12 +64,16 @@ together, which the ER diagram doesn't spell out as a workflow — you have to k
 **Data needed:** `ArrestSurrender.ArrestSurrenderDate` (**built** — the `Arrests` table, §9),
 `Incidents.gravity` (**built**). Zero new NER/ML — pure date arithmetic.
 
-**Feasibility:** High. This is a half-day build now that the `Arrests` table exists (§9 — done;
-`tests/test_arrests_sections.py` gate A4 already proves all four urgency buckets are populated).
+**Built** (`feat/field-officer-tier1`): `app/engines/deadlines.py::case_deadline` — the exact
+A4-gate bucketing (green >30 / amber 10–30 / red 0–9 / overdue), 90/60-day window from the
+*earliest* arrest, all day-math anchored to the dataset's own timeline (never `datetime.now()`).
+Surfaced as the `deadline` object + custody/due-date timeline entries on `GET /case/{id}` (badge
+on the Case File header) and as the primary sort key of §2's worklist. Gates:
+`tests/test_field_officer.py` F1/F2.
 
 ---
 
-## 2. "My Cases" — a real worklist, not a table (P0)
+## 2. "My Cases" — a real worklist, not a table (P0) — [BUILT]
 
 **What:** Per-officer landing view (keyed off `officer_id`, which now exists on every incident):
 open cases sorted by urgency = deadline proximity (§1) → court date proximity → case age →
@@ -84,7 +88,11 @@ voluntarily.
 **Data needed:** `Incidents.officer_id` (**built**), case_category/gravity (**built**), court
 dates (§9 dependency for full urgency scoring, but a v1 without court dates is still valuable).
 
-**Feasibility:** High — mostly a UI/aggregation layer over data GARUDA already has.
+**Built** (`feat/field-officer-tier1`): `officer_worklist()` + `officers_roster()` in
+`app/engines/deadlines.py`; `GET /officer/{officer_id}/cases` + `GET /officers` (roster with
+open/urgent counts for the picker), RBAC-scoped by the officer's district/unit; `MyCases.tsx`
+under the Command nav group — open cases sorted §1 urgency → case age → gravity (court-date
+urgency slots in when §10 lands). Gates: `tests/test_field_officer.py` F3/F4.
 
 ---
 
@@ -157,7 +165,7 @@ evidence-per-section version is buildable now, not just the narrower v1.
 
 ---
 
-## 6. Absconding-Accused / Non-Bailable-Warrant Board (P1)
+## 6. Absconding-Accused / Non-Bailable-Warrant Board (P1) — [BUILT]
 
 **What:** A dedicated board of accused persons in open cases who have **not** yet been arrested
 or surrendered (`Accused` rows with no matching `ArrestSurrender` entry) — Karnataka's real
@@ -173,7 +181,12 @@ station can build alone.
 **Data needed:** `Accused` (**built**) joined against `ArrestSurrender` (**built** as
 `Arrests`, §9 — suspects with no arrest row are exactly this board).
 
-**Feasibility:** High — §9's Arrests table exists; the join is straightforward.
+**Built** (`feat/field-officer-tier1`): `absconding_board()` in `app/engines/deadlines.py` —
+the A3-gate derivation exactly (suspect edges on chargesheet-free cases minus arrest rows),
+grouped by canonical person, heinous-first; `GET /absconding` with district/station jurisdiction
+scoping + gravity/min-days filters; `Absconding.tsx` under the Investigate nav group. The G1
+watchlist/BOLO auto-match remains the natural next step on top. Gates:
+`tests/test_field_officer.py` F5.
 
 ---
 
@@ -320,12 +333,12 @@ next-highest-leverage sequence:
 1. **§9 infra** (`Arrests` + `Case_Sections`) — **[BUILT]** — unlocks everything below it.
    Landed with the same pattern as `Officers`/`Chargesheets` (generator config + generate.py
    + canonical schema + column map + store readers + `tests/test_arrests_sections.py`).
-2. **§1 Statutory Deadline Tracker** — the single most "this is real police work" feature
-   possible, and now cheap given §9.
-3. **§2 "My Cases" worklist** — makes the whole platform feel like a tool an IO opens daily,
-   not a report a district commander glances at monthly.
-4. **§6 Absconding-accused board** — statewide value from data no single station can assemble
-   alone; directly strengthens G1 (BOLO) already on the roadmap.
+2. **§1 Statutory Deadline Tracker** — **[BUILT]** — the single most "this is real police work"
+   feature possible, and now cheap given §9.
+3. **§2 "My Cases" worklist** — **[BUILT]** — makes the whole platform feel like a tool an IO
+   opens daily, not a report a district commander glances at monthly.
+4. **§6 Absconding-accused board** — **[BUILT]** — statewide value from data no single station
+   can assemble alone; directly strengthens G1 (BOLO) already on the roadmap.
 5. **§3 Digital Case Diary** — highest raw time-savings per officer, and legally grounded rather
    than invented, but scope it after 1–2 since it's a bigger standalone build.
 6. **§4 Investigation checklists** — cheap, mostly UI, and makes 1–3 feel like a coherent

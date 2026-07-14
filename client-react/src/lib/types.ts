@@ -154,6 +154,19 @@ export interface CaseChargesheet {
   cs_date?: string
 }
 
+export type DeadlineBucket = "green" | "amber" | "red" | "overdue"
+
+/** §1 default-bail clock (CrPC 167(2)/BNSS 187): chargesheet due 60d (90d
+ *  Heinous) from the first arrest, or the accused walks on default bail. */
+export interface CaseDeadline {
+  window_days: number
+  arrest_date: string
+  due_date: string
+  days_remaining: number
+  bucket: DeadlineBucket
+  arrested: number
+}
+
 export interface CaseFull {
   incident: Incident
   protected?: boolean
@@ -163,6 +176,7 @@ export interface CaseFull {
   timeline?: { ts: string; label: string }[]
   officer?: CaseOfficer | null
   chargesheet?: CaseChargesheet | null
+  deadline?: CaseDeadline | null
   viewer?: { role: string; scope?: string | null }
   error?: string
 }
@@ -194,6 +208,93 @@ export interface DistrictCommandCard {
   clearance_rate: number | null
   top_crimes: [string, number][]
   top_officers: OfficerRow[]
+}
+
+export interface RosterOfficer {
+  officer_id: string
+  name?: string
+  rank?: string
+  district_code?: string
+  unit_code?: string
+  open: number
+  urgent: number   // open cases with an overdue/red default-bail clock
+}
+
+export interface OfficersRoster {
+  as_of?: string
+  officers: RosterOfficer[]
+}
+
+export interface WorklistCase {
+  incident_id: string
+  fir_no?: string
+  crime_type?: string
+  district_code?: string
+  station_code?: string
+  occurred_at?: string
+  status?: string
+  gravity?: string
+  case_age_days?: number | null
+  deadline?: CaseDeadline | null
+}
+
+export interface WorklistSummary {
+  open: number
+  overdue: number
+  red: number
+  amber: number
+  green: number
+  no_clock: number
+  heinous: number
+}
+
+export interface OfficerWorklist {
+  officer: {
+    officer_id: string
+    name?: string
+    rank?: string
+    designation?: string
+    district_code?: string
+    unit_code?: string
+  }
+  as_of?: string
+  summary: WorklistSummary
+  cases: WorklistCase[]
+}
+
+export interface AbscondingCase {
+  incident_id: string
+  fir_no?: string
+  crime_type?: string
+  district_code?: string
+  station_code?: string
+  gravity?: string
+  status?: string
+  occurred_at?: string
+  days_open?: number | null
+}
+
+export interface AbscondingPerson {
+  canonical_id: string
+  name: string
+  case_count: number
+  max_days_open: number
+  heinous: boolean
+  districts: string[]
+  cases: AbscondingCase[]
+}
+
+export interface AbscondingBoard {
+  as_of?: string
+  summary: {
+    people: number
+    cases: number
+    heinous_people: number
+    districts: number
+    total_pairs_unfiltered?: number
+  }
+  people: AbscondingPerson[]
+  guardrail?: string
 }
 
 export interface Appearance {

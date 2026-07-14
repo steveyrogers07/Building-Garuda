@@ -182,6 +182,7 @@ export const MOCK = {
     series_id: null,
     officer: { name: "Vinaya Sodhi", rank: "PSI", designation: "Investigating Officer" },
     chargesheet: null,
+    deadline: { window_days: 60, arrest_date: "2025-05-25", due_date: "2025-07-24", days_remaining: 24, bucket: "amber", arrested: 1 },
     parties: [
       { role: "suspect", entity_id: "ENT014602", canonical_id: "ENT014602", type: "person", value: "Aayush Zachariah", age: "29", evidence_type: "cctv", note: "as recorded in the FIR; pending investigation/trial" },
       { role: "victim", entity_id: "ENTV", canonical_id: "ENTV", type: "person", value: "M. R.", masked: "jurisdiction", evidence_type: "fir_named" },
@@ -206,6 +207,8 @@ export const MOCK = {
     timeline: [
       { ts: "2024-02-12 21:40:00", label: "Incident occurred" },
       { ts: "2024-02-13 09:15:00", label: "FIR registered" },
+      { ts: "2025-05-25", label: "Accused in custody — default-bail clock starts" },
+      { ts: "2025-07-24", label: "Chargesheet due — 24d left before default bail" },
     ],
     viewer: { role: "demo", scope: null },
   },
@@ -235,6 +238,63 @@ export const MOCK = {
       { district_code: "MYS", total_incidents: 410, open: 190, disposed: 220, backlog_aging: 34, backlog_threshold_days: 90, outcomes: { A: 132, B: 22, C: 40 }, outcomes_total: 194, clearance_rate: 0.680, top_crimes: [], top_officers: [] },
       { district_code: "KLB", total_incidents: 300, open: 160, disposed: 140, backlog_aging: 41, backlog_threshold_days: 90, outcomes: { A: 71, B: 18, C: 39 }, outcomes_total: 128, clearance_rate: 0.555, top_crimes: [], top_officers: [] },
     ],
+  },
+
+  // First roster row must match the officerCases fixture — offline mode selects
+  // officers[0] and renders that worklist.
+  officers: {
+    as_of: "2025-06-30",
+    officers: [
+      { officer_id: "OFF0114", name: "Vinaya Sodhi", rank: "PSI", district_code: "BNU", unit_code: "BNU07", open: 4, urgent: 2 },
+      { officer_id: "OFF0097", name: "Kashvi Sule", rank: "Head Constable", district_code: "HVR", unit_code: "HVR02", open: 92, urgent: 19 },
+      { officer_id: "OFF0054", name: "Ramesh Achar", rank: "PI", district_code: "RMN", unit_code: "RMN03", open: 33, urgent: 7 },
+      { officer_id: "OFF0201", name: "Kavya Hegde", rank: "ASI", district_code: "MYS", unit_code: "MYS04", open: 26, urgent: 3 },
+    ],
+  },
+
+  officerCases: {
+    officer: { officer_id: "OFF0114", name: "Vinaya Sodhi", rank: "PSI", designation: "Investigating Officer", district_code: "BNU", unit_code: "BNU07" },
+    as_of: "2025-06-30",
+    summary: { open: 4, overdue: 1, red: 1, amber: 1, green: 0, no_clock: 1, heinous: 1 },
+    cases: [
+      { incident_id: "INC010004", fir_no: "BNU07/2024/0083", crime_type: "Robbery", district_code: "BNU", station_code: "BNU07", occurred_at: "2024-11-19", status: "Under Investigation", gravity: "Heinous", case_age_days: 223, deadline: { window_days: 90, arrest_date: "2025-03-14", due_date: "2025-06-12", days_remaining: -18, bucket: "overdue", arrested: 2 } },
+      { incident_id: "INC010005", fir_no: "BNU07/2025/0016", crime_type: "House burglary", district_code: "BNU", station_code: "BNU07", occurred_at: "2025-03-02", status: "Under Investigation", gravity: "Non-Heinous", case_age_days: 120, deadline: { window_days: 60, arrest_date: "2025-05-06", due_date: "2025-07-05", days_remaining: 5, bucket: "red", arrested: 1 } },
+      { incident_id: "INC010002", fir_no: "RMN03/2024/0007", crime_type: "Chain snatching", district_code: "RMN", station_code: "RMN03", occurred_at: "2024-02-12", status: "Under Investigation", gravity: "Non-Heinous", case_age_days: 504, deadline: { window_days: 60, arrest_date: "2025-05-25", due_date: "2025-07-24", days_remaining: 24, bucket: "amber", arrested: 1 } },
+      { incident_id: "INC010006", fir_no: "BNU07/2025/0042", crime_type: "Cheating", district_code: "BNU", station_code: "BNU07", occurred_at: "2025-05-28", status: "Under Investigation", gravity: "Non-Heinous", case_age_days: 33, deadline: null },
+    ],
+  },
+
+  absconding: {
+    as_of: "2025-06-30",
+    summary: { people: 1732, cases: 2124, heinous_people: 186, districts: 31, total_pairs_unfiltered: 2124 },
+    people: [
+      {
+        canonical_id: "ENT014602",
+        name: "Aayush Zachariah",
+        case_count: 3,
+        max_days_open: 523,
+        heinous: true,
+        districts: ["BNU", "KLR", "RMN", "TMK"],
+        cases: [
+          { incident_id: "INC010001", fir_no: "BNU20/2024/0028", crime_type: "Chain snatching", district_code: "BNU", station_code: "BNU20", gravity: "Non-Heinous", status: "Under Investigation", occurred_at: "2024-01-24", days_open: 523 },
+          { incident_id: "INC010004", fir_no: "BNU07/2024/0083", crime_type: "Robbery", district_code: "BNU", station_code: "BNU07", gravity: "Heinous", status: "Under Investigation", occurred_at: "2024-11-19", days_open: 223 },
+          { incident_id: "INC010003", fir_no: "RMN03/2024/0011", crime_type: "Chain snatching", district_code: "RMN", station_code: "RMN03", gravity: "Non-Heinous", status: "Under Investigation", occurred_at: "2024-03-08", days_open: 479 },
+        ],
+      },
+      {
+        canonical_id: "ENT014605",
+        name: "Imaran Pal",
+        case_count: 2,
+        max_days_open: 479,
+        heinous: false,
+        districts: ["RMN"],
+        cases: [
+          { incident_id: "INC010003", fir_no: "RMN03/2024/0011", crime_type: "Chain snatching", district_code: "RMN", station_code: "RMN03", gravity: "Non-Heinous", status: "Under Investigation", occurred_at: "2024-03-08", days_open: 479 },
+          { incident_id: "INC010007", fir_no: "RMN03/2024/0029", crime_type: "Theft", district_code: "RMN", station_code: "RMN03", gravity: "Non-Heinous", status: "Pending Trial", occurred_at: "2024-08-15", days_open: 318 },
+        ],
+      },
+    ],
+    guardrail: "Persons listed are suspects named in FIRs on open cases with no recorded arrest; inclusion is not a determination of guilt.",
   },
 
   audit: {

@@ -1,6 +1,7 @@
 import { MOCK } from "@/lib/mock"
 import { loadPrincipal } from "@/lib/roles"
 import type {
+  AbscondingBoard,
   AnomalyAlert,
   AuditEntry,
   CaseFull,
@@ -10,6 +11,8 @@ import type {
   EntityDossier,
   Fairness,
   GeoDistrict,
+  OfficersRoster,
+  OfficerWorklist,
   Ring,
   RiskCell,
   SearchResult,
@@ -138,4 +141,20 @@ export const api = {
     jgetStrict<DistrictCommandCard>(`/district/${encodeURIComponent(code)}/command`, "districtCommand"),
   districtRank: () =>
     jgetStrict<{ districts: DistrictCommandCard[] }>("/district/rank", "districtRank"),
+  officers: (district?: string) =>
+    jgetStrict<OfficersRoster>(
+      `/officers${district ? `?district=${encodeURIComponent(district)}` : ""}`,
+      "officers",
+    ),
+  officerCases: (id: string) =>
+    jgetStrict<OfficerWorklist>(`/officer/${encodeURIComponent(id)}/cases`, "officerCases"),
+  absconding: (opts: { district?: string; gravity?: string; minDays?: number; limit?: number } = {}) => {
+    const q = new URLSearchParams()
+    if (opts.district) q.set("district", opts.district)
+    if (opts.gravity) q.set("gravity", opts.gravity)
+    if (opts.minDays) q.set("min_days", String(opts.minDays))
+    if (opts.limit) q.set("limit", String(opts.limit))
+    const s = q.toString()
+    return jgetStrict<AbscondingBoard>(`/absconding${s ? "?" + s : ""}`, "absconding")
+  },
 }

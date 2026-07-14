@@ -1,5 +1,6 @@
 import {
   Building2,
+  ClipboardList,
   LayoutDashboard,
   LogOut,
   Map as MapIcon,
@@ -7,6 +8,7 @@ import {
   ScrollText,
   Search,
   Siren,
+  UserX,
   Waypoints,
 } from "lucide-react"
 import { NavLink, useNavigate } from "react-router-dom"
@@ -30,6 +32,7 @@ const NAV = [
     group: "Command",
     items: [
       { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
+      { to: "/my-cases", label: "My Cases", icon: ClipboardList },
       { to: "/district", label: "District Command", icon: Building2 },
       { to: "/alerts", label: "Alerts & Risk", icon: Siren },
     ],
@@ -37,6 +40,7 @@ const NAV = [
   {
     group: "Investigate",
     items: [
+      { to: "/absconding", label: "Absconding Board", icon: UserX },
       { to: "/network", label: "Network Reveal", icon: Waypoints },
       { to: "/map", label: "Hotspot Map", icon: MapIcon },
       { to: "/search", label: "Universal Search", icon: Search },

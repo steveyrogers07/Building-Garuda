@@ -3,6 +3,7 @@ import { useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
 import {
+  DeadlineBadge,
   EmptyState,
   Guardrail,
   MaskBadge,
@@ -116,6 +117,7 @@ export default function CaseFile() {
                   : "Undetected"}
             </Badge>
           )}
+          {data?.deadline && <DeadlineBadge deadline={data.deadline} />}
           {data?.protected && <MaskBadge reason="IPC-228A/POCSO protected" />}
           {data?.series_id && (
             <Badge variant="outline" className="border-warn/30 bg-warn-soft font-mono text-warn">

@@ -17,6 +17,7 @@ import time
 from collections import Counter, defaultdict
 
 from engines import copilot as cp
+from engines import deadlines as dl
 from engines import network as net
 from engines.series import link_series
 from engines.series.linkage import _haversine_km, _parse_dt
@@ -56,6 +57,9 @@ def _build_state():
     cs_by_inc = defaultdict(list)
     for c in store.fetch_chargesheets():
         cs_by_inc[c["incident_id"]].append(c)
+    arrests_by_inc = defaultdict(list)
+    for a in store.fetch_arrests():
+        arrests_by_inc[a["incident_id"]].append(a)
 
     by_inc = {r["incident_id"]: r for r in inc}
     ent_by_id = {e["entity_id"]: e for e in ents}
@@ -95,6 +99,7 @@ def _build_state():
         "canon_apps": canon_apps, "canon_roles": canon_roles,
         "canon_protected": canon_protected, "graph": G,
         "officers_by_id": officers_by_id, "chargesheets_by_inc": cs_by_inc,
+        "arrests_by_inc": arrests_by_inc, "as_of": dl.data_as_of(inc),
         "series_of": series["assignments"],
         "series_rows": {s["series_id"]: s for s in series["series"]},
         "copilot": cp.prepare(inc),            # (index, refs) for semantic search
@@ -288,16 +293,30 @@ def case_file(incident_id, principal, max_links=12):
     officer = st["officers_by_id"].get(inc.get("officer_id"))
     cs_rows = st["chargesheets_by_inc"].get(incident_id, [])
     chargesheet = cs_rows[0] if cs_rows else None
+    arrests = st["arrests_by_inc"].get(incident_id, [])
+    deadline = dl.case_deadline(inc, arrests, anchor=st["as_of"],
+                                has_chargesheet=bool(cs_rows))
 
     timeline = [{"ts": inc.get("occurred_at"), "label": "Incident occurred"}]
     if inc.get("reported_at"):
         timeline.append({"ts": inc.get("reported_at"), "label": "FIR registered"})
+    if arrests:
+        first = min(a.get("event_date", "") for a in arrests)
+        label = ("Accused in custody" if len(arrests) == 1
+                 else f"{len(arrests)} accused in custody")
+        timeline.append({"ts": first, "label": label + " — default-bail clock starts"})
     if inc.get("status"):
         timeline.append({"ts": None, "label": "Status: " + inc["status"]})
     if chargesheet:
         cs_label = {"A": "Chargesheet filed", "B": "Closed — false case",
                     "C": "Closed — undetected"}.get(chargesheet.get("cs_type"), "Final report filed")
         timeline.append({"ts": chargesheet.get("cs_date"), "label": cs_label})
+    if deadline:
+        rem = deadline["days_remaining"]
+        timeline.append({"ts": deadline["due_date"],
+                         "label": (f"Chargesheet due — {rem}d left before default bail"
+                                   if rem >= 0 else
+                                   f"Default-bail window PASSED {-rem}d ago")})
 
     return {"incident": inc, "protected": masking.is_protected(inc.get("crime_type")),
             "parties": parties, "linked_cases": linked, "timeline": timeline,
@@ -306,6 +325,7 @@ def case_file(incident_id, principal, max_links=12):
                         "designation": officer.get("designation")} if officer else None),
             "chargesheet": ({"cs_type": chargesheet.get("cs_type"),
                              "cs_date": chargesheet.get("cs_date")} if chargesheet else None),
+            "deadline": deadline,
             "viewer": {"role": principal.role, "scope": principal.scope}}
 
 

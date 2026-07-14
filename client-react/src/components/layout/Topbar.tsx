@@ -9,7 +9,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 const CRUMBS: Record<string, string> = {
   "/": "Operations Overview",
+  "/my-cases": "My Cases",
+  "/district": "District Command",
   "/alerts": "Alerts & Risk",
+  "/absconding": "Absconding Board",
   "/network": "Network Reveal",
   "/map": "Hotspot Map",
   "/search": "Universal Search",

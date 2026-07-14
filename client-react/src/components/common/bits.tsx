@@ -1,8 +1,9 @@
 import type { LucideIcon } from "lucide-react"
-import { Car, Landmark, Lock, Phone, ShieldCheck, User } from "lucide-react"
+import { Car, Landmark, Lock, Phone, ShieldCheck, Timer, User } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import type { CaseDeadline } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /** Page heading block: title + caption left, actions right. */
@@ -130,6 +131,47 @@ export function ReasonChip({ type, detail }: { type: string; detail: string }) {
       title={type}
     >
       {detail}
+    </span>
+  )
+}
+
+const DEADLINE_TONES: Record<string, string> = {
+  green: "border-ok/30 bg-ok-soft text-ok",
+  amber: "border-amber/30 bg-amber-soft text-amber",
+  red: "border-danger/40 bg-danger-soft text-danger",
+  overdue: "border-danger bg-danger text-white",
+}
+
+/** §1 default-bail clock chip — chargesheet due 60d (90d Heinous) from first
+ *  arrest (CrPC 167(2)/BNSS 187). `verbose` renders a muted chip when no clock
+ *  runs (nobody arrested yet) instead of nothing. */
+export function DeadlineBadge({
+  deadline,
+  verbose = false,
+}: {
+  deadline?: CaseDeadline | null
+  verbose?: boolean
+}) {
+  if (!deadline) {
+    return verbose ? (
+      <span className="inline-flex items-center gap-1 rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-faint">
+        no clock — no arrest yet
+      </span>
+    ) : null
+  }
+  const overdue = deadline.days_remaining < 0
+  return (
+    <span
+      title={`Default-bail window: ${deadline.window_days}d from first arrest ${deadline.arrest_date} — chargesheet due ${deadline.due_date} (${deadline.arrested} in custody)`}
+      className={cn(
+        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[10px] font-medium",
+        DEADLINE_TONES[deadline.bucket],
+      )}
+    >
+      <Timer className="size-3" />
+      {overdue
+        ? `CS overdue ${-deadline.days_remaining}d`
+        : `CS due ${deadline.days_remaining}d`}
     </span>
   )
 }

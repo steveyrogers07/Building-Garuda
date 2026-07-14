@@ -25,6 +25,7 @@ import { fmt, pct } from "@/lib/format"
 import { useApi } from "@/lib/hooks"
 import { presetFor, usePrincipal } from "@/lib/roles"
 import type { DistrictCommandCard } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 /** SP's cockpit for one district — load, backlog aging, and the clearance rate
  *  computed from ChargesheetDetails.cs_type (A/B/C), a metric the organizer
@@ -73,17 +74,24 @@ export default function DistrictCommand() {
         )}
       </PageHeader>
 
-      {card.loading ? (
-        <ShimmerRows n={4} h={90} />
-      ) : card.error?.status === 403 ? (
+      {card.error?.status === 403 ? (
         <Notice title="Access restricted">
           {card.error.detail || "This district is outside your jurisdiction."} Current clearance:{" "}
           <b className="font-mono">{presetFor(p)?.label || p?.role}</b>.
         </Notice>
       ) : !c ? (
-        <EmptyState>No command data for this district.</EmptyState>
+        card.loading ? (
+          <ShimmerRows n={4} h={90} />
+        ) : (
+          <EmptyState>No command data for this district.</EmptyState>
+        )
       ) : (
-        <>
+        <div
+          className={cn(
+            "space-y-5 transition-opacity duration-200",
+            card.loading && "pointer-events-none opacity-60",
+          )}
+        >
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
             <KpiCard label="Total incidents" value={fmt(c.total_incidents)} detail={`${c.district_code} · all recorded FIRs`} />
             <KpiCard
@@ -237,7 +245,7 @@ export default function DistrictCommand() {
           >
             Ask copilot about {c.district_code} →
           </button>
-        </>
+        </div>
       )}
     </>
   )

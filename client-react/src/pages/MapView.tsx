@@ -31,13 +31,13 @@ const DARK_STYLE: maplibregl.StyleSpecification = {
     },
   },
   layers: [
-    { id: "bg", type: "background", paint: { "background-color": "#0a1020" } },
+    { id: "bg", type: "background", paint: { "background-color": "#0b0d11" } },
     { id: "carto", type: "raster", source: "carto", paint: { "raster-opacity": 0.9 } },
   ],
 }
 
 function colorFor(t: number): string {
-  return t > 0.66 ? "#ef4444" : t > 0.33 ? "#f9a825" : "#3b82f6"
+  return t > 0.66 ? "#e5484d" : t > 0.33 ? "#c9a227" : "#8fa3bf"
 }
 
 export default function MapView() {
@@ -138,14 +138,14 @@ export default function MapView() {
         ;(map!.getSource("districts") as maplibregl.GeoJSONSource).setData(fc)
       }
 
-      // code labels as HTML markers (own Fira font — no external glyph server)
+      // code labels as HTML markers (own bundled font — no external glyph server)
       markersRef.current.forEach((m) => m.remove())
       markersRef.current = districts.map((d) => {
         const el = document.createElement("span")
         el.textContent = d.code
         el.style.cssText =
-          "font:600 10.5px 'Fira Code',monospace;color:#e8eef9;letter-spacing:.5px;" +
-          "text-shadow:0 0 4px #080d18,0 0 3px #080d18,0 1px 2px #080d18;pointer-events:none"
+          "font:600 10.5px 'IBM Plex Mono',monospace;color:#e9e7e0;letter-spacing:.5px;" +
+          "text-shadow:0 0 4px #0b0d11,0 0 3px #0b0d11,0 1px 2px #0b0d11;pointer-events:none"
         return new maplibregl.Marker({ element: el }).setLngLat([d.lng, d.lat]).addTo(map!)
       })
     }
@@ -160,19 +160,20 @@ export default function MapView() {
   return (
     <>
       <PageHeader
+        eyebrow="Investigate · Geography"
         title="Hotspot Map"
         caption="District incident load — bubble size = volume, colour = intensity, halo = top hotspots. Click a district to drill down."
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-        <div className="relative h-[calc(100vh-262px)] min-h-[440px] overflow-hidden rounded-lg border shadow-panel">
+        <div className="relative h-[calc(100vh-262px)] min-h-[440px] overflow-hidden rounded-md border border-line shadow-panel">
           <div ref={containerRef} className="h-full w-full" />
           {/* legend */}
-          <div className="absolute bottom-3 left-3 z-10 rounded-md border bg-background/85 px-3 py-2 font-mono text-[10.5px] text-muted-foreground backdrop-blur">
+          <div className="absolute bottom-3 left-3 z-10 rounded-sm border border-line bg-console/90 px-3 py-2 font-mono text-[10.5px] text-muted-foreground backdrop-blur">
             <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-chart-1" /> low
-              <span className="size-2 rounded-full bg-amber" /> medium
-              <span className="size-2 rounded-full bg-danger" /> high intensity
+              <span className="size-2 rounded-full bg-steel" /> low
+              <span className="size-2 rounded-full bg-brass" /> medium
+              <span className="size-2 rounded-full bg-signal" /> high intensity
             </div>
             <div className="mt-1 text-faint">size = incident volume · halo = top-6 hotspot</div>
           </div>
@@ -181,14 +182,14 @@ export default function MapView() {
         <Card className="h-fit">
           <CardHeader>
             <div className="k-label">Drill-down</div>
-            <CardTitle className="mt-1 text-[15px]">District</CardTitle>
+            <CardTitle className="t-display mt-1 text-[17px]">District</CardTitle>
           </CardHeader>
           <CardContent>
             {!drill ? (
               <EmptyState>Select a district bubble on the map.</EmptyState>
             ) : (
               <>
-                <div className="font-mono text-[15px] font-semibold">{drill.name || drill.code}</div>
+                <div className="t-display text-[18px]">{drill.name || drill.code}</div>
                 <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[12px]">
                   <span className="k-label">code</span>
                   <span className="font-mono">{drill.code}</span>
@@ -205,10 +206,10 @@ export default function MapView() {
                       {drillRisk.map((r, i) => (
                         <div
                           key={i}
-                          className="flex items-center justify-between rounded border border-border-soft bg-surface-2/50 px-2 py-1.5 text-[11.5px]"
+                          className="flex items-center justify-between rounded-sm border border-line-soft bg-panel-2/50 px-2 py-1.5 text-[11.5px]"
                         >
                           <span>{r.crime_type}</span>
-                          <span className="tnum font-mono text-amber">{pct(r.risk_score)}</span>
+                          <span className="tnum font-mono text-brass">{pct(r.risk_score)}</span>
                         </div>
                       ))}
                     </div>

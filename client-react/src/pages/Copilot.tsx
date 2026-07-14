@@ -38,13 +38,13 @@ export function CitationCard({ c, onOpen }: { c: Citation; onOpen: () => void })
   return (
     <button
       onClick={onOpen}
-      className="w-full min-w-0 rounded-md border border-border-soft bg-surface-2/50 p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent"
+      className="w-full min-w-0 rounded-md border border-line-soft bg-panel-2/50 p-2.5 text-left transition-colors hover:border-brass/40 hover:bg-accent"
     >
-      <span className="flex items-center gap-1.5 font-mono text-[11.5px] text-primary">
+      <span className="flex items-center gap-1.5 font-mono text-[11.5px] text-brass">
         <FileText className="size-3" /> {c.fir_no || c.incident_id}
       </span>
       <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10.5px]">
-        <span className="rounded border border-info/30 bg-info-soft px-1 py-px text-info">{c.crime_type}</span>
+        <span className="rounded border border-steel/30 bg-steel-soft px-1 py-px text-steel">{c.crime_type}</span>
         <span className="font-mono text-faint">
           {c.district_code} · {d10(c.occurred_at)}
         </span>
@@ -96,6 +96,7 @@ export default function Copilot() {
   return (
     <>
       <PageHeader
+        eyebrow="Assist · RAG over the FIR corpus"
         title="Intelligence Copilot"
         caption="Plain-English questions over the FIR corpus — every answer grounded in cited records. Citations open the case file."
       />
@@ -106,19 +107,19 @@ export default function Copilot() {
             {CHAT.map((m, i) =>
               m.role === "user" ? (
                 <div key={i} className="flex justify-end gap-2.5">
-                  <div className="max-w-[70%] rounded-lg rounded-br-sm bg-primary-deep/60 px-3.5 py-2.5 text-[13px]">
+                  <div className="max-w-[70%] rounded-md rounded-br-sm border border-brass/25 bg-brass-soft px-3.5 py-2.5 text-[13px]">
                     {m.text}
                   </div>
                 </div>
               ) : (
                 <div key={i} className="flex gap-2.5">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-amber/30 bg-amber-soft font-mono text-[9.5px] font-bold text-amber">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-brass/30 bg-brass-soft font-mono text-[9.5px] font-semibold text-brass">
                     AI
                   </div>
                   <div
                     className={cn(
-                      "max-w-[82%] rounded-lg rounded-tl-sm border border-border-soft bg-surface-2/60 px-3.5 py-2.5",
-                      m.res.refused && "border-danger/35",
+                      "max-w-[82%] rounded-md rounded-tl-sm border border-line-soft bg-panel-2/60 px-3.5 py-2.5",
+                      m.res.refused && "border-signal/35",
                       m.pending && "animate-pulse",
                     )}
                   >
@@ -135,7 +136,7 @@ export default function Copilot() {
                       </div>
                     )}
                     {m.res.guardrail && (
-                      <div className="mt-2.5 flex items-start gap-1.5 border-t border-border-soft pt-2 text-[10.5px] text-faint">
+                      <div className="mt-2.5 flex items-start gap-1.5 border-t border-line-soft pt-2 text-[10.5px] text-faint">
                         <ShieldCheck className="mt-px size-3 shrink-0 text-ok" />
                         {m.res.guardrail}
                       </div>
@@ -151,7 +152,7 @@ export default function Copilot() {
               <button
                 key={e}
                 onClick={() => void ask(e)}
-                className="rounded-full border bg-surface-2/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                className="rounded-sm border border-line bg-panel px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-brass/40 hover:text-foreground"
               >
                 {e}
               </button>
@@ -169,7 +170,7 @@ export default function Copilot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="e.g. two-wheeler theft in BNU in March 2025"
-              className="bg-surface-2"
+              className="bg-panel-2"
               aria-label="Ask the copilot"
             />
             <Button type="submit">

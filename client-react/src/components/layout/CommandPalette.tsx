@@ -88,7 +88,7 @@ export function CommandPalette({
           <CommandList className="max-h-[420px]">
             {q.trim().length < 2 ? (
               <div className="px-4 py-8 text-center text-[12.5px] text-faint">
-                Type at least 2 characters — try <span className="font-mono text-amber">KA68MC3164</span>{" "}
+                Type at least 2 characters — try <span className="font-mono text-brass">KA68MC3164</span>{" "}
                 or <span className="font-mono">Aayush</span>
               </div>
             ) : (
@@ -132,7 +132,7 @@ export function CommandPalette({
                               <div className="truncate text-[12.5px]">
                                 {p.value}
                                 {p.masked && (
-                                  <span className="ml-1.5 font-mono text-[10px] text-amber">
+                                  <span className="ml-1.5 font-mono text-[10px] text-brass">
                                     [masked: {p.masked}]
                                   </span>
                                 )}
@@ -185,7 +185,7 @@ export function CommandPalette({
                       navigate("/copilot", { state: { ask: q.trim() } })
                     }}
                   >
-                    <MessageSquareText className="text-amber" />
+                    <MessageSquareText className="text-brass" />
                     <span className="text-[12.5px]">
                       Ask copilot: <span className="text-muted-foreground">“{q.trim()}”</span>
                     </span>

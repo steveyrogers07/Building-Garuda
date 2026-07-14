@@ -8,10 +8,10 @@ import {
   MaskBadge,
   MiniBar,
   Notice,
+  RoleChip,
   ShimmerRows,
   entityIcon,
 } from "@/components/common/bits"
-import { RoleChip } from "@/components/common/bits"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -63,24 +63,31 @@ export default function Dossier() {
 
   return (
     <>
-      <Card>
-        <CardContent className="py-4">
+      {/* ── registry index card — the entity's paper record ──────────────── */}
+      <div className="paper-sheet relative overflow-hidden rounded-sm">
+        <div className="paper-edge absolute inset-y-0 left-0 w-7 border-r border-paper-line/60" />
+        <div className="py-4 pl-11 pr-5">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-lg border border-amber/30 bg-amber-soft">
-              <Icon className="size-6 text-amber" />
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-paper-ink/50">
+              <Icon className="size-6 text-paper-dim" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="flex flex-wrap items-center gap-2 text-[19px] font-semibold">
-                <span className={d.type !== "person" ? "font-mono" : ""}>{d.value}</span>
-                {d.masked && <MaskBadge reason={`masked · ${d.masked}`} />}
+              <div className="k-label-paper">Canonical dossier · {d.type}</div>
+              <h2 className="mt-0.5 flex flex-wrap items-center gap-2">
+                <span
+                  className={`t-display text-[24px] leading-none text-paper-ink ${d.type !== "person" ? "tnum" : ""}`}
+                >
+                  {d.value}
+                </span>
+                {d.masked && <MaskBadge onPaper reason={`masked · ${d.masked}`} />}
               </h2>
-              <div className="mt-0.5 font-mono text-[11.5px] text-faint">
-                {d.type} · {d.canonical_id}
+              <div className="mt-1 font-mono text-[11px] text-paper-dim">
+                {d.canonical_id}
                 {(d.aliases || []).length > 0 && (
                   <>
                     {" · aka "}
                     {(d.aliases || []).map((a, i) => (
-                      <span key={i} className="mr-1 rounded border border-border-soft bg-surface-2 px-1 py-px">
+                      <span key={i} className="mr-1 rounded-sm border border-paper-line bg-paper-2 px-1 py-px">
                         {a.value}
                       </span>
                     ))}
@@ -89,12 +96,18 @@ export default function Dossier() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate(`/network?focus=${encodeURIComponent(d.canonical_id)}`)}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-paper-ink/40 bg-transparent text-paper-ink hover:bg-paper-2 hover:text-paper-ink"
+                onClick={() => navigate(`/network?focus=${encodeURIComponent(d.canonical_id)}`)}
+              >
                 <Waypoints className="size-3.5" /> Ego network
               </Button>
               <Button
                 variant="outline"
                 size="sm"
+                className="border-paper-ink/40 bg-transparent text-paper-ink hover:bg-paper-2 hover:text-paper-ink"
                 onClick={() => navigate("/copilot", { state: { ask: `incidents involving ${d.value}` } })}
               >
                 <MessageSquareText className="size-3.5" /> Ask copilot
@@ -102,7 +115,7 @@ export default function Dossier() {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4 sm:grid-cols-5">
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-paper-line pt-3 sm:grid-cols-5">
             {[
               ["Incidents", fmt(s.incidents)],
               ["Districts", String((s.districts || []).length)],
@@ -111,19 +124,20 @@ export default function Dossier() {
               ["Reach", (s.districts || []).join(" ") || "–"],
             ].map(([k, v]) => (
               <div key={k}>
-                <div className="k-label">{k}</div>
-                <div className="tnum mt-1 font-mono text-[14px] font-semibold">{v}</div>
+                <div className="k-label-paper">{k}</div>
+                <div className="tnum mt-1 font-mono text-[13.5px] font-medium text-paper-ink">{v}</div>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
+      {/* ── derived intelligence — console panels ─────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader>
             <div className="k-label">Record</div>
-            <CardTitle className="mt-1 text-[15px]">Appearances across FIRs</CardTitle>
+            <CardTitle className="t-display mt-1 text-[17px]">Appearances across FIRs</CardTitle>
           </CardHeader>
           <CardContent className="max-h-[420px] overflow-auto">
             {(d.appearances || []).length ? (
@@ -145,7 +159,7 @@ export default function Dossier() {
                       className="cursor-pointer"
                       onClick={() => navigate(`/case/${encodeURIComponent(a.incident_id)}`)}
                     >
-                      <TableCell className="font-mono text-[12px] text-primary">{a.fir_no || a.incident_id}</TableCell>
+                      <TableCell className="font-mono text-[12px] text-brass">{a.fir_no || a.incident_id}</TableCell>
                       <TableCell><RoleChip role={a.role} /></TableCell>
                       <TableCell className="text-[12px]">{a.crime_type || ""}</TableCell>
                       <TableCell className="font-mono text-[12px]">{a.district_code || ""}</TableCell>
@@ -165,7 +179,7 @@ export default function Dossier() {
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <div>
               <div className="k-label">Network</div>
-              <CardTitle className="mt-1 text-[15px]">Known associates</CardTitle>
+              <CardTitle className="t-display mt-1 text-[17px]">Known associates</CardTitle>
             </div>
             <span className="font-mono text-[10px] text-faint">co-occurrence</span>
           </CardHeader>
@@ -178,16 +192,16 @@ export default function Dossier() {
                     <button
                       key={a.canonical_id}
                       onClick={() => navigate(`/entity/${encodeURIComponent(a.canonical_id)}`)}
-                      className="flex w-full items-center gap-3 rounded-md border border-transparent px-2 py-1.5 text-left transition-colors hover:border-border hover:bg-accent"
+                      className="flex w-full items-center gap-3 rounded-sm border border-transparent px-2 py-1.5 text-left transition-colors hover:border-line hover:bg-accent"
                     >
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border-soft bg-surface-2">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-line-soft bg-panel-2">
                         <AIcon className="size-4 text-faint" />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className={`block truncate text-[12.5px] ${a.type !== "person" ? "font-mono" : ""}`}>
                           {a.label} {a.masked && <MaskBadge reason={a.masked} />}
                         </span>
-                        <MiniBar value={a.weight || 1} max={maxW} className="mt-1.5 max-w-[170px]" />
+                        <MiniBar value={a.weight || 1} max={maxW} tone="amber" className="mt-1.5 max-w-[170px]" />
                       </span>
                       <span className="text-right">
                         <span className="tnum font-mono text-[12px]">{a.weight}×</span>
@@ -208,7 +222,7 @@ export default function Dossier() {
         <Card>
           <CardHeader>
             <div className="k-label">Temporal</div>
-            <CardTitle className="mt-1 text-[15px]">Activity timeline</CardTitle>
+            <CardTitle className="t-display mt-1 text-[17px]">Activity timeline</CardTitle>
           </CardHeader>
           <CardContent>
             {months.length ? (
@@ -218,7 +232,7 @@ export default function Dossier() {
                     <div
                       key={m.month}
                       title={`${m.month}: ${m.count}`}
-                      className="flex-1 rounded-t-sm bg-primary/70 transition-colors hover:bg-amber"
+                      className="flex-1 rounded-t-sm bg-steel/60 transition-colors hover:bg-brass"
                       style={{ height: `${Math.max(8, (100 * m.count) / maxM)}%` }}
                     />
                   ))}
@@ -237,7 +251,7 @@ export default function Dossier() {
         <Card>
           <CardHeader>
             <div className="k-label">Assessment</div>
-            <CardTitle className="mt-1 text-[15px]">Activity indicators</CardTitle>
+            <CardTitle className="t-display mt-1 text-[17px]">Activity indicators</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[12.5px]">

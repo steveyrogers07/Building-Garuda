@@ -3,54 +3,93 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ── GARUDA operations palette — dark-first (docs/product/04-UI-UX-DESIGN.md §2) ── */
+/* ────────────────────────────────────────────────────────────────────────────
+   GARUDA design system — "night operations room, paper evidence"
+
+   Two materials encode the product's story:
+     · CONSOLE — warm dark graphite: the analytics, the screens, the night shift
+     · PAPER   — manila: the FIR itself, pulled onto the desk under a lamp
+   Brass is the intelligence colour (Karnataka emblem gold): kingpins, primary
+   actions, key findings. Signal red belongs to alerts alone.
+   ──────────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #080d18;
-  --foreground: #e8eef9;
-  --card: #0e1626;
-  --card-foreground: #e8eef9;
-  --popover: #10192c;
-  --popover-foreground: #e8eef9;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --primary-deep: #1e40af;
-  --secondary: #131d31;
-  --secondary-foreground: #e8eef9;
-  --muted: #131d31;
-  --muted-foreground: #94a3bd;
-  --accent: #18233c;
-  --accent-foreground: #e8eef9;
-  --destructive: #ef4444;
+  /* console material */
+  --console: #101318;
+  --console-deep: #0b0d11;
+  --panel: #161a21;
+  --panel-2: #1b2029;
+  --raised: #212734;
+  --line: #262c37;
+  --line-soft: #1e232d;
+
+  /* ink on console */
+  --bone: #e9e7e0;
+  --dim: #a8a89e;
+  --faint: #6b6c63;
+
+  /* paper material — the FIR on the desk */
+  --paper: #ede6d3;
+  --paper-2: #e4dcc5;
+  --paper-line: #cfc4a6;
+  --paper-ink: #2a2620;
+  --paper-dim: #6e6553;
+  --paper-faint: #99906f;
+
+  /* brass — Karnataka emblem gold, the intelligence colour */
+  --brass: #c9a227;
+  --brass-bright: #e3bf46;
+  --brass-deep: #8c6f1c;
+  --brass-soft: rgba(201, 162, 39, 0.12);
+
+  /* signal — beacon red, alerts only */
+  --signal: #e5484d;
+  --signal-soft: rgba(229, 72, 77, 0.12);
+
+  /* supporting */
+  --ok: #7dab77;
+  --ok-soft: rgba(125, 171, 119, 0.12);
+  --warn: #d98e32;
+  --warn-soft: rgba(217, 142, 50, 0.14);
+  --steel: #8fa3bf;
+  --steel-soft: rgba(143, 163, 191, 0.12);
+
+  /* community palette for the network graph — warm-tuned, distinguishable */
+  --com-1: #c9a227;
+  --com-2: #8fa3bf;
+  --com-3: #7dab77;
+  --com-4: #b784c9;
+  --com-5: #d98e32;
+  --com-6: #6fb8ba;
+  --com-7: #d9788f;
+  --com-8: #a3b361;
+
+  /* shadcn/radix contract mapped onto the console material */
+  --background: var(--console);
+  --foreground: var(--bone);
+  --card: var(--panel);
+  --card-foreground: var(--bone);
+  --popover: var(--panel-2);
+  --popover-foreground: var(--bone);
+  --primary: var(--brass);
+  --primary-foreground: #171307;
+  --secondary: var(--panel-2);
+  --secondary-foreground: var(--bone);
+  --muted: var(--panel-2);
+  --muted-foreground: var(--dim);
+  --accent: var(--raised);
+  --accent-foreground: var(--bone);
+  --destructive: var(--signal);
   --destructive-foreground: #ffffff;
-  --border: #22304e;
-  --input: #1a2740;
-  --ring: #3b82f6;
-  --radius: 0.625rem;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brass);
+  --radius: 0.375rem;
 
-  --surface: #0e1626;
-  --surface-2: #131d31;
-  --elevated: #18233c;
-  --border-soft: #1a2740;
-  --grid-line: rgba(120, 150, 200, 0.05);
-  --faint: #5d6c89;
-
-  --amber: #f9a825;
-  --amber-deep: #d97706;
-  --amber-soft: rgba(249, 168, 37, 0.12);
-  --ok: #22c55e;
-  --ok-soft: rgba(34, 197, 94, 0.12);
-  --warn: #f59e0b;
-  --warn-soft: rgba(245, 158, 11, 0.12);
-  --danger: #ef4444;
-  --danger-soft: rgba(239, 68, 68, 0.12);
-  --info: #38bdf8;
-  --info-soft: rgba(56, 189, 248, 0.12);
-
-  --chart-1: #3b82f6;
-  --chart-2: #f9a825;
-  --chart-3: #22c55e;
-  --chart-4: #a78bfa;
-  --chart-5: #38bdf8;
+  --chart-1: var(--com-1);
+  --chart-2: var(--com-2);
+  --chart-3: var(--com-3);
+  --chart-4: var(--com-4);
+  --chart-5: var(--com-5);
 }
 
 @theme inline {
@@ -62,7 +101,6 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-primary-deep: var(--primary-deep);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -75,34 +113,55 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-elevated: var(--elevated);
-  --color-border-soft: var(--border-soft);
+  --color-console: var(--console);
+  --color-console-deep: var(--console-deep);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-bone: var(--bone);
+  --color-dim: var(--dim);
   --color-faint: var(--faint);
-  --color-amber: var(--amber);
-  --color-amber-deep: var(--amber-deep);
+
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-line: var(--paper-line);
+  --color-paper-ink: var(--paper-ink);
+  --color-paper-dim: var(--paper-dim);
+  --color-paper-faint: var(--paper-faint);
+
+  --color-brass: var(--brass);
+  --color-brass-bright: var(--brass-bright);
+  --color-brass-deep: var(--brass-deep);
+  --color-brass-soft: var(--brass-soft);
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
   --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
-  --color-danger: var(--danger);
-  --color-info: var(--info);
+  --color-warn-soft: var(--warn-soft);
+  --color-steel: var(--steel);
+  --color-steel-soft: var(--steel-soft);
 
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+  --color-chart-1: var(--com-1);
+  --color-chart-2: var(--com-2);
+  --color-chart-3: var(--com-3);
+  --color-chart-4: var(--com-4);
+  --color-chart-5: var(--com-5);
 
-  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --radius-sm: 7px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
 
-  --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.28);
-  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-panel: 0 1px 0 rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-pop: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --shadow-paper: 0 2px 6px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.35);
 
   --animate-pulse-hot: pulse-hot 2.4s infinite ease-out;
 }
@@ -115,7 +174,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/40;
   }
   html {
     color-scheme: dark;
@@ -123,23 +182,21 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-size: 14px;
-  }
-  h1, h2, h3, h4 {
-    @apply font-mono tracking-tight;
+    letter-spacing: 0.005em;
   }
   ::selection {
-    background: rgba(59, 130, 246, 0.35);
+    background: rgba(201, 162, 39, 0.3);
   }
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    scrollbar-color: var(--line) transparent;
   }
   *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   *::-webkit-scrollbar-thumb {
-    background: var(--border);
+    background: var(--line);
     border-radius: 8px;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -155,15 +212,59 @@
   .tnum {
     font-variant-numeric: tabular-nums;
   }
-  /* faint blueprint grid used on login + empty stages */
+
+  /* display type — Saira Condensed, uppercase, tracked: signage authority */
+  .t-display {
+    font-family: var(--font-display);
+    @apply font-semibold uppercase tracking-[0.04em];
+  }
+
+  /* eyebrow / section label */
+  .k-label {
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-faint;
+  }
+  .k-label-paper {
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-paper-faint;
+  }
+
+  /* rubber stamp — double border, condensed uppercase. Real FIR semantics:
+     case category, gravity, chargesheet class are stamped on the paper. */
+  .stamp {
+    font-family: var(--font-display);
+    @apply inline-flex items-center border px-1.5 py-px text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.08em];
+    box-shadow: inset 0 0 0 1px var(--console), 0 0 0 1px currentColor;
+    border-color: currentColor;
+    border-radius: 2px;
+  }
+  .stamp-paper {
+    box-shadow: inset 0 0 0 1px var(--paper), 0 0 0 1px currentColor;
+  }
+
+  /* faint console grid used on the login field + graph stage */
   .grid-field {
     background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 34px 34px;
+      linear-gradient(rgba(168, 168, 158, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168, 168, 158, 0.045) 1px, transparent 1px);
+    background-size: 36px 36px;
   }
-  /* section eyebrow label */
-  .k-label {
-    @apply font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint;
+
+  /* manila paper surface — the document material */
+  .paper-sheet {
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(255, 252, 240, 0.5), transparent 55%),
+      var(--paper);
+    color: var(--paper-ink);
+    box-shadow: var(--shadow-paper);
+  }
+  .paper-sheet ::selection {
+    background: rgba(140, 111, 28, 0.25);
+  }
+
+  /* punched-register left edge for paper sheets */
+  .paper-edge {
+    background-image: radial-gradient(circle 4px, var(--console) 3.2px, transparent 4px);
+    background-size: 100% 34px;
+    background-position: center;
+    background-repeat: repeat-y;
   }
 }

@@ -9,6 +9,7 @@ import {
   Notice,
   PageHeader,
   ShimmerRows,
+  Stamp,
 } from "@/components/common/bits"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -108,12 +109,13 @@ export default function MyCases() {
   return (
     <>
       <PageHeader
+        eyebrow="Field operations · CrPC 167(2) / BNSS 187"
         title="My Cases"
         caption="Open cases worst-first on the default-bail clock — chargesheet due 60 days from first arrest (90 for Heinous) or the accused walks on default bail."
       >
         {!scoped && (
           <Select value={district} onValueChange={pickDistrict}>
-            <SelectTrigger className="w-[230px] bg-surface-2" aria-label="Select district">
+            <SelectTrigger className="w-[230px] bg-panel-2" aria-label="Select district">
               <SelectValue placeholder="Select district…" />
             </SelectTrigger>
             <SelectContent>
@@ -125,7 +127,7 @@ export default function MyCases() {
                     {e.urgent > 0 && (
                       <Badge
                         variant="outline"
-                        className="ml-auto border-danger/40 bg-danger-soft px-1 font-mono text-[9px] text-danger"
+                        className="ml-auto border-signal/40 bg-signal-soft px-1 font-mono text-[9px] text-signal"
                       >
                         {e.urgent}
                       </Badge>
@@ -137,7 +139,7 @@ export default function MyCases() {
           </Select>
         )}
         <Select value={oid} onValueChange={setOid} disabled={!officersInDistrict.length}>
-          <SelectTrigger className="w-[260px] bg-surface-2" aria-label="Select officer">
+          <SelectTrigger className="w-[260px] bg-panel-2" aria-label="Select officer">
             <SelectValue placeholder="Select officer…" />
           </SelectTrigger>
           <SelectContent>
@@ -151,7 +153,7 @@ export default function MyCases() {
                   {o.urgent > 0 && (
                     <Badge
                       variant="outline"
-                      className="ml-auto border-danger/40 bg-danger-soft px-1 font-mono text-[9px] text-danger"
+                      className="ml-auto border-signal/40 bg-signal-soft px-1 font-mono text-[9px] text-signal"
                     >
                       {o.urgent} urgent
                     </Badge>
@@ -220,10 +222,8 @@ export default function MyCases() {
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <div>
-                <div className="k-label">Worklist</div>
-                <CardTitle className="mt-1 text-[15px]">
-                  Sorted by statutory urgency → case age → gravity
-                </CardTitle>
+                <div className="k-label">Worklist · statutory urgency → case age → gravity</div>
+                <CardTitle className="t-display mt-1 text-[17px]">Open cases on this desk</CardTitle>
               </div>
               <Badge variant="outline" className="font-mono text-[10px] text-faint">
                 as of {w.as_of} · dataset day
@@ -259,9 +259,7 @@ export default function MyCases() {
                         <TableCell className="text-[12.5px]">{c.crime_type}</TableCell>
                         <TableCell>
                           {c.gravity === "Heinous" ? (
-                            <Badge variant="outline" className="border-danger/30 bg-danger-soft text-[10px] text-danger">
-                              Heinous
-                            </Badge>
+                            <Stamp tone="signal">Heinous</Stamp>
                           ) : (
                             <span className="text-[11px] text-faint">{c.gravity || "—"}</span>
                           )}

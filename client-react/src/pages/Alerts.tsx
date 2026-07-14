@@ -52,6 +52,7 @@ export default function Alerts() {
   return (
     <>
       <PageHeader
+        eyebrow="Command · Signals & forecast"
         title="Alerts & Risk Forecast"
         caption="Emerging-trend spikes, the walk-forward risk forecast and the fairness audit — every prediction explained."
       />
@@ -60,7 +61,7 @@ export default function Alerts() {
         <Card>
           <CardHeader>
             <div className="k-label">Detected</div>
-            <CardTitle className="mt-1 text-[15px]">Emerging-trend alerts</CardTitle>
+            <CardTitle className="t-display mt-1 text-[17px]">Emerging-trend alerts</CardTitle>
           </CardHeader>
           <CardContent>
             {anomalies.loading ? (
@@ -73,18 +74,18 @@ export default function Alerts() {
                     <div
                       key={i}
                       className={cn(
-                        "flex items-start gap-3 rounded-md border border-border-soft p-3 transition-opacity",
+                        "flex items-start gap-3 rounded-md border border-line-soft p-3 transition-opacity",
                         isAcked && "opacity-55",
                       )}
                     >
                       <span
                         className={cn(
                           "flex size-8 shrink-0 items-center justify-center rounded-md",
-                          a.severity === "high" ? "bg-danger-soft" : "bg-warn-soft",
+                          a.severity === "high" ? "bg-signal-soft" : "bg-warn-soft",
                         )}
                       >
                         <AlertTriangle
-                          className={cn("size-4", a.severity === "high" ? "text-danger" : "text-warn")}
+                          className={cn("size-4", a.severity === "high" ? "text-signal" : "text-warn")}
                         />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -95,7 +96,7 @@ export default function Alerts() {
                             className={cn(
                               "font-mono text-[10px]",
                               a.severity === "high"
-                                ? "border-danger/30 bg-danger-soft text-danger"
+                                ? "border-signal/30 bg-signal-soft text-signal"
                                 : "border-warn/30 bg-warn-soft text-warn",
                             )}
                           >
@@ -141,7 +142,7 @@ export default function Alerts() {
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <div>
               <div className="k-label">Fairness</div>
-              <CardTitle className="mt-1 text-[15px]">Predicted vs actual per ward</CardTitle>
+              <CardTitle className="t-display mt-1 text-[17px]">Predicted vs actual per ward</CardTitle>
             </div>
             <Badge variant="outline" className="border-warn/30 bg-warn-soft font-mono text-[10px] text-warn">
               {fs?.over_predicted ?? "·"} flagged
@@ -181,7 +182,7 @@ export default function Alerts() {
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <div>
             <div className="k-label">Forecast</div>
-            <CardTitle className="mt-1 text-[15px]">Highest-risk cells (next period)</CardTitle>
+            <CardTitle className="t-display mt-1 text-[17px]">Highest-risk cells (next period)</CardTitle>
           </div>
           <span className="font-mono text-[10.5px] text-faint">
             {risk.data?.top?.[0]?.model_version ?? "lgbm"} · walk-forward

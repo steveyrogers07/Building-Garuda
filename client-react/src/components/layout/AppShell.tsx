@@ -12,7 +12,8 @@ import { usePrincipal } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 import { closeTab, tabRoute, useWorkTabs, type WorkTab } from "@/lib/workspace"
 
-/** Open case/entity objects — the investigation stays one click away. */
+/** Open case/entity objects — styled as manila folder tabs on the desk edge:
+ *  the documents currently pulled out of the register. */
 function TabStrip() {
   const tabs = useWorkTabs()
   const navigate = useNavigate()
@@ -26,16 +27,21 @@ function TabStrip() {
       <button
         onClick={() => navigate(tabRoute(t))}
         className={cn(
-          "group flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground",
-          active ? "border-primary/40 bg-accent text-foreground" : "bg-surface-2/60",
+          "group flex h-7 shrink-0 items-center gap-1.5 rounded-t-md border border-b-0 px-2.5 font-mono text-[11px] transition-colors",
+          active
+            ? "border-paper-line bg-paper text-paper-ink"
+            : "border-line bg-panel text-muted-foreground hover:text-foreground",
         )}
       >
-        <Icon className={cn("size-3", active ? "text-primary" : "text-faint")} />
+        <Icon className={cn("size-3", active ? "text-paper-dim" : "text-faint")} />
         <span className="max-w-[160px] truncate">{t.title || t.id}</span>
         <span
           role="button"
           aria-label={`Close ${t.title || t.id}`}
-          className="rounded p-0.5 text-faint opacity-60 hover:bg-background hover:text-danger group-hover:opacity-100"
+          className={cn(
+            "rounded-sm p-0.5 opacity-60 group-hover:opacity-100",
+            active ? "text-paper-dim hover:text-signal" : "text-faint hover:text-signal",
+          )}
           onClick={(e) => {
             e.stopPropagation()
             const next = closeTab(t.type, t.id)
@@ -49,8 +55,8 @@ function TabStrip() {
   }
 
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto border-b bg-surface px-4 py-1.5">
-      <span className="k-label mr-1 shrink-0">Workspace</span>
+    <div className="flex items-end gap-1.5 overflow-x-auto border-b border-line bg-console-deep px-4 pt-1.5">
+      <span className="k-label mb-1.5 mr-1 shrink-0">Workspace</span>
       {tabs.map((t) => (
         <TabChip key={t.type + t.id} t={t} />
       ))}

@@ -71,15 +71,15 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col border-r bg-surface">
-      <div className="border-b px-4 py-4">
+    <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col border-r border-line bg-console-deep">
+      <div className="border-b border-line px-4 py-4">
         <KspWordmark />
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 overflow-y-auto py-4">
         {NAV.map((g) => (
           <div key={g.group} className="mb-5">
-            <div className="k-label mb-1.5 px-3">{g.group}</div>
+            <div className="k-label mb-1.5 px-5">{g.group}</div>
             {g.items.map((it) => (
               <NavLink
                 key={it.to}
@@ -87,14 +87,14 @@ export function Sidebar() {
                 end={it.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
-                    isActive && "bg-accent font-medium text-foreground",
+                    "relative flex items-center gap-2.5 border-l-2 border-transparent px-5 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-panel hover:text-foreground",
+                    isActive && "border-brass bg-panel font-medium text-foreground",
                   )
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <it.icon className={cn("size-4", isActive ? "text-primary" : "text-faint")} />
+                    <it.icon className={cn("size-4", isActive ? "text-brass" : "text-faint")} />
                     {it.label}
                   </>
                 )}
@@ -104,10 +104,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t px-3 py-3">
+      <div className="border-t border-line px-3 py-3">
         <div className="k-label mb-1.5 px-1">Clearance / Role</div>
         <Select value={preset?.id} onValueChange={switchRole}>
-          <SelectTrigger className="w-full bg-surface-2" size="sm" aria-label="Switch clearance role">
+          <SelectTrigger className="w-full bg-panel" size="sm" aria-label="Switch clearance role">
             <SelectValue placeholder={`${principal?.role}${principal?.scope ? ":" + principal.scope : ""}`} />
           </SelectTrigger>
           <SelectContent>
@@ -116,7 +116,7 @@ export function Sidebar() {
                 <span className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className="w-8 justify-center border-primary/40 px-1 font-mono text-[9px] text-primary"
+                    className="w-8 justify-center border-brass/40 px-1 font-mono text-[9px] text-brass"
                   >
                     {r.clearance}
                   </Badge>
@@ -130,8 +130,8 @@ export function Sidebar() {
           {preset?.desc || "Custom principal — masking enforced server-side."}
         </p>
 
-        <div className="mt-3 flex items-center gap-2.5 border-t pt-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary-deep font-mono text-[11px] font-bold text-white">
+        <div className="mt-3 flex items-center gap-2.5 border-t border-line pt-3">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-brass/40 bg-brass-soft font-mono text-[11px] font-semibold text-brass">
             {initials(principal)}
           </div>
           <div className="min-w-0 flex-1 leading-tight">
@@ -141,7 +141,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 text-faint hover:text-danger"
+            className="size-7 text-faint hover:text-signal"
             aria-label="Sign out"
             onClick={() => {
               setPrincipal(null)

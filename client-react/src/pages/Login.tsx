@@ -47,11 +47,11 @@ export default function Login() {
         <div className="w-full max-w-[420px]">
           {/* identity block */}
           <div className="mb-7 text-center">
-            <KspCrest size={92} className="mx-auto text-amber drop-shadow-[0_0_18px_rgba(249,168,37,0.25)]" />
-            <h1 className="mt-4 font-mono text-[30px] font-bold tracking-[0.3em] text-foreground">
+            <KspCrest size={92} className="mx-auto text-brass drop-shadow-[0_0_18px_rgba(201,162,39,0.25)]" />
+            <h1 className="t-display mt-4 text-[42px] leading-none tracking-[0.24em] text-foreground">
               GARUDA
             </h1>
-            <div className="mt-1 text-[13px] text-muted-foreground">
+            <div className="mt-1.5 text-[13px] text-muted-foreground">
               ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ · Karnataka State Police
             </div>
             <div className="k-label mt-1.5">State Crime Records Bureau — Crime Intelligence Platform</div>
@@ -59,10 +59,10 @@ export default function Login() {
 
           <form
             onSubmit={submit}
-            className="rounded-lg border bg-card/90 p-6 shadow-pop backdrop-blur"
+            className="rounded-md border border-line bg-card/90 p-6 shadow-pop backdrop-blur"
           >
             <div className="flex items-center gap-2">
-              <Fingerprint className="size-4 text-primary" />
+              <Fingerprint className="size-4 text-brass" />
               <span className="k-label text-muted-foreground">Secure sign-in</span>
             </div>
             <Separator className="my-4" />
@@ -75,7 +75,7 @@ export default function Login() {
               value={officerId}
               onChange={(e) => setOfficerId(e.target.value)}
               autoComplete="username"
-              className="mb-3.5 bg-surface-2 font-mono"
+              className="mb-3.5 bg-panel-2 font-mono"
               placeholder="KSP officer id"
             />
 
@@ -88,13 +88,13 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
-              className="mb-3.5 bg-surface-2 font-mono"
+              className="mb-3.5 bg-panel-2 font-mono"
               placeholder="••••••••"
             />
 
             <label className="k-label mb-1.5 block">Clearance</label>
             <Select value={presetId} onValueChange={setPresetId}>
-              <SelectTrigger className="w-full bg-surface-2" aria-label="Clearance tier">
+              <SelectTrigger className="w-full bg-panel-2" aria-label="Clearance tier">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -103,7 +103,7 @@ export default function Login() {
                     <span className="flex items-center gap-2">
                       <Badge
                         variant="outline"
-                        className="w-8 justify-center border-primary/40 px-1 font-mono text-[9px] text-primary"
+                        className="w-8 justify-center border-brass/40 px-1 font-mono text-[9px] text-brass"
                       >
                         {r.clearance}
                       </Badge>
@@ -115,11 +115,11 @@ export default function Login() {
             </Select>
             <p className="mt-1.5 min-h-8 text-[11px] leading-snug text-faint">{preset.desc}</p>
 
-            <Button type="submit" className="mt-3 w-full font-mono tracking-wider">
-              <Lock className="size-3.5" /> AUTHENTICATE
+            <Button type="submit" className="t-display mt-3 w-full text-[15px] tracking-[0.14em]">
+              <Lock className="size-3.5" /> Authenticate
             </Button>
 
-            <div className="mt-4 flex items-start gap-2 rounded-md border border-border-soft bg-surface-2/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+            <div className="mt-4 flex items-start gap-2 rounded-sm border border-line-soft bg-panel-2/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
               <span>
                 Access is clearance-gated and fully audited. GARUDA surfaces and explains records —

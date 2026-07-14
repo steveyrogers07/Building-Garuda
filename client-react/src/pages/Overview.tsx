@@ -2,7 +2,6 @@ import { Activity, ShieldCheck, Siren, Target, Users, Waypoints } from "lucide-r
 import { useNavigate } from "react-router-dom"
 
 import { EmptyState, KpiCard, MiniBar, PageHeader, ShimmerRows } from "@/components/common/bits"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { api } from "@/lib/api"
@@ -29,10 +28,11 @@ export default function Overview() {
   return (
     <>
       <PageHeader
+        eyebrow="Command · Karnataka SCRB"
         title="Operations Overview"
-        caption="Karnataka SCRB · every tile drills into a case, an entity or the graph."
+        caption="Every tile drills into a case, an entity or the graph."
       >
-        <Button onClick={() => navigate("/network")}>
+        <Button onClick={() => navigate("/network")} className="t-display text-[14px] tracking-[0.1em]">
           <Waypoints className="size-4" /> Open network reveal
         </Button>
       </PageHeader>
@@ -49,41 +49,38 @@ export default function Overview() {
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <div>
               <div className="k-label">Organized</div>
-              <CardTitle className="mt-1 text-[15px]">Cross-district rings</CardTitle>
+              <CardTitle className="t-display mt-1 text-[17px]">Cross-district rings</CardTitle>
             </div>
-            <Badge variant="outline" className="font-mono text-[10px] text-faint">
-              click → kingpin dossier
-            </Badge>
+            <span className="font-mono text-[10px] text-faint">click → kingpin dossier</span>
           </CardHeader>
           <CardContent>
             {rings.loading ? (
               <ShimmerRows n={3} />
             ) : ringRows.length ? (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {ringRows.map((r, i) => (
                   <button
                     key={r.kingpin_id}
                     onClick={() => navigate(`/entity/${encodeURIComponent(r.kingpin_id)}`)}
-                    className="flex w-full items-center gap-3 rounded-md border border-transparent px-2 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                    className="flex w-full items-center gap-3 rounded-sm border border-transparent px-2 py-2 text-left transition-colors hover:border-line hover:bg-accent"
                   >
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-amber/30 bg-amber-soft">
-                      <Target className="size-4 text-amber" />
+                    {/* rank — rings are ordered by district span */}
+                    <span className="t-display w-8 shrink-0 text-center text-[20px] leading-none text-brass">
+                      {String(i + 1).padStart(2, "0")}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] font-medium">
-                        {r.kingpin_label} <span className="font-mono text-[11px] text-faint">· ring #{i + 1}</span>
+                        {r.kingpin_label}
+                        <span className="ml-2 font-mono text-[10.5px] text-faint">
+                          {r.persons} members · shares {r.shared_links.join(", ")}
+                        </span>
                       </span>
-                      <span className="block truncate text-[11.5px] text-muted-foreground">
-                        {r.persons} members · shares {r.shared_links.join(", ")}
+                      <span className="mt-0.5 block truncate font-mono text-[10.5px] text-faint">
+                        {r.districts.join(" · ")}
                       </span>
                     </span>
-                    <span className="text-right">
-                      <Badge className="border-danger/30 bg-danger-soft text-danger" variant="outline">
-                        {r.district_count} districts
-                      </Badge>
-                      <span className="mt-1 block font-mono text-[10px] text-faint">
-                        {r.districts.join(" ")}
-                      </span>
+                    <span className="stamp shrink-0 text-signal">
+                      {r.district_count} districts
                     </span>
                   </button>
                 ))}
@@ -97,7 +94,7 @@ export default function Overview() {
         <Card>
           <CardHeader>
             <div className="k-label">Signals</div>
-            <CardTitle className="mt-1 text-[15px]">Emerging-trend alerts</CardTitle>
+            <CardTitle className="t-display mt-1 text-[17px]">Emerging-trend alerts</CardTitle>
           </CardHeader>
           <CardContent>
             {anomalies.loading ? (
@@ -105,32 +102,29 @@ export default function Overview() {
             ) : alerts.length ? (
               <div className="space-y-2.5">
                 {alerts.slice(0, 5).map((a, i) => (
-                  <div key={i} className="flex items-start gap-2.5 rounded-md px-1 py-1">
+                  <div key={i} className="flex items-start gap-2.5 rounded-sm px-1 py-1">
                     <span
                       className={cn(
                         "mt-1.5 size-2 shrink-0 rounded-full",
-                        a.severity === "high" ? "bg-danger" : "bg-warn",
+                        a.severity === "high" ? "bg-signal" : "bg-warn",
                       )}
                     />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[12.5px] font-medium">
                         {a.crime_type} · {a.district_code}
                       </div>
-                      <div className="text-[11px] text-faint">
+                      <div className="font-mono text-[10.5px] text-faint">
                         {a.window_start} · baseline ×{a.ratio ?? "?"}
                       </div>
                     </div>
-                    <Badge
-                      variant="outline"
+                    <span
                       className={cn(
-                        "font-mono text-[10px]",
-                        a.severity === "high"
-                          ? "border-danger/30 bg-danger-soft text-danger"
-                          : "border-warn/30 bg-warn-soft text-warn",
+                        "font-mono text-[11px]",
+                        a.severity === "high" ? "text-signal" : "text-warn",
                       )}
                     >
                       z {a.z_score ?? "?"}
-                    </Badge>
+                    </span>
                   </div>
                 ))}
               </div>
@@ -144,7 +138,7 @@ export default function Overview() {
       <Card>
         <CardHeader>
           <div className="k-label">Distribution</div>
-          <CardTitle className="mt-1 text-[15px]">Incidents by crime type</CardTitle>
+          <CardTitle className="t-display mt-1 text-[17px]">Incidents by crime type</CardTitle>
         </CardHeader>
         <CardContent>
           {stats.loading ? (
@@ -167,7 +161,7 @@ export default function Overview() {
 
       <button
         onClick={() => navigate("/alerts")}
-        className="flex w-full items-center gap-2.5 rounded-lg border border-border-soft bg-surface px-4 py-2.5 text-left text-[11.5px] text-muted-foreground transition-colors hover:border-border hover:bg-accent"
+        className="flex w-full items-center gap-2.5 rounded-md border border-line-soft bg-panel px-4 py-2.5 text-left text-[11.5px] text-muted-foreground transition-colors hover:border-line hover:bg-accent"
       >
         <ShieldCheck className="size-4 shrink-0 text-ok" />
         <span className="min-w-0 flex-1 truncate">

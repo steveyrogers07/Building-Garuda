@@ -43,8 +43,8 @@ export function KspCrest({
         {/* stepped heraldic wing */}
         <path d="M 130 112 C 146 96 170 86 200 82 L 191 102 L 201 106 L 186 128 L 194 133 L 176 152 L 182 158 L 158 166 L 136 154 Z" />
         {/* wing feather separations (negative space) */}
-        <path d="M 136 146 L 186 104" stroke="#080d18" strokeWidth="3" fill="none" opacity="0.85" />
-        <path d="M 138 152 L 180 130" stroke="#080d18" strokeWidth="3" fill="none" opacity="0.85" />
+        <path d="M 136 146 L 186 104" stroke="var(--console)" strokeWidth="3" fill="none" opacity="0.85" />
+        <path d="M 138 152 L 180 130" stroke="var(--console)" strokeWidth="3" fill="none" opacity="0.85" />
         {/* talon */}
         <path d="M 128 176 L 140 190 L 132 191 L 137 199 L 128 195 Z" />
       </g>
@@ -53,13 +53,13 @@ export function KspCrest({
       {/* body + chest */}
       <path d="M 120 100 C 133 100 138 116 138 134 C 138 156 131 170 120 176 C 109 170 102 156 102 134 C 102 116 107 100 120 100 Z" />
       {/* chest chevrons (negative space) */}
-      <path d="M 106 128 Q 120 136 134 128" stroke="#080d18" strokeWidth="3" fill="none" opacity="0.85" />
-      <path d="M 107 142 Q 120 150 133 142" stroke="#080d18" strokeWidth="3" fill="none" opacity="0.85" />
+      <path d="M 106 128 Q 120 136 134 128" stroke="var(--console)" strokeWidth="3" fill="none" opacity="0.85" />
+      <path d="M 107 142 Q 120 150 133 142" stroke="var(--console)" strokeWidth="3" fill="none" opacity="0.85" />
       {/* fan tail */}
       <path d="M 120 172 L 141 198 L 130 196 L 134 208 L 120 202 L 106 208 L 110 196 L 99 198 Z" />
       {/* eyes (negative space) */}
-      <circle cx="146" cy="88" r="2.6" fill="#080d18" />
-      <circle cx="94" cy="88" r="2.6" fill="#080d18" />
+      <circle cx="146" cy="88" r="2.6" fill="var(--console)" />
+      <circle cx="94" cy="88" r="2.6" fill="var(--console)" />
     </svg>
   )
 }
@@ -68,13 +68,13 @@ export function KspCrest({
 export function KspWordmark({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <KspCrest size={compact ? 34 : 42} className="text-amber" />
+      <KspCrest size={compact ? 34 : 42} className="text-brass" />
       <div className="min-w-0 leading-tight">
-        <div className="font-mono text-[17px] font-bold tracking-[0.22em] text-foreground">
+        <div className="t-display text-[20px] leading-none tracking-[0.18em] text-foreground">
           GARUDA
         </div>
         {!compact && (
-          <div className="k-label mt-0.5 whitespace-nowrap text-muted-foreground">
+          <div className="k-label mt-1 whitespace-nowrap">
             Karnataka State Police · SCRB
           </div>
         )}

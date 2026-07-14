@@ -9,6 +9,7 @@ import {
   Notice,
   PageHeader,
   ShimmerRows,
+  Stamp,
 } from "@/components/common/bits"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -61,12 +62,13 @@ export default function Absconding() {
   return (
     <>
       <PageHeader
+        eyebrow="Field operations · Wanted / no arrest on record"
         title="Absconding Board"
         caption="Suspects named on open FIRs with no arrest recorded — grouped by person, heinous cases first. The natural seed for watchlist/BOLO."
       >
         {!scoped && (
           <Select value={district} onValueChange={setDistrict}>
-            <SelectTrigger className="w-[190px] bg-surface-2" aria-label="Filter district">
+            <SelectTrigger className="w-[190px] bg-panel-2" aria-label="Filter district">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -80,7 +82,7 @@ export default function Absconding() {
           </Select>
         )}
         <Select value={gravity} onValueChange={setGravity}>
-          <SelectTrigger className="w-[150px] bg-surface-2" aria-label="Filter gravity">
+          <SelectTrigger className="w-[150px] bg-panel-2" aria-label="Filter gravity">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -90,7 +92,7 @@ export default function Absconding() {
           </SelectContent>
         </Select>
         <Select value={minDays} onValueChange={setMinDays}>
-          <SelectTrigger className="w-[140px] bg-surface-2" aria-label="Filter case age">
+          <SelectTrigger className="w-[140px] bg-panel-2" aria-label="Filter case age">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -138,10 +140,8 @@ export default function Absconding() {
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <div>
-                <div className="k-label">Board</div>
-                <CardTitle className="mt-1 text-[15px]">
-                  Heinous first · most open cases · longest at large
-                </CardTitle>
+                <div className="k-label">Board · heinous first → most open → longest at large</div>
+                <CardTitle className="t-display mt-1 text-[17px]">Still out there</CardTitle>
               </div>
               <Badge variant="outline" className="font-mono text-[10px] text-faint">
                 showing {Math.min(b.people.length, 60)} of {fmt(s?.people)} · as of {b.as_of}
@@ -153,7 +153,7 @@ export default function Absconding() {
                   {b.people.map((per) => (
                     <div
                       key={per.canonical_id}
-                      className="rounded-md border border-border-soft p-2.5 transition-colors hover:border-border"
+                      className="rounded-md border border-line-soft p-2.5 transition-colors hover:border-brass/40"
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <button
@@ -162,11 +162,7 @@ export default function Absconding() {
                         >
                           {per.name}
                         </button>
-                        {per.heinous && (
-                          <Badge variant="outline" className="border-danger/30 bg-danger-soft text-[10px] text-danger">
-                            Heinous
-                          </Badge>
-                        )}
+                        {per.heinous && <Stamp tone="signal">Heinous</Stamp>}
                         <span className="font-mono text-[10.5px] text-faint">
                           {per.case_count} open {per.case_count === 1 ? "case" : "cases"} ·{" "}
                           {per.districts.join(" ")} · at large {fmt(per.max_days_open)}d
@@ -178,10 +174,10 @@ export default function Absconding() {
                             key={c.incident_id}
                             onClick={() => navigate(`/case/${encodeURIComponent(c.incident_id)}`)}
                             title={`${c.crime_type} · ${c.status} · open ${c.days_open}d`}
-                            className={`rounded border px-1.5 py-0.5 font-mono text-[10px] transition-colors hover:bg-accent ${
+                            className={`rounded-sm border px-1.5 py-0.5 font-mono text-[10px] transition-colors hover:bg-accent ${
                               c.gravity === "Heinous"
-                                ? "border-danger/30 bg-danger-soft text-danger"
-                                : "border-border bg-surface-2 text-muted-foreground"
+                                ? "border-signal/30 bg-signal-soft text-signal"
+                                : "border-line bg-panel-2 text-muted-foreground"
                             }`}
                           >
                             {c.fir_no || c.incident_id} · {c.crime_type}

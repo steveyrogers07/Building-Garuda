@@ -4,8 +4,8 @@ import type { EgoGraph, GraphNode } from "@/lib/types"
 
 /** Community palette — node colour by Louvain community (design doc §6). */
 export const COMMUNITY = [
-  "#3b82f6", "#f9a825", "#22c55e", "#a78bfa", "#f472b6",
-  "#38bdf8", "#fb923c", "#4ade80", "#e879f9", "#2dd4bf",
+  "#8fa3bf", "#d98e32", "#7dab77", "#b784c9", "#d9788f",
+  "#6fb8ba", "#a3b361", "#c98484", "#7f9bd9", "#c9a227",
 ]
 
 interface SimNode extends GraphNode {
@@ -18,7 +18,7 @@ interface SimNode extends GraphNode {
 }
 
 /** Dependency-free canvas force layout (ported from client/assets/graph.js):
- *  radius = weighted degree, colour = community, amber ring = kingpin.
+ *  radius = weighted degree, colour = community, brass double-ring = kingpin.
  *  Hover highlights the neighbourhood; drag re-heats the simulation. */
 export function ForceGraph({
   data,
@@ -50,7 +50,7 @@ export function ForceGraph({
 
     const nodes: SimNode[] = (data.nodes || []).map((n) => ({
       ...n,
-      x: 0, y: 0, vx: 0, vy: 0, r: 0, col: "#3b82f6",
+      x: 0, y: 0, vx: 0, vy: 0, r: 0, col: "#8fa3bf",
     }))
     const idx: Record<string, number> = {}
     nodes.forEach((n, i) => (idx[n.id] = i))
@@ -58,11 +58,27 @@ export function ForceGraph({
       .filter((e) => idx[e.source] != null && idx[e.target] != null)
       .map((e) => ({ s: idx[e.source], t: idx[e.target], w: e.weight || 1 }))
 
+    /* The reveal: siloed grey dots → edges knit in → communities colorize →
+     *  the kingpin ring stamps last. Skipped entirely under reduced motion. */
+    const REVEAL_MS = 2600
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const t0 = performance.now()
+    const SILO = { r: 107, g: 112, b: 106 } // pre-reveal grey
+    const phase = (t: number, from: number, to: number) => {
+      const p = Math.min(1, Math.max(0, (t - from) / (to - from)))
+      return p * p * (3 - 2 * p) // smoothstep
+    }
+    const hex2rgb = (h: string) => ({
+      r: parseInt(h.slice(1, 3), 16),
+      g: parseInt(h.slice(3, 5), 16),
+      b: parseInt(h.slice(5, 7), 16),
+    })
+
     const maxStr = Math.max(1, ...nodes.map((n) => n.strength || 1))
     nodes.forEach((n) => {
       n.r = 7 + 17 * Math.sqrt((n.strength || 1) / maxStr)
       if (n.id === kingpin) n.r += 4
-      n.col = n.community != null ? COMMUNITY[n.community % COMMUNITY.length] : "#3b82f6"
+      n.col = n.community != null ? COMMUNITY[n.community % COMMUNITY.length] : "#8fa3bf"
     })
 
     function size() {
@@ -141,50 +157,69 @@ export function ForceGraph({
     function draw() {
       ctx!.clearRect(0, 0, W, H)
       const focus = hover != null ? hover : sel
-      links.forEach((l) => {
+      const t = reduced ? 1 : Math.min(1, (performance.now() - t0) / REVEAL_MS)
+      const pEdge = phase(t, 0.18, 0.62) // edges knit the silos together
+      const pCol = phase(t, 0.5, 0.86) // then the communities colorize
+      const pKing = phase(t, 0.82, 1) // the kingpin ring stamps last
+
+      const shown = Math.ceil(links.length * pEdge)
+      for (let li = 0; li < shown; li++) {
+        const l = links[li]
         const a = nodes[l.s]
         const b = nodes[l.t]
         const on = focus != null && (l.s === focus || l.t === focus)
+        const born = li === shown - 1 && pEdge < 1 ? 0.5 : 1 // newest edge fades in
         ctx!.beginPath()
         ctx!.moveTo(a.x, a.y)
         ctx!.lineTo(b.x, b.y)
         ctx!.strokeStyle = on
-          ? "rgba(249,168,37,.55)"
-          : `rgba(120,150,200,${focus != null ? 0.06 : 0.16})`
+          ? "rgba(201,162,39,.6)"
+          : `rgba(168,168,158,${(focus != null ? 0.05 : 0.14) * born})`
         ctx!.lineWidth = on ? Math.min(4, 1 + l.w * 0.5) : Math.min(3, 0.6 + l.w * 0.35)
         ctx!.stroke()
-      })
+      }
       nodes.forEach((n, i) => {
         const dim = focus != null && i !== focus && !adj[focus]?.[i]
         ctx!.globalAlpha = dim ? 0.25 : 1
-        if (n.id === kingpin) {
+        if (n.id === kingpin && pKing > 0) {
+          ctx!.globalAlpha = (dim ? 0.25 : 1) * pKing
           ctx!.beginPath()
-          ctx!.arc(n.x, n.y, n.r + 6, 0, 7)
-          ctx!.strokeStyle = "#f9a825"
+          ctx!.arc(n.x, n.y, n.r + 5 + (1 - pKing) * 10, 0, 7)
+          ctx!.strokeStyle = "#c9a227"
           ctx!.lineWidth = 2
           ctx!.stroke()
+          ctx!.beginPath()
+          ctx!.arc(n.x, n.y, n.r + 9 + (1 - pKing) * 14, 0, 7)
+          ctx!.strokeStyle = "rgba(201,162,39,.45)"
+          ctx!.lineWidth = 1
+          ctx!.stroke()
+          ctx!.globalAlpha = dim ? 0.25 : 1
         }
+        const c = hex2rgb(n.col)
+        const fill = `rgb(${Math.round(SILO.r + (c.r - SILO.r) * pCol)},${Math.round(
+          SILO.g + (c.g - SILO.g) * pCol,
+        )},${Math.round(SILO.b + (c.b - SILO.b) * pCol)})`
         ctx!.beginPath()
         ctx!.arc(n.x, n.y, n.r, 0, 7)
-        ctx!.fillStyle = n.col
-        ctx!.shadowColor = n.col
-        ctx!.shadowBlur = i === focus ? 18 : 8
+        ctx!.fillStyle = fill
+        ctx!.shadowColor = fill
+        ctx!.shadowBlur = i === focus ? 16 : 0
         ctx!.fill()
         ctx!.shadowBlur = 0
         ctx!.lineWidth = 1.5
-        ctx!.strokeStyle = "rgba(255,255,255,.25)"
+        ctx!.strokeStyle = "rgba(16,19,24,.55)"
         ctx!.stroke()
         if (n.type === "phone" || n.type === "vehicle") {
-          ctx!.fillStyle = "rgba(8,13,24,.9)"
-          ctx!.font = `700 ${Math.round(n.r * 0.9)}px 'Fira Code',monospace`
+          ctx!.fillStyle = "rgba(16,19,24,.9)"
+          ctx!.font = `600 ${Math.round(n.r * 0.9)}px 'IBM Plex Mono',monospace`
           ctx!.textAlign = "center"
           ctx!.textBaseline = "middle"
           ctx!.fillText(n.type === "phone" ? "☎" : "⌗", n.x, n.y + 0.5)
         }
-        if (n.id === kingpin || i === focus || n.r > 16) {
+        if ((n.id === kingpin && pKing > 0.5) || i === focus || (n.r > 16 && pCol > 0.5)) {
           ctx!.globalAlpha = dim ? 0.25 : 1
-          ctx!.fillStyle = "#e8eef9"
-          ctx!.font = "600 11px 'Fira Sans',sans-serif"
+          ctx!.fillStyle = "#e9e7e0"
+          ctx!.font = "600 11px 'Public Sans',sans-serif"
           ctx!.textAlign = "center"
           ctx!.textBaseline = "top"
           ctx!.fillText(n.label || n.id, n.x, n.y + n.r + 4)

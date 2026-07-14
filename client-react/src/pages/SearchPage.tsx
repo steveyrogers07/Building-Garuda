@@ -67,6 +67,7 @@ export default function SearchPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Investigate · Structured + semantic"
         title="Universal Search"
         caption="Cases, people, vehicles, phones, places — structured + semantic over FIR narratives. Every search is audited."
       />
@@ -79,7 +80,7 @@ export default function SearchPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Try KA68MC3164 · +916534933629 · Aayush · “chain snatched near market”"
-            className="h-11 bg-surface-2 pl-10 font-mono text-[13px]"
+            className="h-11 bg-panel-2 pl-10 font-mono text-[13px]"
             aria-label="Universal search query"
           />
         </div>
@@ -90,8 +91,8 @@ export default function SearchPage() {
               key={f}
               onClick={() => setFacet(f)}
               className={cn(
-                "rounded-full border bg-surface-2/60 px-3 py-1 text-[11.5px] capitalize text-muted-foreground transition-colors hover:text-foreground",
-                facet === f && "border-primary/50 bg-accent text-foreground",
+                "rounded-sm border border-line bg-panel px-3 py-1 text-[11.5px] capitalize text-muted-foreground transition-colors hover:text-foreground",
+                facet === f && "border-brass/50 bg-brass-soft text-brass",
               )}
             >
               {f}
@@ -120,11 +121,11 @@ export default function SearchPage() {
                     <button
                       key={c.incident_id}
                       onClick={() => navigate(`/case/${encodeURIComponent(c.incident_id)}`)}
-                      className="flex w-full items-center gap-3 rounded-md border border-border-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent"
+                      className="flex w-full items-center gap-3 rounded-md border border-line-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-brass/40 hover:bg-accent"
                     >
                       <FileText className="size-4 shrink-0 text-faint" />
                       <span className="min-w-0 flex-1">
-                        <span className="block font-mono text-[12.5px] text-primary">{c.fir_no || c.incident_id}</span>
+                        <span className="block font-mono text-[12.5px] text-brass">{c.fir_no || c.incident_id}</span>
                         <span className="block text-[11.5px] text-muted-foreground">
                           {c.crime_type} · {c.district_code} · {d10(c.occurred_at)}
                         </span>
@@ -144,14 +145,14 @@ export default function SearchPage() {
                           <button
                             key={e.canonical_id}
                             onClick={() => navigate(`/entity/${encodeURIComponent(e.canonical_id)}`)}
-                            className="flex w-full items-center gap-3 rounded-md border border-border-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent"
+                            className="flex w-full items-center gap-3 rounded-md border border-line-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-brass/40 hover:bg-accent"
                           >
                             <Icon className="size-4 shrink-0 text-faint" />
                             <span className="min-w-0 flex-1">
                               <span className={cn("block text-[12.5px]", e.type !== "person" && "font-mono")}>
                                 {e.value}
                                 {e.masked && (
-                                  <span className="ml-1.5 font-mono text-[10px] text-amber">
+                                  <span className="ml-1.5 font-mono text-[10px] text-brass">
                                     [masked: {e.masked}]
                                   </span>
                                 )}
@@ -173,7 +174,7 @@ export default function SearchPage() {
                     <button
                       key={pl.code}
                       onClick={() => navigate("/map")}
-                      className="flex w-full items-center gap-3 rounded-md border border-border-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent"
+                      className="flex w-full items-center gap-3 rounded-md border border-line-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-brass/40 hover:bg-accent"
                     >
                       <Landmark className="size-4 shrink-0 text-faint" />
                       <span className="flex-1 font-mono text-[12.5px]">{pl.code}</span>
@@ -188,11 +189,11 @@ export default function SearchPage() {
                     <button
                       key={`s-${c.incident_id}`}
                       onClick={() => navigate(`/case/${encodeURIComponent(c.incident_id)}`)}
-                      className="flex w-full items-center gap-3 rounded-md border border-border-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent"
+                      className="flex w-full items-center gap-3 rounded-md border border-line-soft bg-card px-3 py-2.5 text-left transition-colors hover:border-brass/40 hover:bg-accent"
                     >
                       <SearchIcon className="size-4 shrink-0 text-faint" />
                       <span className="min-w-0 flex-1">
-                        <span className="block font-mono text-[12.5px] text-primary">{c.fir_no || c.incident_id}</span>
+                        <span className="block font-mono text-[12.5px] text-brass">{c.fir_no || c.incident_id}</span>
                         <span className="block truncate text-[11.5px] text-muted-foreground">
                           {(c.snippet || "").slice(0, 110)}…
                         </span>

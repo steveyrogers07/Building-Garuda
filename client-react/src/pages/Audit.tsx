@@ -42,6 +42,7 @@ export default function Audit() {
   return (
     <>
       <PageHeader
+        eyebrow="Govern · Append-only trail"
         title="Audit Log"
         caption="Append-only trail of every privileged read and query — who, what role, which resource, when. The governance backbone."
       >
@@ -49,7 +50,7 @@ export default function Audit() {
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Filter actor / role / resource…"
-          className="h-8 w-[260px] bg-surface-2 font-mono text-[12px]"
+          className="h-8 w-[260px] bg-panel-2 font-mono text-[12px]"
           aria-label="Filter audit entries"
         />
       </PageHeader>
@@ -57,7 +58,7 @@ export default function Audit() {
       {rows.length === 0 ? (
         <EmptyState>No audit entries{f ? " match the filter" : " yet — interact with governed reads first"}.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-lg border bg-card shadow-panel">
+        <div className="overflow-hidden rounded-md border border-line bg-card shadow-panel">
           <Table>
             <TableHeader>
               <TableRow>
@@ -78,7 +79,7 @@ export default function Audit() {
                   <TableCell className="font-mono text-[12px]">{String(e.actor ?? "")}</TableCell>
                   <TableCell><RoleChip role={String(e.role ?? "?")} /></TableCell>
                   <TableCell className="font-mono text-[12px]">{String(e.action ?? "")}</TableCell>
-                  <TableCell className="font-mono text-[12px] text-primary">{String(e.resource ?? "")}</TableCell>
+                  <TableCell className="font-mono text-[12px] text-brass">{String(e.resource ?? "")}</TableCell>
                   <TableCell className="max-w-[260px] truncate font-mono text-[11.5px] text-faint">
                     {String(e.query ?? "")}
                   </TableCell>

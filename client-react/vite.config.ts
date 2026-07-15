@@ -10,6 +10,7 @@ const API_ROUTES = [
   "/stats", "/network", "/risk", "/copilot", "/geo", "/search",
   "/entity", "/case", "/governed", "/audit", "/brief",
   "/anomaly", "/series", "/resolve", "/mo", "/geocode",
+  "/district", "/officers", "/officer", "/absconding",
 ]
 
 export default defineConfig({

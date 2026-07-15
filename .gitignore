@@ -22,6 +22,14 @@ catalyst-deploy/
 # in here right before `catalyst deploy`, so app/'s AppSail bundle is
 # self-contained. Deploy-time artifact, not source — never commit it.
 app/data/
+# ...and the built React SPA, copied into app/webclient/ so the single AppSail
+# instance serves it at /ui/. Deploy-time artifact, regenerable from the build.
+app/webclient/
+# ...and the vendored ARM64 (aarch64) Python deps. AppSail's managed runtime does
+# NOT pip-install requirements.txt server-side, so deps are pre-installed into
+# app/lib as manylinux2014_aarch64 wheels and shipped in the bundle (PYTHONPATH=lib).
+# Regenerable via scripts/bundle_data_for_deploy.py — never commit (~200MB).
+app/lib/
 
 # Secrets & env
 .env

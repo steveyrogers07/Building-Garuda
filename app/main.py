@@ -12,6 +12,10 @@ from fastapi import FastAPI
 
 app = FastAPI(title="GARUDA ML Brain", version="0.4.0")
 
+# Optional-router import failures land here and are surfaced by /health, so a
+# deployed instance can be diagnosed remotely without shell or log access.
+_ROUTER_ERRORS: dict = {}
+
 # Phase 3 ingestion endpoints (/extract, /geocode, /promote). Wrapped so the health
 # probe stays up even if an optional import is missing in a given environment.
 try:
@@ -19,6 +23,8 @@ try:
     app.include_router(ingestion_router)
 except Exception as _exc:  # noqa: BLE001
     import logging
+    import traceback
+    _ROUTER_ERRORS["ingestion"] = traceback.format_exc(limit=-3)
     logging.getLogger("garuda").warning("ingestion router not loaded: %s", _exc)
 
 # Phase 4 analytics endpoints (/resolve/run, /mo/run, /geocode/backfill). Same guard.
@@ -47,13 +53,20 @@ try:
 
 except Exception as _exc:  # noqa: BLE001
     import logging
+    import traceback
+    _ROUTER_ERRORS["analytics"] = traceback.format_exc(limit=-3)
     logging.getLogger("garuda").warning("analytics router not loaded: %s", _exc)
 
 
 @app.get("/health")
 def health():
-    """Liveness probe for the Phase 1 exit gate."""
-    return {"status": "ok", "service": "garuda-appsail", "phase": 1}
+    """Liveness probe for the Phase 1 exit gate (+ remote router diagnostics)."""
+    out = {"status": "ok", "service": "garuda-appsail", "phase": 1,
+           "routers_loaded": [r for r in ("ingestion", "analytics")
+                              if r not in _ROUTER_ERRORS]}
+    if _ROUTER_ERRORS:
+        out["router_errors"] = _ROUTER_ERRORS
+    return out
 
 
 @app.get("/")
@@ -64,9 +77,10 @@ def root():
     }
 
 
-# --- Phase 8 local console (GARUDA_LOCAL=1): serve the client SPA same-origin so it
-# can call the analytics API directly. In production the SPA is on Web Client Hosting
-# and reaches AppSail via the API Gateway; this block is skipped there. ---
+# --- Console SPA serving (GARUDA_LOCAL=1): serve the client SPA same-origin so it
+# can call the analytics API directly. Enabled locally (python app/run_phase8.py) and
+# on the single-service AppSail deploy, where the SPA is bundled into app/webclient
+# (scripts/bundle_data_for_deploy.py) and GARUDA_LOCAL=1 is set in app-config.json. ---
 import os  # noqa: E402
 
 if os.environ.get("GARUDA_LOCAL") == "1":
@@ -74,15 +88,20 @@ if os.environ.get("GARUDA_LOCAL") == "1":
     from fastapi.responses import RedirectResponse
     from fastapi.staticfiles import StaticFiles
 
-    _REPO = Path(__file__).resolve().parent.parent
-    # Prefer the built React console (client-react/dist); fall back to the
-    # legacy static SPA so `python app/run_phase8.py` works before any build.
-    _CLIENT = _REPO / "client-react" / "dist"
-    if not (_CLIENT / "index.html").exists():
-        _CLIENT = _REPO / "client"
+    _APP_DIR = Path(__file__).resolve().parent
+    # SPA location, in priority order: the live local client-react/dist build (kept
+    # fresh in dev), then app/webclient bundled into the AppSail deploy (the only one
+    # present in prod, since client-react/ is outside the app/ bundle), then legacy.
+    _CLIENT = next((c for c in (_APP_DIR.parent / "client-react" / "dist",
+                                _APP_DIR / "webclient",
+                                _APP_DIR.parent / "client")
+                    if (c / "index.html").exists()), None)
 
-    @app.get("/console")
-    def _console():
-        return RedirectResponse("/ui/")
+    # Mount only when a real SPA dir is found — a missing dir would make StaticFiles
+    # raise at import time and take the whole API down (AppSail "Execution failed").
+    if _CLIENT is not None:
+        @app.get("/console")
+        def _console():
+            return RedirectResponse("/ui/")
 
-    app.mount("/ui", StaticFiles(directory=str(_CLIENT), html=True), name="ui")
+        app.mount("/ui", StaticFiles(directory=str(_CLIENT), html=True), name="ui")

@@ -42,10 +42,24 @@ def main() -> None:
             shutil.rmtree(dst)
         shutil.copytree(src, dst)
         copied.append(name)
+
+    # SPA: copy the built React console into app/webclient so a single AppSail
+    # instance serves it at /ui/ (app/main.py picks it up when GARUDA_LOCAL=1).
+    spa_src = REPO / "client-react" / "dist"
+    spa_dst = APP / "webclient"
+    if (spa_src / "index.html").exists():
+        if spa_dst.exists():
+            shutil.rmtree(spa_dst)
+        shutil.copytree(spa_src, spa_dst)
+        print("bundled SPA into app/webclient/ (from client-react/dist)")
+    else:
+        print(f"skip SPA: {spa_src}/index.html missing — run "
+              f"`npm --prefix client-react run build` first")
+
     if copied:
         print(f"bundled into app/data/: {', '.join(copied)}")
     else:
-        print("nothing bundled — nothing to deploy data-wise yet")
+        print("no reference data bundled — run data/generate.py if unexpected")
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { ClassificationBar } from "@/components/brand/ClassificationBar"
 import { entityIcon } from "@/components/common/bits"
 import { CommandPalette } from "@/components/layout/CommandPalette"
+import { MobileNav } from "@/components/layout/MobileNav"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Topbar } from "@/components/layout/Topbar"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -89,11 +90,12 @@ export function AppShell() {
           <ClassificationBar />
           <Topbar onOpenPalette={() => setPaletteOpen(true)} />
           <TabStrip />
-          <main className="mx-auto w-full max-w-[1500px] flex-1 space-y-5 px-6 py-6">
+          <main className="mx-auto w-full max-w-[1500px] flex-1 space-y-5 px-4 py-5 pb-24 lg:px-6 lg:py-6 lg:pb-6">
             <Outlet />
           </main>
         </div>
       </div>
+      <MobileNav />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </TooltipProvider>
   )

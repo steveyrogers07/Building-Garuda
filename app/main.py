@@ -8,14 +8,75 @@ copilot) arrive in Phases 4-7 under app/engines and app/routers.
 Start command (see app-config.json):
     uvicorn main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT}
 """
+import os
+import time
+
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 
-app = FastAPI(title="GARUDA ML Brain", version="0.4.0")
+_ENV = os.environ.get("ENV", "dev")
+
+# Interactive API docs are a recon gift on a public URL — dev keeps them,
+# prod serves 404 for /docs, /redoc and the OpenAPI schema.
+app = FastAPI(title="GARUDA ML Brain", version="0.4.0",
+              docs_url=None if _ENV == "prod" else "/docs",
+              redoc_url=None if _ENV == "prod" else "/redoc",
+              openapi_url=None if _ENV == "prod" else "/openapi.json")
 # The Dev AppSail proxy adds a fixed per-request latency floor (~0.7s measured),
 # so payload transfer is the only wire cost we control — gzip the big JSON
 # responses (officer roster ~28KB, ego graphs, geo aggregates shrink ~5x).
 app.add_middleware(GZipMiddleware, minimum_size=1500)
+
+
+# --- Rate limiting: the copilot / extraction / recompute endpoints each burn
+# real CPU (TF-IDF search, LightGBM retrain, graph rebuild) and the Dev URL is
+# public, so cap them per client IP with a sliding window. Generous enough
+# that no human demo ever notices; GARUDA_RATELIMIT=off disables entirely
+# (the API Gateway takes over throttling in prod, plan §4.5). ---
+_RL_LIMIT = int(os.environ.get("GARUDA_RATELIMIT_PER_MIN", "20"))
+_RL_PREFIXES = ("/copilot", "/extract", "/jobs")
+_RL_SUFFIXES = ("/run",)
+_RL_BUCKETS: dict = {}
+
+
+def _rate_limited(ip, path):
+    now = time.time()
+    if len(_RL_BUCKETS) > 4096:               # bound memory on scan floods
+        _RL_BUCKETS.clear()
+    hits = [t for t in _RL_BUCKETS.get(ip, []) if now - t < 60]
+    if len(hits) >= _RL_LIMIT:
+        _RL_BUCKETS[ip] = hits
+        return True
+    hits.append(now)
+    _RL_BUCKETS[ip] = hits
+    return False
+
+
+@app.middleware("http")
+async def _security_middleware(request, call_next):
+    path = request.url.path
+    if (os.environ.get("GARUDA_RATELIMIT", "on") != "off"
+            and (path.startswith(_RL_PREFIXES) or path.endswith(_RL_SUFFIXES))
+            and request.method == "POST"):
+        ip = request.client.host if request.client else "?"
+        if _rate_limited(ip, path):
+            return JSONResponse({"detail": "rate limit exceeded — retry in a minute"},
+                                status_code=429, headers={"Retry-After": "60"})
+    resp = await call_next(request)
+    h = resp.headers
+    h.setdefault("X-Content-Type-Options", "nosniff")
+    h.setdefault("X-Frame-Options", "DENY")
+    h.setdefault("Referrer-Policy", "same-origin")
+    # microphone stays self-allowed for the Kannada voice copilot (plan §4.13)
+    h.setdefault("Permissions-Policy", "camera=(), geolocation=(), microphone=(self)")
+    if _ENV == "prod":
+        h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        # the SPA is fully self-hosted (no CDN/fonts); inline styles are React's
+        h.setdefault("Content-Security-Policy",
+                     "default-src 'self'; img-src 'self' data:; "
+                     "style-src 'self' 'unsafe-inline'; frame-ancestors 'none'")
+    return resp
 
 # Optional-router import failures land here and are surfaced by /health, so a
 # deployed instance can be diagnosed remotely without shell or log access.
@@ -69,8 +130,11 @@ def health():
     out = {"status": "ok", "service": "garuda-appsail", "phase": 1,
            "routers_loaded": [r for r in ("ingestion", "analytics")
                               if r not in _ROUTER_ERRORS]}
+    # Tracebacks are the remote-diagnosis channel in dev, but they leak paths
+    # and library versions — prod reports only which routers failed.
     if _ROUTER_ERRORS:
-        out["router_errors"] = _ROUTER_ERRORS
+        out["router_errors"] = (sorted(_ROUTER_ERRORS) if _ENV == "prod"
+                                else _ROUTER_ERRORS)
     return out
 
 
@@ -86,8 +150,6 @@ def root():
 # can call the analytics API directly. Enabled locally (python app/run_phase8.py) and
 # on the single-service AppSail deploy, where the SPA is bundled into app/webclient
 # (scripts/bundle_data_for_deploy.py) and GARUDA_LOCAL=1 is set in app-config.json. ---
-import os  # noqa: E402
-
 if os.environ.get("GARUDA_LOCAL") == "1":
     from pathlib import Path
     from fastapi.responses import RedirectResponse

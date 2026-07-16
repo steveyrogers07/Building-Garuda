@@ -1,0 +1,14 @@
+{
+  "name": "GARUDA — Karnataka State Police",
+  "short_name": "GARUDA",
+  "description": "SCRB crime-intelligence console: cases, deadlines, absconding board, copilot.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f14",
+  "theme_color": "#0b0f14",
+  "icons": [
+    { "src": "./crest.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

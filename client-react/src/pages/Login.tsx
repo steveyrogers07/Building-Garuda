@@ -1,7 +1,15 @@
 import { Fingerprint, Lock, ShieldCheck } from "lucide-react"
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+
+declare global {
+  interface Window {
+    /** Catalyst embedded-auth SDK — injected only when the SPA is served via
+     *  Web Client Hosting with Authentication enabled (plan §4.4). */
+    catalyst?: { auth?: { isUserAuthenticated?: () => Promise<unknown> } }
+  }
+}
 
 import { ClassificationBar } from "@/components/brand/ClassificationBar"
 import { KspCrest } from "@/components/brand/KspCrest"
@@ -26,7 +34,35 @@ export default function Login() {
   const [officerId, setOfficerId] = useState("sr")
   const [password, setPassword] = useState("")
   const [presetId, setPresetId] = useState("scrb-admin")
+  const [catalystReady, setCatalystReady] = useState(false)
   const preset = ROLE_PRESETS.find((r) => r.id === presetId)!
+
+  // Catalyst path (plan §4.4): when the embedded-auth SDK is present, an
+  // existing Zoho session maps to a GARUDA principal via GET /whoami
+  // (Console_Users resolves role/scope server-side). Absent the SDK — local
+  // dev, or the AppSail-served build — nothing changes: the demo login below
+  // IS the governance demo and stays.
+  useEffect(() => {
+    const auth = window.catalyst?.auth
+    if (!auth?.isUserAuthenticated) return
+    setCatalystReady(true)
+    auth
+      .isUserAuthenticated()
+      .then(async (u) => {
+        if (!u) return
+        const r = await fetch("/whoami", { credentials: "include" })
+        if (!r.ok) return
+        const me = await r.json()
+        if (!me.role) return
+        setPrincipal({ actor: me.actor, name: me.display_name || me.actor,
+                       role: me.role, scope: me.scope || "" })
+        toast(`Signed in — ${me.display_name || me.actor}`, {
+          description: "Verified Catalyst identity; clearance from Console_Users.",
+        })
+        navigate("/")
+      })
+      .catch(() => { /* fall through to the demo form */ })
+  }, [navigate])
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -118,6 +154,21 @@ export default function Login() {
             <Button type="submit" className="t-display mt-3 w-full text-[15px] tracking-[0.14em]">
               <Lock className="size-3.5" /> Authenticate
             </Button>
+
+            {catalystReady && (
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-2 w-full text-[13px]"
+                onClick={() => {
+                  // Catalyst's hosted login (served by the platform when
+                  // Authentication is enabled); returns here with a session.
+                  window.location.href = "/__catalyst/auth/login"
+                }}
+              >
+                <ShieldCheck className="size-3.5" /> Sign in with Zoho Catalyst
+              </Button>
+            )}
 
             <div className="mt-4 flex items-start gap-2 rounded-sm border border-line-soft bg-panel-2/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />

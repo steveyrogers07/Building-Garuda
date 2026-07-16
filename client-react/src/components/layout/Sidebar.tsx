@@ -27,7 +27,7 @@ import {
 import { initials, presetFor, ROLE_PRESETS, setPrincipal, usePrincipal } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 
-const NAV = [
+export const NAV = [
   {
     group: "Command",
     items: [
@@ -71,7 +71,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col border-r border-line bg-console-deep">
+    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col border-r border-line bg-console-deep lg:flex">
       <div className="border-b border-line px-4 py-4">
         <KspWordmark />
       </div>

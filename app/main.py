@@ -40,6 +40,17 @@ _RL_SUFFIXES = ("/run",)
 _RL_BUCKETS: dict = {}
 
 
+def _client_key(request):
+    """Rate-limit key. Behind the AppSail load balancer request.client.host is
+    a per-request proxy address (verified live: 25 parallel POSTs never shared
+    a bucket), so prefer the first X-Forwarded-For hop — the real client as
+    recorded by the outermost Catalyst proxy."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "?"
+
+
 def _rate_limited(ip, path):
     now = time.time()
     if len(_RL_BUCKETS) > 4096:               # bound memory on scan floods
@@ -59,8 +70,7 @@ async def _security_middleware(request, call_next):
     if (os.environ.get("GARUDA_RATELIMIT", "on") != "off"
             and (path.startswith(_RL_PREFIXES) or path.endswith(_RL_SUFFIXES))
             and request.method == "POST"):
-        ip = request.client.host if request.client else "?"
-        if _rate_limited(ip, path):
+        if _rate_limited(_client_key(request), path):
             return JSONResponse({"detail": "rate limit exceeded — retry in a minute"},
                                 status_code=429, headers={"Retry-After": "60"})
     resp = await call_next(request)

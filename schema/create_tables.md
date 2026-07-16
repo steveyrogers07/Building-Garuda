@@ -72,6 +72,7 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 | Column | Type | Null? |
 |---|---|---|
 | area_code | Text | no (unique) |
+| district_name | Text | yes (copilot district parsing + map labels read this) |
 | population | Int | yes |
 | density | Decimal | yes |
 | literacy | Decimal | yes |

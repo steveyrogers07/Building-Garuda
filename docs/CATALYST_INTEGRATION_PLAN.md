@@ -443,6 +443,27 @@ the load runbook is in [schema/create_tables.md](../schema/create_tables.md) §L
   `schema/create_tables.md` (EgoGraphCache NoSQL table, raw-fir/briefs buckets,
   Cache segment, Mail from-address).
 
+**Fourth pass (2026-07-17, in tree):**
+- **4.13 done** — the Kannada voice copilot, with one documented deviation: Catalyst
+  Zia has **no speech-to-text or translation** (verified against the SDK — it offers
+  OCR/NER/sentiment/face/barcode), so STT is the browser's native speech recognition
+  (`kn-IN`, ships with Chrome, $0) and KN→EN is `engines/copilot/kannada.py`: a
+  police-domain lexicon (16 crime types, all 31 census district spellings, question/
+  time words) + indic-transliteration for leftover names. `/copilot` auto-detects
+  Kannada (or takes `lang: "kn"`), answers on the normalized English and returns a
+  `voice` trace the UI renders; the audit trail records the original utterance.
+  Mic button + Kannada example chip on the Copilot page. Zia's row stays covered by
+  OCR in `functions/ingest-event`.
+- **Bug found by the voice test, fixed for English too:** `fetch_socioeconomic`
+  dropped `district_name`, so the copilot's district filter never matched names
+  ("in Mysuru" silently went statewide — 1,037 vs the real TMK 40) and the hotspot
+  map labeled districts by code. `district_name` restored through store/column-map/
+  schema/subset; verified: Kannada TMK query now returns the 40 TMK records and
+  `/geo/districts` returns real names.
+- Self-provisioning shipped earlier this pass: `GET /admin/provision` +
+  `POST /admin/provision/load` (see `docs/SETUP_CHECKLIST.md` — the user-facing
+  minimal console path; ds:import no longer required).
+
 **Remaining, in order:**
 1. **You (console):** create the 12 core + Console_Users + 6 derived tables
    (`schema/create_tables.md`), then run the `catalyst ds:import` commands there.

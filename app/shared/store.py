@@ -387,7 +387,10 @@ def read_network_cache(center):
 # --------------------------------------------------------------------------- #
 # Phase-6 reads/writes — socio-economic context + Predictive_Risk
 # --------------------------------------------------------------------------- #
-_SOCIO_COLS = ("area_code", "population", "density", "literacy", "urbanization")
+# district_name matters: the copilot's district parsing and the hotspot map's
+# labels both read it — dropping it silently reduced "in Mysuru" to statewide.
+_SOCIO_COLS = ("area_code", "district_name", "population", "density", "literacy",
+               "urbanization")
 _PRED_RISK_COLS = ["grid_id", "district_code", "crime_type", "period", "risk_score",
                    "rank", "top_drivers", "model_version", "backtest_pai"]
 

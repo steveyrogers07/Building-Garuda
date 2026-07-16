@@ -139,10 +139,10 @@ export const api = {
   geoDistricts: () => jget<{ districts: GeoDistrict[] }>("/geo/districts", "geo"),
   riskTop: (n = 10) => jget<{ top: RiskCell[] }>(`/risk/top?n=${n}`, "risktop"),
   fairness: () => jget<Fairness>("/risk/fairness", "fair"),
-  copilot: (query: string) =>
+  copilot: (query: string, lang?: string) =>
     jpost<CopilotResponse>(
       "/copilot",
-      { query },
+      lang ? { query, lang } : { query },
       /guilt|guilty|culprit/i.test(query) ? "copilotRefuse" : "copilot",
     ),
   caseFull: (id: string) => jgetStrict<CaseFull>(`/case/${encodeURIComponent(id)}`, "case"),

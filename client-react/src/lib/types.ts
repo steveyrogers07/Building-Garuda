@@ -98,6 +98,8 @@ export interface CopilotResponse {
   guardrail?: string
   refused?: boolean
   reason?: string
+  /** Kannada voice trace (plan §4.13): what was heard and how it was read. */
+  voice?: { original: string; english: string; replacements?: [string, string][] }
 }
 
 export interface Party {

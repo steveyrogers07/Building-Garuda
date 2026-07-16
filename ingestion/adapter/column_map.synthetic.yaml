@@ -113,10 +113,11 @@ Incident_Edges:
     evidence_type: { source: evidence_type }
     is_police:     { source: is_police, transform: int }
 
-# source file: data/reference/census_2011.csv (district_name column is ignored)
+# source file: data/reference/census_2011.csv
 Socioeconomic:
   fields:
-    area_code:    { source: area_code }
+    area_code:     { source: area_code }
+    district_name: { source: district_name }
     population:   { source: population,   transform: int }
     density:      { source: density,      transform: float }
     literacy:     { source: literacy,     transform: float }

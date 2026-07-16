@@ -42,6 +42,7 @@ from automation import jobs as automation_jobs
 from automation import notify
 from governance import audit as gaudit, masking, rbac
 from engines import copilot as cp
+from engines.copilot import kannada as knq
 from engines import deadlines as dl_engine
 from engines import district as district_engine
 from engines import forecasting as fc
@@ -367,13 +368,27 @@ class CopilotIn(BaseModel):
     actor: Optional[str] = "demo"
     role: Optional[str] = "analyst"
     top_k: int = 10
+    lang: Optional[str] = None   # "kn" = Kannada voice/text (plan §4.13)
 
 
 @router.post("/copilot")
 def copilot(body: CopilotIn):
-    """Plain-English Q&A over FIRs: hybrid retrieval + mandatory citations + guardrails."""
+    """Plain-English (or Kannada — §4.13) Q&A over FIRs: hybrid retrieval +
+    mandatory citations + guardrails. Kannada queries are normalized to the
+    English tokens the parser keys on; the response carries the translation
+    trace so the UI can show its work."""
+    query, voice = body.query, None
+    if body.lang == "kn" or knq.has_kannada(query):
+        t = knq.kn_to_en(query)
+        if t["had_kannada"]:
+            query = t["english"]
+            voice = {"original": body.query, "english": t["english"],
+                     "replacements": t["replacements"]}
     st = _copilot_state()
-    res = cp.answer(body.query, st["incidents"], st["index"], st["refs"], top_k=body.top_k)
+    res = cp.answer(query, st["incidents"], st["index"], st["refs"], top_k=body.top_k)
+    if voice:
+        res["voice"] = voice
+    # audit the ORIGINAL utterance — the governance trail must show what was asked
     store.write_audit_log(cp.audit_entry(body.query, res, actor=body.actor, role=body.role))
     return res
 

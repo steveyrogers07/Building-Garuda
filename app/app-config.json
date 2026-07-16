@@ -4,7 +4,8 @@
 	"stack": "python_3_11",
 	"env_variables": {
 		"ENV": "dev",
-		"GARUDA_LOCAL": "1"
+		"GARUDA_LOCAL": "1",
+		"GARUDA_KVCACHE": "catalyst"
 	},
 	"memory": 2048,
 	"scripts": {}

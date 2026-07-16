@@ -53,6 +53,25 @@ def build_brief(scope="STATE", period="", *, stats=None, rings=None, alerts=None
     }
 
 
+def publish_pdf(html_text, name, bucket=None):
+    """HTML → PDF via Catalyst SmartBrowz, stored in the Stratus briefs bucket
+    (plan §4.9). Account-gated and strictly best-effort: any failure returns
+    None and the caller keeps returning HTML, exactly as today.
+    Returns {"bucket", "key"} on success."""
+    import os
+    bucket = bucket or os.environ.get("GARUDA_BRIEFS_BUCKET", "briefs")
+    try:
+        import zcatalyst_sdk               # deferred (account-gated)
+        app = zcatalyst_sdk.initialize()
+        pdf = app.smart_browz().convert_to_pdf(html_text)
+        body = pdf.content if hasattr(pdf, "content") else pdf
+        key = f"{name}.pdf"
+        app.stratus().bucket(bucket).put_object(key, body)
+        return {"bucket": bucket, "key": key}
+    except Exception:                      # noqa: BLE001 — degrade to HTML-only
+        return None
+
+
 def render_html(brief):
     e = _html.escape
     body = []

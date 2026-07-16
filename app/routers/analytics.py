@@ -39,6 +39,7 @@ from pydantic import BaseModel
 
 from automation import briefs
 from automation import jobs as automation_jobs
+from automation import notify
 from governance import audit as gaudit, masking, rbac
 from engines import copilot as cp
 from engines import deadlines as dl_engine
@@ -50,9 +51,15 @@ from engines.anomaly import detect as detect_anomalies
 from engines.geocode.geocoder import geocode
 from engines.resolution import resolve_entities, to_review_record
 from engines.series import link_series
+from shared import kvcache as kv
 from shared import store
 
 router = APIRouter(tags=["analytics"])
+
+# Flipped by warm(): before it, /stats and /geo/districts may serve the L2
+# kvcache (a restarted instance answers immediately from the last publish);
+# after it, they always compute from the live corpus as before.
+_WARMED = False
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MO_VECTOR_PATH = os.path.join(REPO, "data", "synthetic", "mo_vectors.npz")
@@ -79,6 +86,18 @@ class _Lazy:
             if self._value is None or rebuild:
                 self._value = self._build()
         return self._value
+
+    def ready(self):
+        """True once built — lets endpoints serve the kvcache L2 while this
+        L1 is still cold (warm() builds it in the background) without ever
+        paying the L2 round-trip on a warm instance."""
+        return self._value is not None
+
+
+def _publish(key, value):
+    """Best-effort L2 publish of a freshly built output (plan §4.7)."""
+    kv.put(key, value)
+    return value
 
 
 class RunIn(BaseModel):
@@ -179,8 +198,15 @@ def network_rings(min_districts: int = 2, min_incidents: int = 4, top: int = 20)
 
 
 @router.get("/network/{canonical_id}")
-def network_ego(canonical_id: str, radius: int = 2, cache: bool = False):
-    """Ego-subgraph around a canonical entity — the JSON the Phase-8 force graph draws."""
+def network_ego(canonical_id: str, radius: int = 2, cache: bool = False,
+                cached: bool = False):
+    """Ego-subgraph around a canonical entity — the JSON the Phase-8 force graph draws.
+    ?cache=true writes the payload to the ego cache (NoSQL in prod, plan §4.6);
+    ?cached=true serves from that cache when present, skipping the graph build."""
+    if cached:
+        hit = store.read_network_cache(canonical_id)
+        if hit:
+            return hit
     a = _network_analysis()
     payload = net_engine.ego_json(a["graph"], canonical_id, a["betweenness"],
                                   a["degree"], a["communities"], radius=radius)
@@ -281,6 +307,8 @@ def _risk_rows(st, n=None):
 def risk_run(body: RunIn):
     st = _risk_state(rebuild=True)
     rows = _risk_rows(st)
+    _publish("risk:top", {"as_of": str(pd.Timestamp(st["last"]).date()),
+                          "top": rows[:100]})
     written = store.write_predictive_risk(rows) if body.write else 0
     return {"ok": True, "metrics": st["wf"]["summary"], "base_rate": st["wf"]["base_rate"],
             "model_version": fc.MODEL_VERSION, "risk_cells": len(rows),
@@ -289,6 +317,10 @@ def risk_run(body: RunIn):
 
 @router.get("/risk/top")
 def risk_top(n: int = 20):
+    if not _RISK_CACHE.ready():
+        c = kv.get("risk:top")                 # published by /risk/run + nightly
+        if c and len(c.get("top", [])) >= n:
+            return {"as_of": c["as_of"], "top": c["top"][:n]}
     st = _risk_state()
     return {"as_of": str(pd.Timestamp(st["last"]).date()), "top": _risk_rows(st, n=n)}
 
@@ -353,6 +385,10 @@ def copilot(body: CopilotIn):
 def stats():
     """Headline counts for the Overview dashboard."""
     from collections import Counter
+    if not _WARMED:
+        c = kv.get("stats")                    # published by warm() + nightly
+        if c:
+            return c
     inc = store.fetch_incidents_p5()
     cc = Counter(r.get("crime_type", "") for r in inc if r.get("crime_type"))
     dates = [r["occurred_at"][:10] for r in inc if r.get("occurred_at")]
@@ -366,6 +402,10 @@ def stats():
 @router.get("/geo/districts")
 def geo_districts():
     """Per-district centroid + incident load + top crime — powers the hotspot map."""
+    if not _WARMED:
+        c = kv.get("geo:districts")            # published by warm() + nightly
+        if c:
+            return c
     inc = store.fetch_incidents_p5()
     socio = {s.get("area_code"): s for s in store.fetch_socioeconomic()}
     agg = {}
@@ -552,9 +592,12 @@ def district_rank(principal: rbac.Principal = Depends(get_principal)):
 # cache them like the network/risk/copilot state; per-request work is only the
 # cheap filter/sort (jurisdiction scoping stays per request, on the principal).
 # --------------------------------------------------------------------------- #
-_ROSTER_CACHE = _Lazy(lambda: dl_engine.officers_roster(
+_ROSTER_CACHE = _Lazy(lambda: _publish("workbench:roster", dl_engine.officers_roster(
     store.fetch_incidents_full(), store.fetch_officers(),
-    store.fetch_arrests(), store.fetch_chargesheets()))
+    store.fetch_arrests(), store.fetch_chargesheets())))
+# NOT L2-published: absconding_people's phase-1 state carries sets, which a JSON
+# round-trip through the Cache would silently turn into lists and corrupt
+# absconding_board_from's filtering — cold instances build it locally instead.
 _ABSCONDING_CACHE = _Lazy(lambda: dl_engine.absconding_people(
     store.fetch_incidents_full(), store.fetch_arrests(),
     store.fetch_chargesheets(), store.fetch_edges_p5(), store.fetch_entities_p5()))
@@ -571,7 +614,8 @@ def officers_roster(district: Optional[str] = None,
         district = principal.scope
     elif principal.role == "station":
         station = principal.scope
-    full = _ROSTER_CACHE.get()
+    full = (kv.get("workbench:roster") if not _ROSTER_CACHE.ready() else None) \
+        or _ROSTER_CACHE.get()
     rows = full["officers"]     # per-officer aggregates: scoping is a row filter
     if district:
         rows = [o for o in rows if o["district_code"] == district]
@@ -619,8 +663,10 @@ def absconding(district: Optional[str] = None, gravity: Optional[str] = None,
 
 
 @router.post("/brief/run")
-def brief_run(scope: str = "STATE"):
-    """Assemble the intelligence brief (SmartBrowz renders HTML→PDF in prod)."""
+def brief_run(scope: str = "STATE", pdf: bool = False):
+    """Assemble the intelligence brief. ?pdf=true additionally renders it to
+    PDF via SmartBrowz into the Stratus briefs bucket (plan §4.9) — best-effort,
+    the JSON+HTML response is unchanged either way."""
     a = _network_analysis()
     inc = store.fetch_incidents_p5()
     st = _risk_state()
@@ -629,7 +675,12 @@ def brief_run(scope: str = "STATE"):
         rings=net_engine.cross_district_rings(a["graph"], a["communities"], top=5),
         alerts=_anomaly_result()["alerts"], series=link_series(inc)["series"][:5],
         risk=_risk_rows(st, n=5), fairness=st["fair"][1])
-    return {"ok": True, "brief": brief, "html_bytes": len(briefs.render_html(brief))}
+    html_text = briefs.render_html(brief)
+    out = {"ok": True, "brief": brief, "html_bytes": len(html_text)}
+    if pdf:
+        out["pdf"] = briefs.publish_pdf(
+            html_text, f"garuda-brief-{scope.lower()}-{brief['period']}")
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -650,6 +701,8 @@ def _refresh_workbench():
     _ROSTER_CACHE.get(rebuild=True)
     _ABSCONDING_CACHE.get(rebuild=True)
     _copilot_state(rebuild=True)
+    kv.put("stats", stats())
+    kv.put("geo:districts", geo_districts())
     return {"roster": True, "absconding": True, "copilot_index": True}
 
 
@@ -665,11 +718,23 @@ def jobs_nightly(x_jobs_token: Optional[str] = Header(None)):
     body = RunIn(write=True)
     report = automation_jobs.nightly_recompute([
         ("anomaly", lambda: anomaly_run(body)),
+        ("notify", _dispatch_alerts),
         ("risk", lambda: risk_run(body)),
         ("network", network_run),
         ("workbench", _refresh_workbench),
     ])
     return {"ok": _report_ok(report), "report": report}
+
+
+def _dispatch_alerts():
+    """Fan the fresh anomaly alerts out as notifications (plan §4.10): Mail for
+    severity ≥ medium, Push for high. dispatch() is a no-send envelope echo
+    unless GARUDA_NOTIFY=catalyst, so this task is free locally."""
+    envelopes = notify.notifications_for_alerts(
+        _anomaly_result()["alerts"], severity_min="medium")
+    results = [notify.dispatch(n) for n in envelopes]
+    return {"dispatched": len(results),
+            "sent": sum(1 for r in results if r.get("sent"))}
 
 
 @router.post("/jobs/weekly")
@@ -691,10 +756,14 @@ def jobs_weekly(scope: str = "STATE", x_jobs_token: Optional[str] = Header(None)
 # instead, off the request path.
 # --------------------------------------------------------------------------- #
 def warm():
+    global _WARMED
     _network_analysis()
     _risk_state()
     _copilot_state()
     _anomaly_result()
     _ROSTER_CACHE.get()
     _ABSCONDING_CACHE.get()
+    _WARMED = True
+    kv.put("stats", stats())
+    kv.put("geo:districts", geo_districts())
     wb.state()

@@ -422,6 +422,27 @@ the load runbook is in [schema/create_tables.md](../schema/create_tables.md) §L
 - Vendored **`zcatalyst-sdk` 1.4.0** (real PyPI name; requirements.txt fixed) into
   `app/lib` so the next AppSail deploy can flip writes to zcql.
 
+**Third pass (2026-07-16, in tree):**
+- **4.7 done:** `app/shared/kvcache.py` L2 (off/memory/catalyst modes, best-effort;
+  local default is a NO-OP so behavior stays byte-identical). Publishes: roster
+  (builder), risk:top (/risk/run + nightly), stats + geo:districts (warm() +
+  nightly). Serves L2 only while the L1 `_Lazy` caches are cold (`ready()`), so a
+  warm instance never pays the round-trip. Absconding phase-1 deliberately NOT
+  L2-published — its state carries Python sets a JSON round-trip would corrupt.
+  Prod needs `GARUDA_KVCACHE=catalyst` in app-config env.
+- **4.6 done:** `store.write_network_cache` gains a NoSQL arm (table
+  `EgoGraphCache`, typed-attr insert, best-effort → falls back to local file) +
+  `read_network_cache`; `GET /network/{id}?cached=true` serves from it.
+- **4.9 done:** `briefs.publish_pdf` (SmartBrowz convert_to_pdf → Stratus briefs
+  bucket, best-effort → None) wired as `POST /brief/run?pdf=true`.
+- **4.10 done:** `notify.dispatch` prod arm behind `GARUDA_NOTIFY=catalyst` —
+  Mail (≥ medium) + web Push (high) via the SDK; local envelope return unchanged
+  (governance suite asserts it). Nightly job gains a `notify` task fanning fresh
+  anomaly alerts out through it.
+- Console setup for these: see the new "Non-relational console setup" section in
+  `schema/create_tables.md` (EgoGraphCache NoSQL table, raw-fir/briefs buckets,
+  Cache segment, Mail from-address).
+
 **Remaining, in order:**
 1. **You (console):** create the 12 core + Console_Users + 6 derived tables
    (`schema/create_tables.md`), then run the `catalyst ds:import` commands there.

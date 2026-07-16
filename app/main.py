@@ -9,8 +9,13 @@ Start command (see app-config.json):
     uvicorn main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT}
 """
 from fastapi import FastAPI
+from fastapi.middleware.gzip import GZipMiddleware
 
 app = FastAPI(title="GARUDA ML Brain", version="0.4.0")
+# The Dev AppSail proxy adds a fixed per-request latency floor (~0.7s measured),
+# so payload transfer is the only wire cost we control — gzip the big JSON
+# responses (officer roster ~28KB, ego graphs, geo aggregates shrink ~5x).
+app.add_middleware(GZipMiddleware, minimum_size=1500)
 
 # Optional-router import failures land here and are surfaced by /health, so a
 # deployed instance can be diagnosed remotely without shell or log access.

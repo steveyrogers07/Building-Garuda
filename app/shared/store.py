@@ -328,14 +328,60 @@ def write_alerts(alerts):
     return len(alerts)
 
 
+NOSQL_EGO_TABLE = os.environ.get("GARUDA_NOSQL_EGO_TABLE", "EgoGraphCache")
+
+
+def _nosql_ego_table():
+    import zcatalyst_sdk                       # deferred (account-gated)
+    return zcatalyst_sdk.initialize().nosql().get_table(NOSQL_EGO_TABLE)
+
+
 def write_network_cache(center, payload):
-    """Cache an ego-subgraph JSON (NoSQL/Cache in prod; a local file for the PoC)."""
+    """Cache an ego-subgraph JSON (plan §4.6): Catalyst NoSQL under the zcql
+    write arm (variable-shape JSON that doesn't fit the relational tables);
+    a local file otherwise. The NoSQL arm is best-effort — any failure falls
+    back to the local file so the endpoint's contract never changes."""
     import json
+    raw = json.dumps(payload, ensure_ascii=False)
+    if WRITE_BACKEND == "zcql":
+        try:
+            _nosql_ego_table().insert_items(
+                {"item": {"canonical_id": {"S": str(center)},
+                          "payload": {"S": raw}}})
+            return f"nosql://{NOSQL_EGO_TABLE}/{center}"
+        except Exception:                      # noqa: BLE001 — degrade to file
+            pass
     d = OUT_DIR / "network"
     d.mkdir(parents=True, exist_ok=True)
     p = d / f"{center}.json"
-    p.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    p.write_text(raw, encoding="utf-8")
     return str(p)
+
+
+def read_network_cache(center):
+    """Cached ego-subgraph or None (GET /network/{id}?cached=true fast path).
+    Follows the write arm, like read_audit_log — it reads back what
+    write_network_cache produced."""
+    import json
+    if WRITE_BACKEND == "zcql":
+        try:
+            res = _nosql_ego_table().fetch_item(
+                {"keys": [{"canonical_id": {"S": str(center)}}]})
+            for it in (res.get or []):
+                item = it.get("item", it) if isinstance(it, dict) else {}
+                raw = item.get("payload")
+                if isinstance(raw, dict):      # typed attr not deserialized
+                    raw = raw.get("S")
+                if raw:
+                    return json.loads(raw)
+        except Exception:                      # noqa: BLE001 — degrade to miss
+            return None
+        return None
+    p = OUT_DIR / "network" / f"{center}.json"
+    try:
+        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    except (OSError, ValueError):
+        return None
 
 
 # --------------------------------------------------------------------------- #

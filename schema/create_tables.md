@@ -181,6 +181,24 @@ populate in Phase 2.
 
 ---
 
+## Non-relational console setup (plan §4.6 / §4.9 / §4.10)
+
+- **NoSQL table `EgoGraphCache`** (Cloud Scale → NoSQL): partition key
+  `canonical_id` (Text). Holds cached ego-subgraph JSON under the zcql write arm
+  (`store.write_network_cache` / `read_network_cache`; name overridable via
+  `GARUDA_NOSQL_EGO_TABLE`).
+- **Stratus buckets**: `raw-fir` (FIR scans land here → ingest-event trigger) and
+  `briefs` (SmartBrowz-rendered brief PDFs from `POST /brief/run?pdf=true`;
+  name overridable via `GARUDA_BRIEFS_BUCKET`).
+- **Cache segment** (Cloud Scale → Cache): the default segment is used by
+  `app/shared/kvcache.py` when `GARUDA_KVCACHE=catalyst` — no setup beyond
+  enabling the component.
+- **Mail** (Cloud Scale → Mail): verify a from-address and set it as
+  `GARUDA_MAIL_FROM`; **Push Notifications** (web) just needs the component
+  enabled. Sends activate only when `GARUDA_NOTIFY=catalyst`.
+
+---
+
 ## Load order
 
 Tables must exist before loading (console-created, above). **The Development

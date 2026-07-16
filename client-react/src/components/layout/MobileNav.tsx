@@ -62,7 +62,7 @@ export function MobileNav() {
             end={t.end}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center gap-0.5 border-t-2 border-transparent py-2 text-[10px] text-muted-foreground",
+                "flex flex-col items-center gap-1 border-t-2 border-transparent py-2.5 text-[10px] text-muted-foreground",
                 isActive && "border-brass bg-panel font-medium text-foreground",
               )
             }
@@ -79,7 +79,7 @@ export function MobileNav() {
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
             <button
-              className="flex flex-col items-center gap-0.5 border-t-2 border-transparent py-2 text-[10px] text-muted-foreground"
+              className="flex flex-col items-center gap-1 border-t-2 border-transparent py-2.5 text-[10px] text-muted-foreground"
               aria-label="More navigation"
             >
               <Menu className="size-4.5 text-faint" />

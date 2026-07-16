@@ -67,9 +67,17 @@ function roleHeaders(json = false): Record<string, string> {
 type MockKey = keyof typeof MOCK
 
 /** Module reads: any failure (offline or error) falls back to fixtures. */
+/** Warm-window guard: right after an instance restart the heavy endpoints can
+ *  stall for minutes; without a timeout those fetches hang and screens sit on
+ *  shimmer/empty instead of falling back to fixtures. */
+const FETCH_TIMEOUT_MS = 12_000
+
 async function jget<T>(path: string, mockKey: MockKey): Promise<T> {
   try {
-    const r = await fetch(API + path, { headers: roleHeaders() })
+    const r = await fetch(API + path, {
+      headers: roleHeaders(),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    })
     if (!r.ok) throw new Error(String(r.status))
     setMode("live")
     return (await r.json()) as T
@@ -85,6 +93,7 @@ async function jpost<T>(path: string, body: unknown, mockKey: MockKey): Promise<
       method: "POST",
       headers: roleHeaders(true),
       body: JSON.stringify(body ?? {}),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
     if (!r.ok) throw new Error(String(r.status))
     setMode("live")
@@ -100,7 +109,10 @@ async function jpost<T>(path: string, body: unknown, mockKey: MockKey): Promise<
 async function jgetStrict<T>(path: string, mockKey: MockKey): Promise<T> {
   let r: Response
   try {
-    r = await fetch(API + path, { headers: roleHeaders() })
+    r = await fetch(API + path, {
+      headers: roleHeaders(),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    })
   } catch {
     setMode("mock")
     return MOCK[mockKey] as unknown as T

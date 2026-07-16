@@ -1,0 +1,14 @@
+{
+	"deployment": {
+		"name": "jobs",
+		"stack": "node18",
+		"type": "job",
+		"env_variables": {
+			"APPSAIL_BASE_URL": "https://garuda-brain-50044039193.development.catalystappsail.in",
+			"GARUDA_JOBS_TOKEN": ""
+		}
+	},
+	"execution": {
+		"main": "index.js"
+	}
+}

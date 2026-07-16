@@ -1,0 +1,8 @@
+{
+	"name": "jobs",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "GARUDA / Karnataka SCRB",
+	"description": "GARUDA job function: Job Scheduling cron target -> AppSail /jobs/nightly|weekly (Phase 9, plan 4.8).",
+	"dependencies": {}
+}

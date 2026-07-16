@@ -43,6 +43,8 @@ data/synthetic/*.csv
 data/synthetic/*.parquet
 # loader --dry-run / --emit-csv output (regenerable)
 data/**/_canonical/
+# scripts/make_dev_subset.py output — the Dev-tier Data Store import set (regenerable)
+data/**/_dev_subset/
 *.sqlite
 # NOTE: reference CSVs (ipc_bns_map, census_2011, geo_boundaries, gazetteer) and
 # data/synthetic/ground_truth.json ARE committed; only large raw GeoJSON is ignored.

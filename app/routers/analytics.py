@@ -38,6 +38,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
 from automation import briefs
+from automation import jobs as automation_jobs
 from governance import audit as gaudit, masking, rbac
 from engines import copilot as cp
 from engines import deadlines as dl_engine
@@ -397,9 +398,33 @@ def geo_districts():
 # --------------------------------------------------------------------------- #
 def get_principal(x_actor: Optional[str] = Header(None),
                   x_role: Optional[str] = Header(None),
-                  x_scope: Optional[str] = Header(None)) -> rbac.Principal:
-    """Resolve the caller (Catalyst Web SDK / API Gateway in prod; headers locally)."""
+                  x_scope: Optional[str] = Header(None),
+                  x_garuda_user: Optional[str] = Header(None)) -> rbac.Principal:
+    """Resolve the caller. Under ENV=prod only X-Garuda-User is trusted — the
+    API Gateway strips it from inbound traffic and injects the Catalyst-verified
+    email server-side (plan §4.5), and role/scope come from Console_Users
+    (§4.4). Everywhere else (local, Dev demo) the client-supplied X-Role /
+    X-Scope headers keep working — the role-switcher IS the governance demo."""
+    if os.environ.get("ENV") == "prod":
+        if not x_garuda_user:
+            raise HTTPException(401, "sign-in required")
+        u = store.fetch_console_user(x_garuda_user)
+        if not u:
+            raise HTTPException(403, "no console access provisioned for " + x_garuda_user)
+        return rbac.Principal(actor=u.get("email"), role=u.get("role"),
+                              scope=(u.get("scope") or None))
     return rbac.Principal(actor=x_actor or "demo", role=(x_role or "analyst"), scope=x_scope)
+
+
+@router.get("/whoami")
+def whoami(principal: rbac.Principal = Depends(get_principal)):
+    """The resolved principal — Login.tsx calls this after a Catalyst sign-in
+    to learn its GARUDA role/scope; harmless echo under the demo login."""
+    u = store.fetch_console_user(principal.actor)
+    return {"actor": principal.actor, "role": principal.role,
+            "scope": principal.scope or "",
+            "display_name": (u or {}).get("display_name", ""),
+            "officer_id": (u or {}).get("officer_id", "")}
 
 
 @router.get("/governed/incidents")
@@ -605,6 +630,56 @@ def brief_run(scope: str = "STATE"):
         alerts=_anomaly_result()["alerts"], series=link_series(inc)["series"][:5],
         risk=_risk_rows(st, n=5), fairness=st["fair"][1])
     return {"ok": True, "brief": brief, "html_bytes": len(briefs.render_html(brief))}
+
+
+# --------------------------------------------------------------------------- #
+# Scheduled jobs (plan §4.8) — Catalyst Job Scheduling fires the thin Node job
+# function (functions/jobs), which makes ONE call here; ordering/error capture
+# lives in automation.jobs so the batch runs identically locally and in prod.
+# --------------------------------------------------------------------------- #
+def _check_jobs_token(token):
+    """Shared-secret gate for the job endpoints. Default-off: with no
+    GARUDA_JOBS_TOKEN env set (local/demo) the endpoints stay open, same as
+    every other admin run endpoint until the Gateway hardening (plan §4.5)."""
+    expected = os.environ.get("GARUDA_JOBS_TOKEN")
+    if expected and token != expected:
+        raise HTTPException(403, "bad or missing X-Jobs-Token")
+
+
+def _refresh_workbench():
+    _ROSTER_CACHE.get(rebuild=True)
+    _ABSCONDING_CACHE.get(rebuild=True)
+    _copilot_state(rebuild=True)
+    return {"roster": True, "absconding": True, "copilot_index": True}
+
+
+def _report_ok(report):
+    return all(v.get("ok") for k, v in report.items() if not k.startswith("_"))
+
+
+@router.post("/jobs/nightly")
+def jobs_nightly(x_jobs_token: Optional[str] = Header(None)):
+    """Nightly recompute: anomaly scan, risk retrain, network rebuild, workbench
+    caches — each task's error is captured, never aborting the batch."""
+    _check_jobs_token(x_jobs_token)
+    body = RunIn(write=True)
+    report = automation_jobs.nightly_recompute([
+        ("anomaly", lambda: anomaly_run(body)),
+        ("risk", lambda: risk_run(body)),
+        ("network", network_run),
+        ("workbench", _refresh_workbench),
+    ])
+    return {"ok": _report_ok(report), "report": report}
+
+
+@router.post("/jobs/weekly")
+def jobs_weekly(scope: str = "STATE", x_jobs_token: Optional[str] = Header(None)):
+    """Weekly intelligence brief (SmartBrowz PDF step joins in plan §4.9)."""
+    _check_jobs_token(x_jobs_token)
+    report = automation_jobs.nightly_recompute([
+        ("brief", lambda: brief_run(scope)),
+    ])
+    return {"ok": _report_ok(report), "report": report}
 
 
 # --------------------------------------------------------------------------- #

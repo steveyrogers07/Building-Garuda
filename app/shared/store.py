@@ -1,11 +1,16 @@
 """GARUDA — batch data access for the Phase-4 analytics endpoints.
 
-Two backends, selected by GARUDA_BACKEND:
-  - "local" (default): read the Phase-2 CSVs, write resolved outputs back as CSVs. Pure
-    local/free — lets /resolve/run and /mo/run be exercised without Catalyst.
-  - "zcql": read Entities/Incidents from the Catalyst Data Store and write canonical_id /
-    mo_cluster_id back via ZCQL, batched. Account-gated (needs the live project + the
-    zcatalyst SDK); imported lazily so the local path never requires it.
+Two backends, selected independently for reads and writes (Catalyst plan §4.1 Option A —
+bundled-CSV serving with the Data Store as system-of-record for writes):
+  - GARUDA_READ_BACKEND — "local" (default): corpus reads (Entities/Incidents/edges/
+    reference tables) come from the Phase-2 CSVs. "zcql": read them from the Catalyst
+    Data Store instead (requires the pagination work in plan §4.1B — do not flip
+    without it, ZCQL caps rows per query and would silently truncate the corpus).
+  - GARUDA_WRITE_BACKEND — "local" (default): resolved outputs / alerts / audit rows land
+    as CSVs. "zcql": write them to the Data Store via ZCQL, batched. Account-gated
+    (needs the live project + the zcatalyst SDK); imported lazily so the local path
+    never requires it.
+GARUDA_BACKEND is honored as a legacy fallback that sets both.
 
 Writes use the Text business keys (entity_id / incident_id), never ROWID — consistent with
 the Phase-2 FK strategy. Original Entities are never deleted; resolution only adds
@@ -31,7 +36,9 @@ for _candidate in (_HERE.parents[2], _HERE.parents[1]):
 else:
     REPO = _HERE.parents[2]
 SYN_DIR = Path(os.environ.get("GARUDA_SYN_DIR", REPO / "data" / "synthetic"))
-BACKEND = os.environ.get("GARUDA_BACKEND", "local").lower()
+_LEGACY_BACKEND = os.environ.get("GARUDA_BACKEND", "").lower()
+READ_BACKEND = (os.environ.get("GARUDA_READ_BACKEND") or _LEGACY_BACKEND or "local").lower()
+WRITE_BACKEND = (os.environ.get("GARUDA_WRITE_BACKEND") or _LEGACY_BACKEND or "local").lower()
 ZCQL_BATCH = 200
 
 # Phase-5 outputs (crime_series / alerts / cached ego-subgraphs) land here. Defaults
@@ -84,7 +91,7 @@ def _zcql_rows(table, result):
 # reads
 # --------------------------------------------------------------------------- #
 def fetch_entities():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = zcql.execute_query(
             "SELECT entity_id, type, value, age, gender FROM Entities")
@@ -98,7 +105,7 @@ def fetch_entities():
 def fetch_incidents():
     cols = ("incident_id", "mo_text", "crime_type", "occurred_at",
             "lat", "long", "address_text", "district_code")
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = zcql.execute_query(
             "SELECT " + ", ".join(cols) + " FROM Incidents")
@@ -126,7 +133,7 @@ def _zcql_update_batches(statements):
 
 def write_entity_resolution(assignments):
     """assignments: {entity_id: {canonical_id, match_confidence}}."""
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         stmts = [
             f"UPDATE Entities SET canonical_id='{_sql_escape(a['canonical_id'])}', "
             f"match_confidence={float(a['match_confidence'])} "
@@ -152,7 +159,7 @@ def write_entity_resolution(assignments):
 
 def write_incident_mo(assignments):
     """assignments: {incident_id: mo_cluster_id}."""
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         stmts = [
             f"UPDATE Incidents SET mo_cluster_id='{_sql_escape(cid)}' "
             f"WHERE incident_id='{_sql_escape(iid)}'"
@@ -174,7 +181,7 @@ def write_incident_mo(assignments):
 
 def write_incident_coords(updates):
     """updates: {incident_id: (lat, long)} — backfill of previously missing coords."""
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         stmts = [
             f"UPDATE Incidents SET lat={float(lat)}, long={float(lng)} "
             f"WHERE incident_id='{_sql_escape(iid)}'"
@@ -186,7 +193,7 @@ def write_incident_coords(updates):
 
 def write_mo_clusters(clusters):
     """Populate the MO_Clusters table (insert)."""
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         app_zcql = _zcatalyst_zcql()
         cols = ["cluster_id", "crime_type", "size", "label",
                 "centroid_features", "exemplar_incident_id"]
@@ -227,7 +234,7 @@ _P5_INC_COLS = ("incident_id", "crime_type", "occurred_at", "lat", "long",
 
 
 def fetch_incidents_p5():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = zcql.execute_query("SELECT " + ", ".join(_P5_INC_COLS) + " FROM Incidents")
         return _zcql_rows("Incidents", rows)
@@ -238,7 +245,7 @@ def fetch_incidents_p5():
 def fetch_entities_p5():
     """Canonical entities for the network graph. canonical_id falls back to
     entity_id when resolution hasn't run, so the graph is always buildable."""
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = _zcql_rows("Entities", zcql.execute_query(
             "SELECT entity_id, canonical_id, type, value FROM Entities"))
@@ -254,7 +261,7 @@ def fetch_entities_p5():
 
 def fetch_edges_p5():
     cols = ("incident_id", "entity_id", "role", "edge_weight", "evidence_type")
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = zcql.execute_query("SELECT " + ", ".join(cols) + " FROM Incident_Edges")
         return _zcql_rows("Incident_Edges", rows)
@@ -281,7 +288,7 @@ def _write_out_csv(name, rows, cols):
 
 
 def write_crime_series(series):
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         for i in range(0, len(series), ZCQL_BATCH):
             for s in series[i:i + ZCQL_BATCH]:
@@ -298,7 +305,7 @@ def write_crime_series(series):
 
 def write_incident_series(assignments):
     """assignments: {incident_id: series_id}."""
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         stmts = [f"UPDATE Incidents SET series_id='{_sql_escape(sid)}' "
                  f"WHERE incident_id='{_sql_escape(iid)}'"
                  for iid, sid in assignments.items() if sid]
@@ -309,7 +316,7 @@ def write_incident_series(assignments):
 
 
 def write_alerts(alerts):
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         for i in range(0, len(alerts), ZCQL_BATCH):
             for al in alerts[i:i + ZCQL_BATCH]:
@@ -341,8 +348,8 @@ _PRED_RISK_COLS = ["grid_id", "district_code", "crime_type", "period", "risk_sco
 
 def fetch_socioeconomic():
     """Per-area socio-economic features. Locally sourced from the Census reference
-    CSV; from the Socioeconomic Data Store table under GARUDA_BACKEND=zcql."""
-    if BACKEND == "zcql":
+    CSV; from the Socioeconomic Data Store table under GARUDA_READ_BACKEND=zcql."""
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Socioeconomic", zcql.execute_query(
             "SELECT " + ", ".join(_SOCIO_COLS) + " FROM Socioeconomic"))
@@ -353,7 +360,7 @@ def fetch_socioeconomic():
 
 def write_predictive_risk(rows):
     """Persist forecast risk per (area x period x crime_type) -> Predictive_Risk."""
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         for i in range(0, len(rows), ZCQL_BATCH):
             for r in rows[i:i + ZCQL_BATCH]:
@@ -381,7 +388,7 @@ _AUDIT_COLS = ["log_id", "actor", "role", "action", "resource", "query_text", "t
 
 def fetch_incidents_copilot():
     """Incidents with narrative + citation columns for the copilot."""
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Incidents", zcql.execute_query(
             "SELECT " + ", ".join(_COPILOT_INC_COLS) + " FROM Incidents"))
@@ -393,7 +400,7 @@ def write_audit_log(entries):
     """Append copilot queries to Audit_Log (governance trail; never overwrite)."""
     if isinstance(entries, dict):
         entries = [entries]
-    if BACKEND == "zcql":
+    if WRITE_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         for e in entries:
             vals = ", ".join(f"'{_sql_escape(e.get(k, ''))}'" for k in _AUDIT_COLS)
@@ -411,9 +418,38 @@ def write_audit_log(entries):
     return len(entries)
 
 
+_CONSOLE_USER_COLS = ("email", "role", "scope", "officer_id", "display_name")
+
+
+def fetch_console_user(email):
+    """RBAC principal for a verified sign-in (plan §4.4): map a Catalyst-
+    authenticated email to GARUDA role/scope. Branches on WRITE_BACKEND like
+    read_audit_log: Console_Users is seeded into the Data Store (the write
+    half's system-of-record), not part of the bundled read corpus; locally a
+    committed reference CSV stands in so the prod path is testable offline."""
+    if not email:
+        return None
+    if WRITE_BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        rows = _zcql_rows("Console_Users", zcql.execute_query(
+            "SELECT " + ", ".join(_CONSOLE_USER_COLS) +
+            " FROM Console_Users WHERE email='" + _sql_escape(email) + "'"))
+        return rows[0] if rows else None
+    p = SYN_DIR.parent / "reference" / "console_users.csv"
+    for r in (_read_csv(p) if p.exists() else []):
+        if (r.get("email") or "").strip().lower() == email.strip().lower():
+            return {k: r.get(k, "") for k in _CONSOLE_USER_COLS}
+    return None
+
+
 def read_audit_log(limit=100):
-    """Most-recent audit entries (admin/ethics only — gated at the API layer)."""
-    if BACKEND == "zcql":
+    """Most-recent audit entries (admin/ethics only — gated at the API layer).
+
+    Branches on WRITE_BACKEND, not READ_BACKEND: this reads back what
+    write_audit_log produced, so it must look wherever those rows landed —
+    under the prod split (reads local / writes zcql) the trail lives in the
+    Data Store, and reading the local CSV would show an empty audit view."""
+    if WRITE_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Audit_Log", zcql.execute_query(
             "SELECT " + ", ".join(_AUDIT_COLS) + " FROM Audit_Log"))[:limit]
@@ -431,7 +467,7 @@ _CASE_COLS = ("incident_id", "fir_no", "occurred_at", "district_code", "station_
 
 
 def fetch_incident(incident_id):
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = _zcql_rows("Incidents", zcql.execute_query(
             "SELECT " + ", ".join(_CASE_COLS) + " FROM Incidents WHERE incident_id='"
@@ -446,7 +482,7 @@ def fetch_incident(incident_id):
 def fetch_incident_parties(incident_id):
     """Persons / vehicles / phones linked to an incident, with role — for the case
     view. Raw values; the governance layer masks victim/witness PII by role."""
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         rows = _zcql_rows("Incident_Edges", zcql.execute_query(
             "SELECT entity_id, role, evidence_type, is_police FROM Incident_Edges "
@@ -479,7 +515,7 @@ _FULL_INC_COLS = ("incident_id", "fir_no", "occurred_at", "reported_at", "distri
 
 def fetch_incidents_full():
     """Every incident with the full column set — the workbench working set."""
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Incidents", zcql.execute_query(
             "SELECT " + ", ".join(_FULL_INC_COLS) + " FROM Incidents"))
@@ -498,7 +534,7 @@ _CHARGESHEET_COLS = ("cs_id", "incident_id", "cs_date", "cs_type", "officer_id")
 
 
 def fetch_officers():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Officers", zcql.execute_query(
             "SELECT " + ", ".join(_OFFICER_COLS) + " FROM Officers"))
@@ -508,7 +544,7 @@ def fetch_officers():
 
 
 def fetch_chargesheets():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Chargesheets", zcql.execute_query(
             "SELECT " + ", ".join(_CHARGESHEET_COLS) + " FROM Chargesheets"))
@@ -530,7 +566,7 @@ _CASE_SECTION_COLS = ("incident_id", "act_code", "section_code", "section_order"
 
 
 def fetch_arrests():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Arrests", zcql.execute_query(
             "SELECT " + ", ".join(_ARREST_COLS) + " FROM Arrests"))
@@ -540,7 +576,7 @@ def fetch_arrests():
 
 
 def fetch_case_sections():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Case_Sections", zcql.execute_query(
             "SELECT " + ", ".join(_CASE_SECTION_COLS) + " FROM Case_Sections"))
@@ -561,7 +597,7 @@ _CRIME_HEAD_SECTION_COLS = ("crime_head", "act_code", "section_code")
 
 
 def fetch_courts():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Courts", zcql.execute_query(
             "SELECT " + ", ".join(_COURT_COLS) + " FROM Courts"))
@@ -571,7 +607,7 @@ def fetch_courts():
 
 
 def fetch_case_status():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Case_Status", zcql.execute_query(
             "SELECT " + ", ".join(_CASE_STATUS_COLS) + " FROM Case_Status"))
@@ -581,7 +617,7 @@ def fetch_case_status():
 
 
 def fetch_crime_head_sections():
-    if BACKEND == "zcql":
+    if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Crime_Head_Sections", zcql.execute_query(
             "SELECT " + ", ".join(_CRIME_HEAD_SECTION_COLS) + " FROM Crime_Head_Sections"))

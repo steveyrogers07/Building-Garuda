@@ -24,8 +24,9 @@ pandas                # feature-table aggregation (also used across the engines)
 #   Opt-in (NOT default): COPILOT_EMBEDDER=sbert -> sentence-transformers (pulls torch);
 #   EXTRACTOR=qwen -> QuickML Qwen for NL parsing + fluent answers (credit-costly).
 
-# Account-gated batch write-back (/resolve/run, /mo/run with GARUDA_BACKEND=zcql).
-zcatalyst-sdk-python
+# Account-gated write-back (audit/alerts/resolve with GARUDA_WRITE_BACKEND=zcql).
+# Real PyPI name is zcatalyst-sdk (1.4.x); vendor into app/lib for AppSail deploys.
+zcatalyst-sdk
 
 # Opt-in, NOT installed by default (keeps deploy light + $0):
 #   sentence-transformers   # MO_EMBEDDER=sbert -> local multilingual MO embeddings (pulls torch)

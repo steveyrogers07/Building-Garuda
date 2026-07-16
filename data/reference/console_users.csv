@@ -1,0 +1,7 @@
+email,role,scope,officer_id,display_name
+steveyrogers07@gmail.com,scrb-admin,,,SCRB Admin (owner)
+admin@garuda.demo,scrb-admin,,,SCRB - Admin
+sp.bnu@garuda.demo,district,BNU,,District SP - Bengaluru Urban
+sho.rmn03@garuda.demo,station,RMN03,,SHO - Station RMN03
+analyst@garuda.demo,analyst,,,SCRB - Analyst
+ethics@garuda.demo,ethics,,,Ethics - Oversight

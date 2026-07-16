@@ -158,6 +158,17 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 | act_code | Text | no |
 | section_code | Text | no |
 
+### Console_Users
+*(plan §4.4 — maps Catalyst-authenticated emails to GARUDA RBAC roles; the 5 demo
+personas + the owner are seeded from `data/reference/console_users.csv`)*
+| Column | Type | Null? |
+|---|---|---|
+| email | Text | no (unique) |
+| role | Text | no (scrb-admin/district/station/analyst/case-officer/ethics) |
+| scope | Text | yes (district or station code for scoped roles) |
+| officer_id | Text | yes (→ Officers.officer_id — binds My Cases to a real IO) |
+| display_name | Text | yes |
+
 ---
 
 ## Create now but leave EMPTY — DERIVED (filled in later phases)
@@ -172,19 +183,60 @@ populate in Phase 2.
 
 ## Load order
 
-Tables must exist before loading. Then load with the adapter (parents before edges):
+Tables must exist before loading (console-created, above). **The Development
+environment hard-caps the Data Store at 5,000 records per table and 25,000 records
+per project** ([Catalyst SDK docs](https://docs.catalyst.zoho.com/en/sdk/python/v1/cloud-scale/data-store/insert-rows/));
+the full ~75k-row corpus only fits in Production. In Dev, load the coherent subset
+instead — under plan §4.1 Option A the Data Store is the write system-of-record,
+not the read path, so a subset + write headroom is exactly what Dev needs.
+
+**Step 1 — emit the canonical CSVs** (map + validate, no creds needed; note the
+Socioeconomic source is `census_2011.csv`):
 
 ```bash
-python ingestion/adapter/loader.py --source data/synthetic/incidents.csv      --map ingestion/adapter/column_map.synthetic.yaml --table Incidents
-python ingestion/adapter/loader.py --source data/synthetic/entities.csv       --map ingestion/adapter/column_map.synthetic.yaml --table Entities
-python ingestion/adapter/loader.py --source data/synthetic/incident_edges.csv --map ingestion/adapter/column_map.synthetic.yaml --table Incident_Edges
-python ingestion/adapter/loader.py --source data/reference/socioeconomic.csv  --map ingestion/adapter/column_map.synthetic.yaml --table Socioeconomic
-python ingestion/adapter/loader.py --source data/reference/geo_boundaries.csv --map ingestion/adapter/column_map.synthetic.yaml --table Geo_Boundaries
+python ingestion/adapter/loader.py --source data/synthetic/incidents.csv           --map ingestion/adapter/column_map.synthetic.yaml --table Incidents           --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/entities.csv            --map ingestion/adapter/column_map.synthetic.yaml --table Entities            --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/incident_edges.csv      --map ingestion/adapter/column_map.synthetic.yaml --table Incident_Edges      --dry-run
+python ingestion/adapter/loader.py --source data/reference/census_2011.csv         --map ingestion/adapter/column_map.synthetic.yaml --table Socioeconomic       --dry-run
+python ingestion/adapter/loader.py --source data/reference/geo_boundaries.csv      --map ingestion/adapter/column_map.synthetic.yaml --table Geo_Boundaries      --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/officers.csv            --map ingestion/adapter/column_map.synthetic.yaml --table Officers            --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/chargesheets.csv        --map ingestion/adapter/column_map.synthetic.yaml --table Chargesheets        --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/arrests.csv             --map ingestion/adapter/column_map.synthetic.yaml --table Arrests             --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/case_sections.csv       --map ingestion/adapter/column_map.synthetic.yaml --table Case_Sections       --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/courts.csv              --map ingestion/adapter/column_map.synthetic.yaml --table Courts              --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/case_status.csv         --map ingestion/adapter/column_map.synthetic.yaml --table Case_Status         --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/crime_head_sections.csv --map ingestion/adapter/column_map.synthetic.yaml --table Crime_Head_Sections --dry-run
 ```
 
-(Reference CSVs: `census_2011.csv` is mapped to `Socioeconomic`; `geo_boundaries.csv`
-to `Geo_Boundaries`. The loader writes in batches and respects `--limit` for dev-tier
-row quotas.)
+**Step 2 — carve the Dev subset** (fits the caps; force-includes the planted
+network from `ground_truth.json` so the JOIN smoke test below works; keeps
+~6k rows of project headroom for runtime writes):
+
+```bash
+python scripts/make_dev_subset.py
+```
+
+**Step 3 — import** (needs `catalyst login`; run from the repo root, parents
+before edges). Either `catalyst ds:import` per table:
+
+```bash
+catalyst ds:import data/synthetic/_dev_subset/Incidents.csv           --table Incidents
+catalyst ds:import data/synthetic/_dev_subset/Entities.csv            --table Entities
+catalyst ds:import data/synthetic/_dev_subset/Officers.csv            --table Officers
+catalyst ds:import data/synthetic/_dev_subset/Courts.csv              --table Courts
+catalyst ds:import data/synthetic/_dev_subset/Incident_Edges.csv      --table Incident_Edges
+catalyst ds:import data/synthetic/_dev_subset/Case_Sections.csv       --table Case_Sections
+catalyst ds:import data/synthetic/_dev_subset/Arrests.csv             --table Arrests
+catalyst ds:import data/synthetic/_dev_subset/Chargesheets.csv        --table Chargesheets
+catalyst ds:import data/synthetic/_dev_subset/Socioeconomic.csv       --table Socioeconomic
+catalyst ds:import data/synthetic/_dev_subset/Geo_Boundaries.csv      --table Geo_Boundaries
+catalyst ds:import data/synthetic/_dev_subset/Case_Status.csv         --table Case_Status
+catalyst ds:import data/synthetic/_dev_subset/Crime_Head_Sections.csv --table Crime_Head_Sections
+catalyst ds:import data/reference/console_users.csv                   --table Console_Users
+```
+
+…or Console → Data Store → *table* → Import with the same `_dev_subset` CSVs.
+(In Production — uncapped — import the full `_canonical` CSVs instead.)
 
 ---
 

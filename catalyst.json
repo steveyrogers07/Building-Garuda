@@ -1,1 +1,7 @@
-{}
+{
+	"functions": {
+		"source": "functions",
+		"targets": ["api", "ingest-event", "jobs"],
+		"ignore": ["README.md"]
+	}
+}

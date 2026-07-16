@@ -376,35 +376,68 @@ provable locally at any commit** — Catalyst adds surface area, never replaces 
 | (c) P2 showpieces | **Kannada voice → copilot only** (§4.13). Qwen/QuickML generative copilot (§4.12b) and Zia AutoML (§4.15) are explicitly **not** in scope for this pass — revisit only if runway remains after P0+P1+4.13. |
 | (d) Custom domain | **No** — ship on the default Catalyst domain, skip Domain Mappings entirely. |
 
-### Where execution actually stopped
+### Execution status (updated 2026-07-16)
 
-Nothing has been run yet — this whole plan is still unexecuted. The one thing checked:
-`catalyst --version` → `1.26.1` (CLI installed), `catalyst project:list` → **not logged in**,
-no `catalyst.json` in the repo. `catalyst login` was attempted once and confirmed it needs
-a **real interactive terminal** — it prompts `Allow Catalyst to collect CLI error reporting
-information? (Y/n)` and then drives a browser-based OAuth sign-in. That can't run through
-an automated/non-interactive shell, and it shouldn't be — it's the user's own Zoho
-credentials/consent screen.
+**P0 is live.** GARUDA is deployed on Catalyst as a single AppSail service
+(`garuda-brain`, project `Garuda-system`, Development env):
+`https://garuda-brain-50044039193.development.catalystappsail.in/ui/` —
+`/health` reports `routers_loaded: ["ingestion","analytics"]`, `/stats` serves the
+full 10,130-incident corpus, `/ui/` serves the two-material console. Deviations
+from the plan as written, all deliberate (commit `46fc243`):
 
-**To resume, in order:**
-1. **You:** open your own terminal (not through Claude) and run `catalyst login`. Complete
-   the browser sign-in.
-2. **Claude, from here:** `catalyst init` in the repo root (4.0) — register AppSail → `app/`,
-   Web Client Hosting → `client-react/dist`, Functions → `functions/*`. Commit the generated
-   `catalyst.json`.
-3. Then the code edits with no login dependency, in order: **4.1A** (split
-   `GARUDA_READ_BACKEND`/`GARUDA_WRITE_BACKEND` in `app/shared/store.py`) → **4.2** (bundle
-   data, bump `app/app-config.json` memory to 1024 MB, add `ENV=prod`/
-   `GARUDA_WRITE_BACKEND=zcql` env) → **4.3** (add `/district`, `/officers`, `/officer`,
-   `/absconding` to the `vite.config.ts` dev proxy list — a real bug found during this
-   review, independent of deployment; also confirm same-origin once the Gateway routes are live).
-4. Then **4.4/4.5** (Console_Users table + Login.tsx/get_principal wiring; API Gateway
-   routing + header-trust hardening) — both need the live Catalyst project from step 2.
-5. Then **4.8/4.9/4.10/4.14** (Job Scheduling, SmartBrowz PDF, Signals→Mail/Push, Pipelines CI).
-6. Then **4.13** (Kannada voice → copilot) as the one committed showpiece.
+- **4.0** done minimally: `catalyst.json` is `{}` (deploy ships everything under
+  `app/`); Functions and Web Client Hosting are not registered yet.
+- **4.2** done with `memory: 2048` (not 1024) and `GARUDA_LOCAL=1` — the SPA is
+  served same-origin *from AppSail* (bundled by `scripts/bundle_data_for_deploy.py`),
+  not from Web Client Hosting. Deps are vendored into `app/lib` (x86_64 wheels);
+  see the deploy playbook in `garuda-repo-workflow.md` / the app-config startup command.
+- **4.3** the vite dev-proxy bug is fixed (`0c858c2`); Web Client Hosting itself is
+  deferred while the same-origin AppSail serving works.
+- **4.1A** done: `app/shared/store.py` now branches reads on `GARUDA_READ_BACKEND`
+  and writes on `GARUDA_WRITE_BACKEND` (both default `local`; `GARUDA_BACKEND` is a
+  legacy fallback that sets both; `read_audit_log` deliberately follows the *write*
+  backend — it reads back what `write_audit_log` produced). All 9 suites green.
+
+**Hard constraint discovered (2026-07-16):** the Dev Data Store caps at **5,000
+records/table and 25,000/project** ([SDK docs](https://docs.catalyst.zoho.com/en/sdk/python/v1/cloud-scale/data-store/insert-rows/)) —
+the ~75k-row corpus cannot be fully loaded in Dev. This *reinforces* Option A
+(reads stay on bundled CSVs). `scripts/make_dev_subset.py` carves a coherent
+~18k-row subset (planted network force-included, ~6k rows write headroom);
+the load runbook is in [schema/create_tables.md](../schema/create_tables.md) §Load order.
+
+**Further progress (2026-07-16, second pass — all code-side, in tree):**
+- **4.8 done code-side:** `POST /jobs/nightly` + `/jobs/weekly` on AppSail
+  (orchestrated by `automation.jobs`, gated by a default-off `GARUDA_JOBS_TOKEN`
+  shared secret) + `functions/jobs/index.js` job function (config `type: "job"` —
+  confirmed against the zcatalyst-cli templates' fn-type constants). Verified live
+  locally: nightly = anomaly 12 alerts / risk 496 rows / network 7,339 nodes /
+  workbench refresh, 223 s total. `catalyst.json` now registers
+  `functions: [api, ingest-event, jobs]`; api + ingest-event have `node_modules`
+  installed (functions are NOT npm-installed server-side).
+- **4.4 done backend-side:** `store.fetch_console_user` (WRITE_BACKEND branch;
+  local fallback `data/reference/console_users.csv`, committed, 5 personas + owner),
+  `get_principal` under `ENV=prod` trusts ONLY the gateway-injected `X-Garuda-User`
+  (401 unauthenticated / 403 unprovisioned; X-Role/X-Scope ignored), `GET /whoami`.
+  Login.tsx's Catalyst-SDK path lands with the Web Client Hosting split.
+- Vendored **`zcatalyst-sdk` 1.4.0** (real PyPI name; requirements.txt fixed) into
+  `app/lib` so the next AppSail deploy can flip writes to zcql.
+
+**Remaining, in order:**
+1. **You (console):** create the 12 core + Console_Users + 6 derived tables
+   (`schema/create_tables.md`), then run the `catalyst ds:import` commands there.
+2. **You (CLI/console):** `catalyst deploy --only functions` from the repo root;
+   then Job Scheduling → create a Function Job Pool → two crons (nightly 02:00 IST
+   with job param `kind=nightly`, weekly Mon 08:00 IST `kind=weekly`) targeting the
+   `jobs` function. (Fallback: a Webhook/AppSail-target job POSTing `/jobs/nightly`.)
+3. Set `GARUDA_WRITE_BACKEND=zcql` in `app/app-config.json` env + redeploy;
+   verify Audit_Log rows land via ZCQL.
+4. **4.5** API Gateway (console-heavy) — route one origin, throttle heavy endpoints,
+   strip inbound `X-Garuda-User`/`X-Role`/`X-Scope` and inject the verified email;
+   then `ENV=prod` turns on the hardened principal.
+5. **4.9/4.10/4.14** (SmartBrowz PDF, Signals→Mail/Push, Pipelines CI — merge
+   tip→main first, it's a clean fast-forward) + 4.6 NoSQL / 4.7 Cache.
+6. **4.13** (Kannada voice → copilot) as the one committed showpiece.
 7. **Production promotion** only in the final days before demo, per
-   [CATALYST_CREDITS_AND_DEPLOYMENT.md](CATALYST_CREDITS_AND_DEPLOYMENT.md) — claim credits,
-   promote, load data, smoke test, keep QuickML/AppSail off until ~1h before stage.
-
-Say "I've logged in" (or just "continue") in a new message whenever you're ready, and
-execution picks up at step 2 above.
+   [CATALYST_CREDITS_AND_DEPLOYMENT.md](CATALYST_CREDITS_AND_DEPLOYMENT.md) — claim
+   credits, promote, load the *full* `_canonical` CSVs (prod is uncapped), smoke
+   test, keep QuickML/AppSail off until ~1h before stage.

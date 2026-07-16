@@ -134,11 +134,22 @@ except Exception as _exc:  # noqa: BLE001
     logging.getLogger("garuda").warning("analytics router not loaded: %s", _exc)
 
 
+# Backend self-provisioning (console-minimal path): status + bundled-CSV load.
+try:
+    from routers.provision import router as provision_router
+    app.include_router(provision_router)
+except Exception as _exc:  # noqa: BLE001
+    import logging
+    import traceback
+    _ROUTER_ERRORS["provision"] = traceback.format_exc(limit=-3)
+    logging.getLogger("garuda").warning("provision router not loaded: %s", _exc)
+
+
 @app.get("/health")
 def health():
     """Liveness probe for the Phase 1 exit gate (+ remote router diagnostics)."""
     out = {"status": "ok", "service": "garuda-appsail", "phase": 1,
-           "routers_loaded": [r for r in ("ingestion", "analytics")
+           "routers_loaded": [r for r in ("ingestion", "analytics", "provision")
                               if r not in _ROUTER_ERRORS]}
     # Tracebacks are the remote-diagnosis channel in dev, but they leak paths
     # and library versions — prod reports only which routers failed.

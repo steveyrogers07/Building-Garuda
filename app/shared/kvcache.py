@@ -21,12 +21,39 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
+from pathlib import Path
 
 MODE = os.environ.get("GARUDA_KVCACHE", "off").lower()
 DEFAULT_TTL_HOURS = 26          # nightly job republishes; +2h grace
 
 _MEM: dict[str, tuple[float, str]] = {}
+
+# Deploy-time warmstart (the "data missing" killer): scripts/bake_warmstart.py
+# precomputes the heavy outputs and ships them as JSON inside the bundle, so a
+# freshly (re)started instance serves REAL results instantly — no dependency
+# on the Cache segment existing, no mock fixtures, no 2-3 min warm stall.
+# Live L1/L2 always win; these files are only the cold-start floor.
+_HERE = Path(__file__).resolve()
+for _c in (_HERE.parents[2], _HERE.parents[1]):
+    if (_c / "data").is_dir():
+        _WARMSTART = _c / "data" / "warmstart"
+        break
+else:
+    _WARMSTART = _HERE.parents[2] / "data" / "warmstart"
+
+
+def _safe(key):
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", key)
+
+
+def warmstart_get(key):
+    p = _WARMSTART / (_safe(key) + ".json")
+    try:
+        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    except (OSError, ValueError):
+        return None
 
 
 def _segment():
@@ -36,20 +63,23 @@ def _segment():
 
 def get(key):
     """Cached object or None. A miss is always safe — callers fall through
-    to building the real thing."""
+    to building the real thing. Miss order: live cache first, then the
+    deploy-time warmstart file, so results are never staler than the last
+    publish OR the last deploy, whichever is fresher."""
     try:
         if MODE == "memory":
             hit = _MEM.get(key)
             if hit and hit[0] > time.time():
                 return json.loads(hit[1])
             _MEM.pop(key, None)
-            return None
+            return warmstart_get(key)
         if MODE == "catalyst":
             raw = _segment().get_value(key)
-            return json.loads(raw) if raw else None
-    except Exception:                          # noqa: BLE001 — degrade to miss
-        return None
-    return None
+            if raw:
+                return json.loads(raw)
+    except Exception:                          # noqa: BLE001 — degrade
+        pass
+    return warmstart_get(key)
 
 
 def put(key, obj, ttl_hours=DEFAULT_TTL_HOURS):

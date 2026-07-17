@@ -41,6 +41,18 @@ READ_BACKEND = (os.environ.get("GARUDA_READ_BACKEND") or _LEGACY_BACKEND or "loc
 WRITE_BACKEND = (os.environ.get("GARUDA_WRITE_BACKEND") or _LEGACY_BACKEND or "local").lower()
 ZCQL_BATCH = 200
 
+def _zcql_failed(fn):
+    """A zcql arm failed (typically: the console table does not exist yet).
+    Log once per call site and fall through to the local arm, so setting
+    GARUDA_WRITE_BACKEND=zcql before the console work is done degrades
+    gracefully instead of 500ing endpoints — and self-activates the moment
+    the tables appear. Local fallbacks on an AppSail instance are ephemeral;
+    the log line is the operator's signal to finish the console setup."""
+    import logging
+    logging.getLogger("garuda").warning(
+        "zcql arm failed in %s — falling back to local", fn, exc_info=True)
+
+
 # Phase-5 outputs (crime_series / alerts / cached ego-subgraphs) land here. Defaults
 # to a repo-local dir; point GARUDA_HOME at an external folder to keep generated
 # artifacts out of the repo (the local PoC runner uses ~/…/Desktop/garuda).
@@ -134,13 +146,16 @@ def _zcql_update_batches(statements):
 def write_entity_resolution(assignments):
     """assignments: {entity_id: {canonical_id, match_confidence}}."""
     if WRITE_BACKEND == "zcql":
-        stmts = [
-            f"UPDATE Entities SET canonical_id='{_sql_escape(a['canonical_id'])}', "
-            f"match_confidence={float(a['match_confidence'])} "
-            f"WHERE entity_id='{_sql_escape(eid)}'"
-            for eid, a in assignments.items()
-        ]
-        return _zcql_update_batches(stmts)
+        try:
+            stmts = [
+                f"UPDATE Entities SET canonical_id='{_sql_escape(a['canonical_id'])}', "
+                f"match_confidence={float(a['match_confidence'])} "
+                f"WHERE entity_id='{_sql_escape(eid)}'"
+                for eid, a in assignments.items()
+            ]
+            return _zcql_update_batches(stmts)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_entity_resolution")
     # local: emit a resolved copy (never overwrite the source of truth)
     src = _read_csv(SYN_DIR / "entities.csv")
     out = SYN_DIR / "entities_resolved.csv"
@@ -160,12 +175,15 @@ def write_entity_resolution(assignments):
 def write_incident_mo(assignments):
     """assignments: {incident_id: mo_cluster_id}."""
     if WRITE_BACKEND == "zcql":
-        stmts = [
-            f"UPDATE Incidents SET mo_cluster_id='{_sql_escape(cid)}' "
-            f"WHERE incident_id='{_sql_escape(iid)}'"
-            for iid, cid in assignments.items() if cid
-        ]
-        return _zcql_update_batches(stmts)
+        try:
+            stmts = [
+                f"UPDATE Incidents SET mo_cluster_id='{_sql_escape(cid)}' "
+                f"WHERE incident_id='{_sql_escape(iid)}'"
+                for iid, cid in assignments.items() if cid
+            ]
+            return _zcql_update_batches(stmts)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_incident_mo")
     src = _read_csv(SYN_DIR / "incidents.csv")
     out = SYN_DIR / "incidents_mo.csv"
     with open(out, "w", encoding="utf-8", newline="") as f:
@@ -182,31 +200,37 @@ def write_incident_mo(assignments):
 def write_incident_coords(updates):
     """updates: {incident_id: (lat, long)} — backfill of previously missing coords."""
     if WRITE_BACKEND == "zcql":
-        stmts = [
-            f"UPDATE Incidents SET lat={float(lat)}, long={float(lng)} "
-            f"WHERE incident_id='{_sql_escape(iid)}'"
-            for iid, (lat, lng) in updates.items()
-        ]
-        return _zcql_update_batches(stmts)
+        try:
+            stmts = [
+                f"UPDATE Incidents SET lat={float(lat)}, long={float(lng)} "
+                f"WHERE incident_id='{_sql_escape(iid)}'"
+                for iid, (lat, lng) in updates.items()
+            ]
+            return _zcql_update_batches(stmts)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_incident_coords")
     return len(updates)   # local: coords already present in the synthetic set
 
 
 def write_mo_clusters(clusters):
     """Populate the MO_Clusters table (insert)."""
     if WRITE_BACKEND == "zcql":
-        app_zcql = _zcatalyst_zcql()
-        cols = ["cluster_id", "crime_type", "size", "label",
-                "centroid_features", "exemplar_incident_id"]
-        done = 0
-        for i in range(0, len(clusters), ZCQL_BATCH):
-            for c in clusters[i:i + ZCQL_BATCH]:
-                vals = ", ".join(
-                    str(int(c[k])) if k == "size" else f"'{_sql_escape(c[k])}'"
-                    for k in cols)
-                app_zcql.execute_query(
-                    f"INSERT INTO MO_Clusters ({', '.join(cols)}) VALUES ({vals})")
-                done += 1
-        return done
+        try:
+            app_zcql = _zcatalyst_zcql()
+            cols = ["cluster_id", "crime_type", "size", "label",
+                    "centroid_features", "exemplar_incident_id"]
+            done = 0
+            for i in range(0, len(clusters), ZCQL_BATCH):
+                for c in clusters[i:i + ZCQL_BATCH]:
+                    vals = ", ".join(
+                        str(int(c[k])) if k == "size" else f"'{_sql_escape(c[k])}'"
+                        for k in cols)
+                    app_zcql.execute_query(
+                        f"INSERT INTO MO_Clusters ({', '.join(cols)}) VALUES ({vals})")
+                    done += 1
+            return done
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_mo_clusters")
     out = SYN_DIR / "mo_clusters.csv"
     if not clusters:
         return 0
@@ -289,16 +313,19 @@ def _write_out_csv(name, rows, cols):
 
 def write_crime_series(series):
     if WRITE_BACKEND == "zcql":
-        zcql = _zcatalyst_zcql()
-        for i in range(0, len(series), ZCQL_BATCH):
-            for s in series[i:i + ZCQL_BATCH]:
-                vals = ", ".join(
-                    str(int(s["incident_count"])) if k == "incident_count"
-                    else f"'{_sql_escape(s.get(k, ''))}'" for k in _CRIME_SERIES_COLS)
-                zcql.execute_query(
-                    f"INSERT INTO Crime_Series ({', '.join(_CRIME_SERIES_COLS)}) "
-                    f"VALUES ({vals})")
-        return len(series)
+        try:
+            zcql = _zcatalyst_zcql()
+            for i in range(0, len(series), ZCQL_BATCH):
+                for s in series[i:i + ZCQL_BATCH]:
+                    vals = ", ".join(
+                        str(int(s["incident_count"])) if k == "incident_count"
+                        else f"'{_sql_escape(s.get(k, ''))}'" for k in _CRIME_SERIES_COLS)
+                    zcql.execute_query(
+                        f"INSERT INTO Crime_Series ({', '.join(_CRIME_SERIES_COLS)}) "
+                        f"VALUES ({vals})")
+            return len(series)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_crime_series")
     _write_out_csv("crime_series.csv", series, _CRIME_SERIES_COLS)
     return len(series)
 
@@ -306,10 +333,13 @@ def write_crime_series(series):
 def write_incident_series(assignments):
     """assignments: {incident_id: series_id}."""
     if WRITE_BACKEND == "zcql":
-        stmts = [f"UPDATE Incidents SET series_id='{_sql_escape(sid)}' "
-                 f"WHERE incident_id='{_sql_escape(iid)}'"
-                 for iid, sid in assignments.items() if sid]
-        return _zcql_update_batches(stmts)
+        try:
+            stmts = [f"UPDATE Incidents SET series_id='{_sql_escape(sid)}' "
+                     f"WHERE incident_id='{_sql_escape(iid)}'"
+                     for iid, sid in assignments.items() if sid]
+            return _zcql_update_batches(stmts)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_incident_series")
     rows = [{"incident_id": k, "series_id": v} for k, v in assignments.items()]
     _write_out_csv("incidents_series.csv", rows, ["incident_id", "series_id"])
     return len(rows)
@@ -317,13 +347,16 @@ def write_incident_series(assignments):
 
 def write_alerts(alerts):
     if WRITE_BACKEND == "zcql":
-        zcql = _zcatalyst_zcql()
-        for i in range(0, len(alerts), ZCQL_BATCH):
-            for al in alerts[i:i + ZCQL_BATCH]:
-                vals = ", ".join(f"'{_sql_escape(al.get(k, ''))}'" for k in _ALERTS_COLS)
-                zcql.execute_query(
-                    f"INSERT INTO Alerts ({', '.join(_ALERTS_COLS)}) VALUES ({vals})")
-        return len(alerts)
+        try:
+            zcql = _zcatalyst_zcql()
+            for i in range(0, len(alerts), ZCQL_BATCH):
+                for al in alerts[i:i + ZCQL_BATCH]:
+                    vals = ", ".join(f"'{_sql_escape(al.get(k, ''))}'" for k in _ALERTS_COLS)
+                    zcql.execute_query(
+                        f"INSERT INTO Alerts ({', '.join(_ALERTS_COLS)}) VALUES ({vals})")
+            return len(alerts)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_alerts")
     _write_out_csv("alerts.csv", alerts, _ALERTS_COLS)
     return len(alerts)
 
@@ -410,18 +443,21 @@ def fetch_socioeconomic():
 def write_predictive_risk(rows):
     """Persist forecast risk per (area x period x crime_type) -> Predictive_Risk."""
     if WRITE_BACKEND == "zcql":
-        zcql = _zcatalyst_zcql()
-        for i in range(0, len(rows), ZCQL_BATCH):
-            for r in rows[i:i + ZCQL_BATCH]:
-                vals = ", ".join(
-                    (str(float(r.get(k) or 0)) if k in ("risk_score", "backtest_pai")
-                     else str(int(r.get(k) or 0)) if k == "rank"
-                     else f"'{_sql_escape(r.get(k, ''))}'")
-                    for k in _PRED_RISK_COLS)
-                zcql.execute_query(
-                    f"INSERT INTO Predictive_Risk ({', '.join(_PRED_RISK_COLS)}) "
-                    f"VALUES ({vals})")
-        return len(rows)
+        try:
+            zcql = _zcatalyst_zcql()
+            for i in range(0, len(rows), ZCQL_BATCH):
+                for r in rows[i:i + ZCQL_BATCH]:
+                    vals = ", ".join(
+                        (str(float(r.get(k) or 0)) if k in ("risk_score", "backtest_pai")
+                         else str(int(r.get(k) or 0)) if k == "rank"
+                         else f"'{_sql_escape(r.get(k, ''))}'")
+                        for k in _PRED_RISK_COLS)
+                    zcql.execute_query(
+                        f"INSERT INTO Predictive_Risk ({', '.join(_PRED_RISK_COLS)}) "
+                        f"VALUES ({vals})")
+            return len(rows)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_predictive_risk")
     _write_out_csv("predictive_risk.csv", rows, _PRED_RISK_COLS)
     return len(rows)
 
@@ -450,12 +486,15 @@ def write_audit_log(entries):
     if isinstance(entries, dict):
         entries = [entries]
     if WRITE_BACKEND == "zcql":
-        zcql = _zcatalyst_zcql()
-        for e in entries:
-            vals = ", ".join(f"'{_sql_escape(e.get(k, ''))}'" for k in _AUDIT_COLS)
-            zcql.execute_query(
-                f"INSERT INTO Audit_Log ({', '.join(_AUDIT_COLS)}) VALUES ({vals})")
-        return len(entries)
+        try:
+            zcql = _zcatalyst_zcql()
+            for e in entries:
+                vals = ", ".join(f"'{_sql_escape(e.get(k, ''))}'" for k in _AUDIT_COLS)
+                zcql.execute_query(
+                    f"INSERT INTO Audit_Log ({', '.join(_AUDIT_COLS)}) VALUES ({vals})")
+            return len(entries)
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("write_audit_log")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     p = OUT_DIR / "audit_log.csv"
     new = not p.exists()
@@ -479,11 +518,14 @@ def fetch_console_user(email):
     if not email:
         return None
     if WRITE_BACKEND == "zcql":
-        zcql = _zcatalyst_zcql()
-        rows = _zcql_rows("Console_Users", zcql.execute_query(
-            "SELECT " + ", ".join(_CONSOLE_USER_COLS) +
-            " FROM Console_Users WHERE email='" + _sql_escape(email) + "'"))
-        return rows[0] if rows else None
+        try:
+            zcql = _zcatalyst_zcql()
+            rows = _zcql_rows("Console_Users", zcql.execute_query(
+                "SELECT " + ", ".join(_CONSOLE_USER_COLS) +
+                " FROM Console_Users WHERE email='" + _sql_escape(email) + "'"))
+            return rows[0] if rows else None
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("fetch_console_user")
     p = SYN_DIR.parent / "reference" / "console_users.csv"
     for r in (_read_csv(p) if p.exists() else []):
         if (r.get("email") or "").strip().lower() == email.strip().lower():
@@ -499,9 +541,12 @@ def read_audit_log(limit=100):
     under the prod split (reads local / writes zcql) the trail lives in the
     Data Store, and reading the local CSV would show an empty audit view."""
     if WRITE_BACKEND == "zcql":
-        zcql = _zcatalyst_zcql()
-        return _zcql_rows("Audit_Log", zcql.execute_query(
-            "SELECT " + ", ".join(_AUDIT_COLS) + " FROM Audit_Log"))[:limit]
+        try:
+            zcql = _zcatalyst_zcql()
+            return _zcql_rows("Audit_Log", zcql.execute_query(
+                "SELECT " + ", ".join(_AUDIT_COLS) + " FROM Audit_Log"))[:limit]
+        except Exception:  # noqa: BLE001 — table missing / unreachable
+            _zcql_failed("read_audit_log")
     p = OUT_DIR / "audit_log.csv"
     return list(reversed(_read_csv(p)))[:limit] if p.exists() else []
 

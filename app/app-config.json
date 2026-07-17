@@ -5,7 +5,9 @@
 	"env_variables": {
 		"ENV": "dev",
 		"GARUDA_LOCAL": "1",
-		"GARUDA_KVCACHE": "catalyst"
+		"GARUDA_KVCACHE": "catalyst",
+		"GARUDA_WRITE_BACKEND": "zcql",
+		"GARUDA_NOTIFY": "catalyst"
 	},
 	"memory": 2048,
 	"scripts": {}

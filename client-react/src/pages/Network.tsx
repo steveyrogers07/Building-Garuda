@@ -187,7 +187,10 @@ export default function Network() {
         </div>
       </PageHeader>
 
-      <div className="grid-field relative h-[calc(100vh-262px)] min-h-[460px] overflow-hidden rounded-md border border-line bg-console-deep shadow-panel">
+      {/* the calc offset assumes the desktop header stack; on phones the page
+          header wraps (search + hops + ring chips) so a viewport fraction fits
+          the graph on screen instead of pushing it below the fold */}
+      <div className="grid-field relative h-[52vh] min-h-[340px] overflow-hidden rounded-md border border-line bg-console-deep shadow-panel lg:h-[calc(100vh-262px)] lg:min-h-[460px]">
         {egoLoading || rings.loading ? (
           <div className="p-5">
             <ShimmerRows n={4} h={80} />
@@ -204,14 +207,22 @@ export default function Network() {
         {ego && !egoLoading && (
           <button
             onClick={() => setRun((r) => r + 1)}
-            className="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-sm border border-line bg-console/90 px-2.5 py-1.5 font-mono text-[10.5px] text-muted-foreground backdrop-blur transition-colors hover:border-brass/40 hover:text-brass"
+            className="absolute right-3 top-3 flex items-center gap-1.5 rounded-sm border border-line bg-console/90 px-2.5 py-1.5 font-mono text-[10.5px] text-muted-foreground backdrop-blur transition-colors hover:border-brass/40 hover:text-brass lg:top-auto lg:bottom-3"
+            aria-label="Replay the network reveal animation"
           >
-            <RotateCcw className="size-3" /> Replay reveal
+            <RotateCcw className="size-3" />
+            <span className="hidden sm:inline">Replay reveal</span>
           </button>
         )}
 
-        {/* legend */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-3 rounded-sm border border-line bg-console/90 px-3 py-1.5 font-mono text-[10.5px] text-muted-foreground backdrop-blur">
+        {/* legend — hidden on phones when a node is selected (the docked detail
+            panel owns the bottom edge there); always shown from lg up */}
+        <div
+          className={cn(
+            "absolute bottom-3 left-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-sm border border-line bg-console/90 px-3 py-1.5 font-mono text-[10.5px] text-muted-foreground backdrop-blur lg:flex",
+            selected && "hidden",
+          )}
+        >
           {communities.map((c) => (
             <span key={c} className="flex items-center gap-1.5">
               <span
@@ -225,9 +236,10 @@ export default function Network() {
           <span>☎ phone · ⌗ vehicle</span>
         </div>
 
-        {/* node detail panel */}
+        {/* node detail — docks to the bottom edge on phones (floating over a
+            342px canvas hid two-thirds of the graph), floats top-right on desktop */}
         {selected && (
-          <div className="absolute right-3 top-3 w-[248px] rounded-md border border-line bg-console/92 p-3.5 shadow-pop backdrop-blur">
+          <div className="absolute inset-x-2 bottom-2 max-h-[52%] overflow-y-auto rounded-md border border-line bg-console/95 p-3.5 shadow-pop backdrop-blur lg:inset-x-auto lg:bottom-auto lg:right-3 lg:top-3 lg:max-h-none lg:w-[248px] lg:overflow-visible">
             <div className="t-display text-[17px] leading-tight">{selected.label || selected.id}</div>
             <div className="mt-0.5 font-mono text-[10.5px] text-faint">
               {selected.type} · {selected.id}

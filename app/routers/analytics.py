@@ -192,6 +192,10 @@ def network_top(n: int = 10, node_type: str = "person"):
 @router.get("/network/rings")
 def network_rings(min_districts: int = 2, min_incidents: int = 4, top: int = 20):
     """Organized cross-district rings — the 'show me the gangs' query."""
+    if not _NET_CACHE.ready() and (min_districts, min_incidents) == (2, 4):
+        c = kv.get("network:rings")            # baked at deploy + nightly publish
+        if c:
+            return {"rings": c["rings"][:top]}
     a = _network_analysis()
     return {"rings": net_engine.cross_district_rings(
         a["graph"], a["communities"], min_districts=min_districts,
@@ -255,6 +259,11 @@ def _anomaly_result(rebuild=False):
 
 @router.post("/anomaly/run")
 def anomaly_run(body: RunIn):
+    if not body.write and not _ANOMALY_CACHE.ready():
+        c = kv.get("anomaly:alerts")           # baked at deploy + nightly publish
+        if c:
+            return {"ok": True, "alerts": len(c["alerts"]), "written": 0,
+                    "sample": c["alerts"][:20]}
     res = _anomaly_result(rebuild=body.write)
     written = store.write_alerts(res["alerts"]) if body.write else 0
     return {"ok": True, "alerts": len(res["alerts"]), "written": written,
@@ -342,6 +351,10 @@ def risk_explain(area: str, crime_type: str):
 
 @router.get("/risk/fairness")
 def risk_fairness():
+    if not _RISK_CACHE.ready():
+        c = kv.get("risk:fairness")            # baked at deploy + nightly publish
+        if c:
+            return c
     st = _risk_state()
     fair_df, fair_sum = st["fair"]
     return {"summary": fair_sum, "wards": fair_df.to_dict("records")}
@@ -669,6 +682,14 @@ def absconding(district: Optional[str] = None, gravity: Optional[str] = None,
         district = principal.scope
     elif principal.role == "station":
         station = principal.scope
+    # cold + unscoped default view -> baked board (scoped roles always compute:
+    # the baked payload is the statewide view and must never leak cross-scope)
+    if (not _ABSCONDING_CACHE.ready() and station is None and district is None
+            and gravity is None and min_days == 0 and limit == 100):
+        c = kv.get("absconding:default")
+        if c:
+            gaudit.record(principal, "read", "Absconding:ALL", "absconding")
+            return c
     res = dl_engine.absconding_board_from(
         _ABSCONDING_CACHE.get(), district=district, station=station,
         gravity=gravity, min_days=min_days, limit=limit)
@@ -712,13 +733,41 @@ def _check_jobs_token(token):
         raise HTTPException(403, "bad or missing X-Jobs-Token")
 
 
+def _heavy_payloads():
+    """Every precomputed JSON a cold instance should serve instantly — one
+    source of truth for warm()'s L2 publish, the nightly republish, and the
+    deploy-time warmstart bake (scripts/bake_warmstart.py)."""
+    a = _network_analysis()
+    st = _risk_state()
+    fair_df, fair_sum = st["fair"]
+    return {
+        "stats": stats(),
+        "geo:districts": geo_districts(),
+        "risk:top": {"as_of": str(pd.Timestamp(st["last"]).date()),
+                     "top": _risk_rows(st, n=100)},
+        "risk:fairness": {"summary": fair_sum, "wards": fair_df.to_dict("records")},
+        "network:rings": {"rings": net_engine.cross_district_rings(
+            a["graph"], a["communities"], min_districts=2, min_incidents=4, top=20)},
+        "anomaly:alerts": {"alerts": _anomaly_result()["alerts"]},
+        "workbench:roster": _ROSTER_CACHE.get(),
+        "absconding:default": dl_engine.absconding_board_from(
+            _ABSCONDING_CACHE.get(), district=None, station=None,
+            gravity=None, min_days=0, limit=100),
+    }
+
+
+def _publish_heavy():
+    for key, payload in _heavy_payloads().items():
+        kv.put(key, payload)
+
+
 def _refresh_workbench():
     _ROSTER_CACHE.get(rebuild=True)
     _ABSCONDING_CACHE.get(rebuild=True)
     _copilot_state(rebuild=True)
-    kv.put("stats", stats())
-    kv.put("geo:districts", geo_districts())
-    return {"roster": True, "absconding": True, "copilot_index": True}
+    _publish_heavy()
+    return {"roster": True, "absconding": True, "copilot_index": True,
+            "published": True}
 
 
 def _report_ok(report):
@@ -779,6 +828,5 @@ def warm():
     _ROSTER_CACHE.get()
     _ABSCONDING_CACHE.get()
     _WARMED = True
-    kv.put("stats", stats())
-    kv.put("geo:districts", geo_districts())
+    _publish_heavy()
     wb.state()

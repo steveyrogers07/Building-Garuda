@@ -26,7 +26,7 @@ REPO = Path(__file__).resolve().parent.parent
 APP = REPO / "app"
 
 # (source under data/, destination under app/data/)
-_DIRS = ["synthetic", "reference", "gazetteer"]
+_DIRS = ["synthetic", "reference", "gazetteer", "warmstart"]
 
 
 def main() -> None:
@@ -34,8 +34,9 @@ def main() -> None:
     for name in _DIRS:
         src = REPO / "data" / name
         if not src.is_dir():
-            print(f"skip {name}: {src} does not exist (run data/generate.py "
-                  f"or data/build_reference.py first)")
+            hint = ("scripts/bake_warmstart.py" if name == "warmstart"
+                    else "data/generate.py or data/build_reference.py")
+            print(f"skip {name}: {src} does not exist (run {hint} first)")
             continue
         dst = APP / "data" / name
         if dst.exists():

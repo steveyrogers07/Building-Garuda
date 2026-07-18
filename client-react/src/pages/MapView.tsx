@@ -40,17 +40,41 @@ function colorFor(t: number): string {
   return t > 0.66 ? "#e5484d" : t > 0.33 ? "#c9a227" : "#8fa3bf"
 }
 
+/** Time-of-day bands (the brief's 'spatiotemporal clusters'): layered onto
+ *  location server-side via /geo/*?hour_from&hour_to. Night wraps midnight. */
+const BANDS = [
+  { id: "all", label: "All hours" },
+  { id: "morning", label: "Morning", from: 5, to: 12 },
+  { id: "afternoon", label: "Afternoon", from: 12, to: 17 },
+  { id: "evening", label: "Evening", from: 17, to: 21 },
+  { id: "night", label: "Night", from: 20, to: 5 },
+] as const
+
 export default function MapView() {
   const navigate = useNavigate()
   const p = usePrincipal()
-  const geo = useApi(() => api.geoDistricts(), [p?.role, p?.scope])
+  const [bandId, setBandId] = useState<(typeof BANDS)[number]["id"]>("all")
+  const band = BANDS.find((b) => b.id === bandId)
+  const bandParam = band && "from" in band ? { from: band.from, to: band.to } : undefined
+  const geo = useApi(() => api.geoDistricts(bandParam), [p?.role, p?.scope, bandId])
   const risk = useApi(() => api.riskTop(20), [p?.role, p?.scope])
+  const anomalies = useApi(() => api.anomalies(), [p?.role, p?.scope])
   const [drill, setDrill] = useState<GeoDistrict | null>(null)
+  const stations = useApi(
+    () => (drill ? api.geoStations(drill.code, bandParam) : Promise.resolve(null)),
+    [drill?.code, bandId],
+  )
 
   const mapRef = useRef<MLMap | null>(null)
   const markersRef = useRef<maplibregl.Marker[]>([])
+  const stationMarkersRef = useRef<maplibregl.Marker[]>([])
+  const pulseRef = useRef<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const districts = geo.data?.districts ?? []
+  // districts with an active emerging-trend alert pulse red on the map
+  const alertDistricts = new Set(
+    (anomalies.data?.sample ?? []).map((a) => a.district_code).filter(Boolean),
+  )
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -94,6 +118,7 @@ export default function MapView() {
           r: 8 + 26 * Math.sqrt(d.incidents / maxN),
           c: colorFor(d.incidents / maxN),
           hot: top.has(d.code) ? 1 : 0,
+          alert: alertDistricts.has(d.code) ? 1 : 0,
         },
       })),
     }
@@ -127,10 +152,42 @@ export default function MapView() {
             "circle-stroke-color": ["get", "c"],
           },
         })
+        // red-zone pulsing where a crime category is spiking vs its baseline
+        map!.addLayer({
+          id: "district-alert-pulse",
+          type: "circle",
+          source: "districts",
+          filter: ["==", ["get", "alert"], 1],
+          paint: {
+            "circle-radius": ["*", ["get", "r"], 1.4],
+            "circle-color": "#e5484d",
+            "circle-opacity": 0.18,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#e5484d",
+            "circle-stroke-opacity": 0.7,
+          },
+        })
+        if (pulseRef.current == null) {
+          const t0 = performance.now()
+          const tick = () => {
+            const m = mapRef.current
+            if (!m || !m.getLayer("district-alert-pulse")) return
+            const phase = (Math.sin((performance.now() - t0) / 420) + 1) / 2
+            m.setPaintProperty("district-alert-pulse", "circle-radius",
+              ["*", ["get", "r"], 1.15 + 0.55 * phase])
+            m.setPaintProperty("district-alert-pulse", "circle-stroke-opacity",
+              0.25 + 0.55 * (1 - phase))
+            pulseRef.current = requestAnimationFrame(tick)
+          }
+          pulseRef.current = requestAnimationFrame(tick)
+        }
         map!.on("click", "district-bubbles", (e) => {
           const code = e.features?.[0]?.properties?.code as string | undefined
           const d = districts.find((x) => x.code === code)
-          if (d) setDrill(d)
+          if (d) {
+            setDrill(d)
+            map!.flyTo({ center: [d.lng, d.lat], zoom: 8.6, duration: 900 })
+          }
         })
         map!.on("mouseenter", "district-bubbles", () => (map!.getCanvas().style.cursor = "pointer"))
         map!.on("mouseleave", "district-bubbles", () => (map!.getCanvas().style.cursor = ""))
@@ -153,7 +210,42 @@ export default function MapView() {
     if (map.isStyleLoaded()) draw()
     else map.once("load", draw)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [districts])
+  }, [districts, anomalies.data])
+
+  // stop the pulse animation with the component
+  useEffect(() => () => {
+    if (pulseRef.current != null) cancelAnimationFrame(pulseRef.current)
+  }, [])
+
+  // station markers for the drilled district (Units master names + centroids)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    stationMarkersRef.current.forEach((m) => m.remove())
+    stationMarkersRef.current = []
+    const rows = drill ? stations.data?.stations ?? [] : []
+    if (!rows.length) return
+    const maxS = Math.max(1, ...rows.map((s) => s.incidents))
+    stationMarkersRef.current = rows
+      .filter((s) => s.lat != null && s.lng != null)
+      .map((s) => {
+        const el = document.createElement("div")
+        const r = 7 + 13 * Math.sqrt(s.incidents / maxS)
+        el.title = `${s.name} — ${s.incidents} incidents`
+        el.style.cssText =
+          `width:${r * 2}px;height:${r * 2}px;border-radius:50%;cursor:pointer;` +
+          "background:rgba(120,200,255,.25);border:1.5px solid #7cc8ff;" +
+          "box-shadow:0 0 8px rgba(124,200,255,.35)"
+        return new maplibregl.Marker({ element: el })
+          .setLngLat([s.lng as number, s.lat as number])
+          .addTo(map)
+      })
+    return () => {
+      stationMarkersRef.current.forEach((m) => m.remove())
+      stationMarkersRef.current = []
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drill?.code, stations.data])
 
   const drillRisk = (risk.data?.top ?? []).filter((r) => r.district_code === drill?.code).slice(0, 3)
 
@@ -162,8 +254,28 @@ export default function MapView() {
       <PageHeader
         eyebrow="Investigate · Geography"
         title="Hotspot Map"
-        caption="District incident load — bubble size = volume, colour = intensity, halo = top hotspots. Click a district to drill down."
-      />
+        caption="District incident load — bubble size = volume, colour = intensity, halo = top hotspots, red pulse = active spike alert. Click a district to drill to its stations."
+      >
+        <div
+          className="flex flex-wrap items-center gap-0.5 rounded-sm border border-line bg-panel p-0.5"
+          role="group"
+          aria-label="Time-of-day band"
+        >
+          {BANDS.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setBandId(b.id)}
+              aria-pressed={bandId === b.id}
+              className={
+                "rounded-[3px] px-2 py-1 font-mono text-[10.5px] transition-colors " +
+                (bandId === b.id ? "bg-brass-soft text-brass" : "text-muted-foreground")
+              }
+            >
+              {b.label}
+            </button>
+          ))}
+        </div>
+      </PageHeader>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
         <div className="relative h-[calc(100vh-262px)] min-h-[440px] overflow-hidden rounded-md border border-line shadow-panel">
@@ -189,7 +301,20 @@ export default function MapView() {
               <EmptyState>Select a district bubble on the map.</EmptyState>
             ) : (
               <>
-                <div className="t-display text-[18px]">{drill.name || drill.code}</div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="t-display text-[18px]">{drill.name || drill.code}</div>
+                  <button
+                    onClick={() => setDrill(null)}
+                    className="rounded-sm border border-line bg-panel px-2 py-0.5 font-mono text-[10px] text-muted-foreground hover:text-foreground"
+                  >
+                    ← state view
+                  </button>
+                </div>
+                {alertDistricts.has(drill.code) && (
+                  <div className="mt-2 rounded-sm border border-signal/35 bg-signal/10 px-2 py-1 font-mono text-[10.5px] text-signal">
+                    ⚠ active spike alert in this district
+                  </div>
+                )}
                 <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[12px]">
                   <span className="k-label">code</span>
                   <span className="font-mono">{drill.code}</span>
@@ -198,6 +323,25 @@ export default function MapView() {
                   <span className="k-label">top crime</span>
                   <span>{drill.top_crime || "–"}</span>
                 </div>
+
+                <div className="k-label mt-4 mb-1.5">
+                  Stations ({band && "from" in band ? band.label.toLowerCase() : "all hours"})
+                </div>
+                {stations.loading ? (
+                  <div className="text-[11.5px] text-faint">Loading stations…</div>
+                ) : (
+                  <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
+                    {(stations.data?.stations ?? []).slice(0, 8).map((s) => (
+                      <div
+                        key={s.station_code}
+                        className="flex items-center justify-between rounded-sm border border-line-soft bg-panel-2/50 px-2 py-1 text-[11px]"
+                      >
+                        <span className="min-w-0 truncate">{s.name || s.station_code}</span>
+                        <span className="tnum ml-2 shrink-0 font-mono text-steel">{s.incidents}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {drillRisk.length > 0 && (
                   <>

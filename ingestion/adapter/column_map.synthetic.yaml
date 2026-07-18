@@ -12,6 +12,8 @@ Incidents:
   fields:
     incident_id:    { source: incident_id }
     fir_no:         { source: fir_no }
+    crime_no:       { source: crime_no }
+    case_no:        { source: case_no }
     occurred_at:    { source: occurred_at, transform: datetime }
     reported_at:    { source: reported_at, transform: datetime }
     district_code:  { source: district_code }
@@ -112,6 +114,19 @@ Incident_Edges:
     edge_weight:   { source: edge_weight, transform: float }
     evidence_type: { source: evidence_type }
     is_police:     { source: is_police, transform: int }
+
+# source file: data/synthetic/units.csv (organizer schema: Unit + UnitType)
+Units:
+  fields:
+    unit_id:       { source: unit_id }
+    unit_name:     { source: unit_name }
+    unit_type:     { source: unit_type }
+    parent_unit:   { source: parent_unit }
+    district_code: { source: district_code }
+    district_num:  { source: district_num }
+    station_code:  { source: station_code }
+    lat:           { source: lat,  transform: float }
+    long:          { source: long, transform: float }
 
 # source file: data/reference/census_2011.csv
 Socioeconomic:

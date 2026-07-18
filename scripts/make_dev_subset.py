@@ -29,7 +29,7 @@ PROJECT_CAP = 25000
 
 # Copied whole — tiny reference/master tables.
 SMALL = ["Officers", "Courts", "Case_Status", "Crime_Head_Sections",
-         "Socioeconomic", "Geo_Boundaries"]
+         "Socioeconomic", "Geo_Boundaries", "Units"]
 
 
 def read(table):

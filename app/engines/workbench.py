@@ -356,11 +356,13 @@ def search(q, principal, per_group=6):
     plate = re.sub(r"[\s\-]", "", qn.upper())
     digits = re.sub(r"\D", "", qn)
 
-    # cases by FIR no / incident id
+    # cases by FIR no / incident id / the organizer's 18-digit CrimeNo
+    # (a >=6-digit run also matches CrimeNo fragments and the 9-digit CaseNo tail)
     for r in st["incidents"]:
         if len(out["groups"]["cases"]) >= per_group:
             break
-        if ql in r.get("fir_no", "").lower() or ql in r.get("incident_id", "").lower():
+        if (ql in r.get("fir_no", "").lower() or ql in r.get("incident_id", "").lower()
+                or (len(digits) >= 6 and digits in r.get("crime_no", ""))):
             out["groups"]["cases"].append(_case_hit(r))
 
     # entities by value — rank matches by recorded involvement, then cap
@@ -409,5 +411,6 @@ def search(q, principal, per_group=6):
 
 def _case_hit(r):
     return {"incident_id": r["incident_id"], "fir_no": r.get("fir_no"),
+            "crime_no": r.get("crime_no"),
             "crime_type": r.get("crime_type"), "district_code": r.get("district_code"),
             "occurred_at": (r.get("occurred_at") or "")[:10], "status": r.get("status")}

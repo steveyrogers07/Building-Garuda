@@ -1,5 +1,5 @@
 import { MessageSquareText } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
 import {
@@ -41,6 +41,8 @@ export default function CaseFile() {
   const { data, error, loading } = useApi(() => api.caseFull(id), [id, p?.role, p?.scope])
 
   const inc = data?.incident
+  const [scanState, setScanState] = useState<"loading" | "ok" | "missing">("loading")
+  useEffect(() => setScanState("loading"), [id])
   useEffect(() => {
     if (id) upsertTab({ type: "case", id, title: inc?.fir_no || id })
   }, [id, inc?.fir_no])
@@ -100,6 +102,12 @@ export default function CaseFile() {
                   {inc.district_code || "?"} / {inc.station_code || "?"} · occurred {d10(inc.occurred_at)}
                   {inc.reported_at ? ` · reported ${d10(inc.reported_at)}` : ""}
                 </div>
+                {inc.crime_no && (
+                  <div className="mt-0.5 font-mono text-[11px] tracking-wide text-paper-dim">
+                    Crime No <b className="text-paper-ink">{inc.crime_no}</b>
+                    {inc.case_no ? ` · Case No ${inc.case_no}` : ""}
+                  </div>
+                )}
               </div>
               <div className="flex flex-wrap justify-end gap-1.5">
                 {inc.case_category && <Stamp onPaper tone="dim">{inc.case_category}</Stamp>}
@@ -262,6 +270,32 @@ export default function CaseFile() {
               )}
             </CardContent>
           </Card>
+
+          {/* provenance: the scanned source document behind this record (local
+              renders now; the Stratus raw-fir bucket in prod). Hidden when no
+              scan exists — only a sample of the corpus has rendered documents. */}
+          {scanState !== "missing" && (
+            <Card>
+              <CardHeader>
+                <div className="k-label">Provenance</div>
+                <CardTitle className="t-display mt-1 text-[17px]">Source FIR — scanned original</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <img
+                  src={`/fir/${encodeURIComponent(id || "")}`}
+                  alt={`Scanned FIR document for ${inc.fir_no || id}`}
+                  className="w-full rounded-sm border border-line"
+                  onLoad={() => setScanState("ok")}
+                  onError={() => setScanState("missing")}
+                />
+                <p className="mt-2 text-[11px] leading-relaxed text-faint">
+                  Every analytical claim traces to a source document. Scans enter through the
+                  Stratus <span className="font-mono">raw-fir</span> bucket → Zia OCR → extraction →
+                  human review; this record's structured fields were parsed from this document.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           <Guardrail>
             Persons are as recorded in the FIR, pending investigation/trial. Victim/witness identity is

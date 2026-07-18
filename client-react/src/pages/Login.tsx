@@ -31,7 +31,7 @@ import { ROLE_PRESETS, setPrincipal } from "@/lib/roles"
  *  on Catalyst the same form fronts the Web SDK. */
 export default function Login() {
   const navigate = useNavigate()
-  const [officerId, setOfficerId] = useState("sr")
+  const [officerId, setOfficerId] = useState("")
   const [password, setPassword] = useState("")
   const [presetId, setPresetId] = useState("scrb-admin")
   const [catalystReady, setCatalystReady] = useState(false)
@@ -64,10 +64,21 @@ export default function Login() {
       .catch(() => { /* fall through to the demo form */ })
   }, [navigate])
 
+  const [authError, setAuthError] = useState("")
+
   function submit(e: FormEvent) {
     e.preventDefault()
     const id = officerId.trim()
     if (!id) return
+    // Demo-phase gate: one shared credential pair keeps idle visitors out of a
+    // public dev URL. This is a UI courtesy, not the security boundary — real
+    // sign-in is Catalyst Authentication + Console_Users role mapping (built,
+    // activates with the API Gateway).
+    if (id.toLowerCase() !== "garudaadmin" || password !== "datathon26") {
+      setAuthError("Invalid credentials. Demo evaluators: use the access details in the notice below.")
+      return
+    }
+    setAuthError("")
     setPrincipal({ actor: id, name: id.toUpperCase(), role: preset.role, scope: preset.scope })
     toast(`Signed in — ${preset.label}`, {
       description: "All access under this clearance is logged to the audit trail.",
@@ -170,7 +181,26 @@ export default function Login() {
               </Button>
             )}
 
-            <div className="mt-4 flex items-start gap-2 rounded-sm border border-line-soft bg-panel-2/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+            {authError && (
+              <div className="mt-2 rounded-sm border border-signal/40 bg-signal/10 px-3 py-2 text-[11.5px] text-signal">
+                {authError}
+              </div>
+            )}
+
+            <div className="mt-4 rounded-sm border border-brass/30 bg-brass-soft/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+              <span className="k-label text-brass">Demo evaluation access</span>
+              <div className="mt-1">
+                Officer ID <b className="font-mono text-foreground">garudaadmin</b> · Password{" "}
+                <b className="font-mono text-foreground">datathon26</b> — pick any clearance tier to
+                experience its jurisdiction gates and PII masking.
+              </div>
+              <div className="mt-1 text-faint">
+                Production sign-in (Zoho Catalyst Authentication → Console_Users role mapping) is
+                built and activates with the API Gateway.
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-start gap-2 rounded-sm border border-line-soft bg-panel-2/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
               <span>
                 Access is clearance-gated and fully audited. GARUDA surfaces and explains records —

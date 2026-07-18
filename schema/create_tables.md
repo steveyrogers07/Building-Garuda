@@ -23,6 +23,8 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 |---|---|---|
 | incident_id | Text | no (unique) |
 | fir_no | Text | no |
+| crime_no | Text | yes (organizer CaseMaster.CrimeNo — 1 category + 4 district + 4 unit + 4 year + 5 serial, 18 digits, searchable) |
+| case_no | Text | yes (organizer CaseMaster.CaseNo — last 9 digits of crime_no) |
 | occurred_at | DateTime | no |
 | reported_at | DateTime | yes |
 | district_code | Text | no |
@@ -159,6 +161,21 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 | act_code | Text | no |
 | section_code | Text | no |
 
+### Units
+*(organizer schema: Unit + UnitType — the station/office hierarchy whose numeric
+ids the CrimeNo encodes; also the map's station-level drill-down)*
+| Column | Type | Null? |
+|---|---|---|
+| unit_id | Text | no (unique — 4-digit numeric id, CrimeNo segment) |
+| unit_name | Text | no |
+| unit_type | Text | no (Police Station / District Office / State HQ) |
+| parent_unit | Text | yes (self-reference → Units.unit_id) |
+| district_code | Text | yes |
+| district_num | Text | yes (4-digit district id, CrimeNo segment) |
+| station_code | Text | yes (→ Incidents.station_code) |
+| lat | Decimal | yes |
+| long | Decimal | yes |
+
 ### Console_Users
 *(plan §4.4 — maps Catalyst-authenticated emails to GARUDA RBAC roles; the 5 demo
 personas + the owner are seeded from `data/reference/console_users.csv`)*
@@ -225,6 +242,7 @@ python ingestion/adapter/loader.py --source data/synthetic/case_sections.csv    
 python ingestion/adapter/loader.py --source data/synthetic/courts.csv              --map ingestion/adapter/column_map.synthetic.yaml --table Courts              --dry-run
 python ingestion/adapter/loader.py --source data/synthetic/case_status.csv         --map ingestion/adapter/column_map.synthetic.yaml --table Case_Status         --dry-run
 python ingestion/adapter/loader.py --source data/synthetic/crime_head_sections.csv --map ingestion/adapter/column_map.synthetic.yaml --table Crime_Head_Sections --dry-run
+python ingestion/adapter/loader.py --source data/synthetic/units.csv               --map ingestion/adapter/column_map.synthetic.yaml --table Units               --dry-run
 ```
 
 **Step 2 — carve the Dev subset** (fits the caps; force-includes the planted
@@ -252,6 +270,7 @@ catalyst ds:import data/synthetic/_dev_subset/Geo_Boundaries.csv      --table Ge
 catalyst ds:import data/synthetic/_dev_subset/Case_Status.csv         --table Case_Status
 catalyst ds:import data/synthetic/_dev_subset/Crime_Head_Sections.csv --table Crime_Head_Sections
 catalyst ds:import data/reference/console_users.csv                   --table Console_Users
+catalyst ds:import data/synthetic/_dev_subset/Units.csv               --table Units
 ```
 
 …or Console → Data Store → *table* → Import with the same `_dev_subset` CSVs.

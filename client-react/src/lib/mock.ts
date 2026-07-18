@@ -74,6 +74,15 @@ export const MOCK = {
     ],
   },
 
+  geoStations: {
+    district: "BNU",
+    stations: [
+      { station_code: "BNU07", name: "Bengaluru Urban PS 07", unit_id: "0607", incidents: 119, lat: 12.94, lng: 77.53, top_crime: "Two-wheeler theft" },
+      { station_code: "BNU12", name: "Bengaluru Urban PS 12", unit_id: "0612", incidents: 96, lat: 13.01, lng: 77.66, top_crime: "Chain snatching" },
+      { station_code: "BNU03", name: "Bengaluru Urban PS 03", unit_id: "0603", incidents: 88, lat: 12.9, lng: 77.62, top_crime: "Theft" },
+    ],
+  },
+
   risktop: {
     top: [
       { district_code: "BNU", crime_type: "Theft", risk_score: 0.42, top_drivers: '["roll_28","population","crime_code"]', model_version: "lgbm-p6-v1" },

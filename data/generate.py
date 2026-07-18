@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import random
 import string
 from datetime import datetime, timedelta
@@ -751,6 +752,85 @@ def generate(cfg, out_dir):
                     _add_head_section(head, "IPC", str(comp["ipc"]))
                     _add_head_section(head, "BNS", str(comp["bns"]))
 
+    # ---- P3 organizer-schema completeness (ER PDF audit, 2026-07-17) --------
+    # Three details the organizer's ER diagram specifies that the model lacked.
+    # All of it runs AFTER every existing draw, in post-passes, on its own
+    # isolated stream (rng4) — the standing invariant: previously generated
+    # columns stay byte-identical from the same seed.
+
+    # (1) Units master (organizer: Unit/UnitType, self-referencing hierarchy).
+    # Numeric ids are what CrimeNo's 4-digit district/unit segments encode.
+    # Deterministic — a lookup derived from config, not a per-incident fact.
+    sorted_dcodes = sorted(dcode)
+    district_num = {dc: i + 1 for i, dc in enumerate(sorted_dcodes)}
+    unit_rows = [dict(unit_id="0001", unit_name="Karnataka State Police HQ",
+                      unit_type="State HQ", parent_unit="", district_code="",
+                      district_num="", station_code="", lat="", long="")]
+    unit_num = {}
+    for dc in sorted_dcodes:
+        d = dcode[dc]
+        dnum = district_num[dc]
+        do_id = f"{dnum:02d}00"
+        unit_rows.append(dict(unit_id=do_id, unit_name=f"{d['name']} District Police Office",
+                              unit_type="District Office", parent_unit="0001",
+                              district_code=dc, district_num=f"{dnum:04d}",
+                              station_code="", lat=d["lat"], long=d["long"]))
+        for st in stations[dc]:
+            st_idx = int(st[len(dc):])
+            uid = f"{dnum:02d}{st_idx:02d}"
+            unit_num[st] = uid
+            # deterministic ring placement around the district centroid (golden
+            # angle) — station markers for the map's drill-down, no RNG consumed
+            ang = st_idx * 2.399963
+            rad = 0.05 + (st_idx % 3) * 0.022
+            unit_rows.append(dict(
+                unit_id=uid, unit_name=f"{d['name']} PS {st_idx:02d}",
+                unit_type="Police Station", parent_unit=do_id,
+                district_code=dc, district_num=f"{dnum:04d}", station_code=st,
+                lat=round(d["lat"] + rad * math.cos(ang), 6),
+                long=round(d["long"] + rad * math.sin(ang), 6)))
+
+    # (2) CaseMaster.CrimeNo / CaseNo in the organizer's exact 18-digit format:
+    # 1 CaseCategory digit + 4 District + 4 Unit + 4 Year + 5 Serial, with a
+    # separate running serial per (station, category, year); CaseNo = the last
+    # 9 digits. Purely derived from already-drawn fields — zero RNG.
+    cc_digit = {c["code"]: str(c["digit"]) for c in cfg["case_categories"]}
+    crime_serial = {}
+    for inc in incidents:
+        yr = inc["occurred_at"][:4]
+        key = (inc["station_code"], inc["case_category"], yr)
+        crime_serial[key] = crime_serial.get(key, 0) + 1
+        serial = f"{crime_serial[key]:05d}"
+        inc["crime_no"] = (cc_digit.get(inc["case_category"], "1")
+                           + f"{district_num[inc['district_code']]:04d}"
+                           + unit_num[inc["station_code"]]
+                           + yr + serial)
+        inc["case_no"] = yr + serial
+
+    # (3) ComplainantDetails (one-to-many off CaseMaster; every real FIR has
+    # one). rng4 only: in property/economic crime the victim usually files the
+    # FIR themselves, otherwise a member of the public does. The organizer's
+    # Occupation/Religion/Caste columns are deliberately NOT modeled — see
+    # docs/DATASET_REAL_SCHEMA.md (fairness: GARUDA profiles places and times,
+    # never communities).
+    rng4 = np.random.default_rng(seed + 550099)
+    victims_by_inc = {}
+    for e in edges:
+        if e["role"] == "victim":
+            victims_by_inc.setdefault(e["incident_id"], []).append(e["entity_id"])
+    for inc in incidents:
+        if rng4.random() >= 0.97:              # a few FIRs (UDR etc.) have none
+            continue
+        vics = victims_by_inc.get(inc["incident_id"])
+        if vics and rng4.random() < 0.6:
+            comp = vics[0]                     # victim filed their own FIR
+        else:
+            comp = str(rng4.choice(p_ids))     # unweighted: ordinary public
+        edges.append(dict(incident_id=inc["incident_id"], entity_id=comp,
+                          role="complainant",
+                          edge_weight=round(float(rng4.uniform(0.5, 1.0)), 2),
+                          evidence_type="fir_named", is_police=""))
+
     # ---- write ----
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -764,6 +844,7 @@ def generate(cfg, out_dir):
     court_df = pd.DataFrame(courts)
     status_df = pd.DataFrame(case_status_rows)
     head_df = pd.DataFrame(crime_head_rows)
+    unit_df = pd.DataFrame(unit_rows)
     inc_df.to_csv(out_dir / "incidents.csv", index=False, encoding="utf-8")
     ent_df.to_csv(out_dir / "entities.csv", index=False, encoding="utf-8")
     edge_df.to_csv(out_dir / "incident_edges.csv", index=False, encoding="utf-8")
@@ -774,6 +855,7 @@ def generate(cfg, out_dir):
     court_df.to_csv(out_dir / "courts.csv", index=False, encoding="utf-8")
     status_df.to_csv(out_dir / "case_status.csv", index=False, encoding="utf-8")
     head_df.to_csv(out_dir / "crime_head_sections.csv", index=False, encoding="utf-8")
+    unit_df.to_csv(out_dir / "units.csv", index=False, encoding="utf-8")
     (out_dir / "ground_truth.json").write_text(
         json.dumps(ground, ensure_ascii=False, indent=2), encoding="utf-8")
 

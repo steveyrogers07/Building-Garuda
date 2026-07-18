@@ -64,6 +64,16 @@ export interface GeoDistrict {
   top_crime?: string
 }
 
+export interface GeoStation {
+  station_code: string
+  name?: string
+  unit_id?: string
+  incidents: number
+  lat: number | null
+  lng: number | null
+  top_crime?: string
+}
+
 export interface RiskCell {
   district_code: string
   crime_type: string
@@ -132,6 +142,9 @@ export interface LinkedCase {
 export interface Incident {
   incident_id: string
   fir_no?: string
+  /** Organizer-schema CaseMaster.CrimeNo — 18-digit decodable key. */
+  crime_no?: string
+  case_no?: string
   occurred_at?: string
   reported_at?: string
   district_code?: string

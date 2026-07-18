@@ -55,6 +55,7 @@ EXPECTED_CORE = {
     "Crime_Head_Sections": _SUBSET / "Crime_Head_Sections.csv",
     "Socioeconomic": _SUBSET / "Socioeconomic.csv",
     "Geo_Boundaries": _SUBSET / "Geo_Boundaries.csv",
+    "Units": _SUBSET / "Units.csv",
     "Console_Users": _REFERENCE / "console_users.csv",
 }
 # created empty now, filled by the engines' zcql write arms later

@@ -11,6 +11,7 @@ import type {
   EntityDossier,
   Fairness,
   GeoDistrict,
+  GeoStation,
   OfficersRoster,
   OfficerWorklist,
   Ring,
@@ -136,7 +137,17 @@ export const api = {
   ego: (id: string, radius = 2) =>
     jget<EgoGraph>(`/network/${encodeURIComponent(id)}?radius=${radius}`, "ego"),
   anomalies: () => jpost<{ sample: AnomalyAlert[] }>("/anomaly/run", { write: false }, "anomaly"),
-  geoDistricts: () => jget<{ districts: GeoDistrict[] }>("/geo/districts", "geo"),
+  geoDistricts: (band?: { from: number; to: number }) =>
+    jget<{ districts: GeoDistrict[] }>(
+      band ? `/geo/districts?hour_from=${band.from}&hour_to=${band.to}` : "/geo/districts",
+      "geo",
+    ),
+  geoStations: (district: string, band?: { from: number; to: number }) =>
+    jget<{ district: string; stations: GeoStation[] }>(
+      `/geo/stations?district=${encodeURIComponent(district)}` +
+        (band ? `&hour_from=${band.from}&hour_to=${band.to}` : ""),
+      "geoStations",
+    ),
   riskTop: (n = 10) => jget<{ top: RiskCell[] }>(`/risk/top?n=${n}`, "risktop"),
   fairness: () => jget<Fairness>("/risk/fairness", "fair"),
   copilot: (query: string, lang?: string) =>

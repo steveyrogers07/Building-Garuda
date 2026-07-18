@@ -29,7 +29,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -427,14 +429,29 @@ def stats():
             "date_to": max(dates) if dates else None}
 
 
+def _in_hour_band(ts, hour_from, hour_to):
+    """occurred_at within [hour_from, hour_to); wraps midnight (20→5 = night)."""
+    try:
+        h = int(str(ts)[11:13])
+    except (ValueError, TypeError):
+        return False
+    if hour_from <= hour_to:
+        return hour_from <= h < hour_to
+    return h >= hour_from or h < hour_to
+
+
 @router.get("/geo/districts")
-def geo_districts():
-    """Per-district centroid + incident load + top crime — powers the hotspot map."""
-    if not _WARMED:
+def geo_districts(hour_from: Optional[int] = None, hour_to: Optional[int] = None):
+    """Per-district centroid + incident load + top crime — powers the hotspot map.
+    ?hour_from/&hour_to layer time-of-day onto location (the brief's
+    'spatiotemporal clusters'): counts include only incidents in that band."""
+    if hour_from is None and hour_to is None and not _WARMED:
         c = kv.get("geo:districts")            # published by warm() + nightly
         if c:
             return c
     inc = store.fetch_incidents_p5()
+    if hour_from is not None and hour_to is not None:
+        inc = [r for r in inc if _in_hour_band(r.get("occurred_at"), hour_from, hour_to)]
     socio = {s.get("area_code"): s for s in store.fetch_socioeconomic()}
     agg = {}
     for r in inc:
@@ -459,6 +476,43 @@ def geo_districts():
                     "lng": round(a["lng"] / k, 4), "top_crime": top})
     out.sort(key=lambda x: -x["incidents"])
     return {"districts": out}
+
+
+@router.get("/geo/stations")
+def geo_stations(district: str, hour_from: Optional[int] = None,
+                 hour_to: Optional[int] = None):
+    """Station-level drill-down inside one district (brief: 'district-level
+    drill-down… and specific police stations'). Unit names/centroids come from
+    the Units master (organizer schema: Unit/UnitType)."""
+    units = {u["station_code"]: u for u in store.fetch_units()
+             if u.get("unit_type") == "Police Station"
+             and u.get("district_code") == district}
+    agg: dict = {}
+    for r in store.fetch_incidents_full():     # p5 columns lack station_code
+        if r.get("district_code") != district:
+            continue
+        if hour_from is not None and hour_to is not None and \
+                not _in_hour_band(r.get("occurred_at"), hour_from, hour_to):
+            continue
+        st_code = r.get("station_code") or ""
+        a = agg.setdefault(st_code, {"n": 0, "crimes": {}})
+        a["n"] += 1
+        ct = r.get("crime_type")
+        if ct:
+            a["crimes"][ct] = a["crimes"].get(ct, 0) + 1
+    out = []
+    for st_code, a in agg.items():
+        u = units.get(st_code, {})
+        top = max(a["crimes"].items(), key=lambda x: x[1])[0] if a["crimes"] else None
+        out.append({"station_code": st_code,
+                    "name": u.get("unit_name") or st_code,
+                    "unit_id": u.get("unit_id", ""),
+                    "incidents": a["n"],
+                    "lat": float(u["lat"]) if u.get("lat") else None,
+                    "lng": float(u["long"]) if u.get("long") else None,
+                    "top_crime": top})
+    out.sort(key=lambda x: -x["incidents"])
+    return {"district": district, "stations": out}
 
 
 # --------------------------------------------------------------------------- #
@@ -717,6 +771,30 @@ def brief_run(scope: str = "STATE", pdf: bool = False):
         out["pdf"] = briefs.publish_pdf(
             html_text, f"garuda-brief-{scope.lower()}-{brief['period']}")
     return out
+
+
+# --------------------------------------------------------------------------- #
+# FIR provenance — the scanned source document behind an incident. Locally the
+# scans are the bundled synthetic renders (data/fir_samples, CCTNS-style);
+# in prod the same panel reads the Stratus raw-fir bucket the Zia-OCR
+# ingestion pipeline consumes. Every analytical claim traces to its document.
+# --------------------------------------------------------------------------- #
+_FIR_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) / "data" / "fir_samples"
+if not _FIR_DIR.is_dir():           # full checkout: data/ sits beside app/
+    _FIR_DIR = Path(REPO) / "data" / "fir_samples"
+
+
+@router.get("/fir/{incident_id}")
+def fir_scan(incident_id: str):
+    """The scanned FIR image for an incident (404 when no scan exists —
+    only a sample of the corpus has rendered documents)."""
+    from fastapi.responses import FileResponse
+    safe = re.sub(r"[^A-Za-z0-9_]", "", incident_id)
+    hits = sorted(_FIR_DIR.glob(f"FIR_*_{safe}.png")) if _FIR_DIR.is_dir() else []
+    if not hits:
+        raise HTTPException(404, "no scanned FIR on file for " + safe)
+    return FileResponse(str(hits[0]), media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=86400"})
 
 
 # --------------------------------------------------------------------------- #

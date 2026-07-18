@@ -74,6 +74,13 @@ def build_graph(incidents, entities, edges):
 
     inc_cids = defaultdict(set)          # incident_id -> {canonical_id}
     for ed in edges:
+        # Complainants are FIR *reporters*, not actors in the offence — linking
+        # them into a co-offender graph would fabricate associations (and, at
+        # ~1 per FIR, drown the real network's centrality in reporting noise).
+        # They still appear on the case file and in dossiers via the parties
+        # path; only the offender-network build excludes them.
+        if ed.get("role") == "complainant":
+            continue
         cid = cid_of.get(ed["entity_id"])
         if cid is not None:
             inc_cids[ed["incident_id"]].add(cid)

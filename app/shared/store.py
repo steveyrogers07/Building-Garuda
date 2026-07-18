@@ -554,7 +554,8 @@ def read_audit_log(limit=100):
 # --------------------------------------------------------------------------- #
 # Phase-9 reads — incident + its parties (governed: masking applied at API layer)
 # --------------------------------------------------------------------------- #
-_CASE_COLS = ("incident_id", "fir_no", "occurred_at", "district_code", "station_code",
+_CASE_COLS = ("incident_id", "fir_no", "crime_no", "case_no", "occurred_at",
+              "district_code", "station_code",
               "crime_type", "ipc_bns_code", "status", "source_fir_url",
               "case_category", "gravity", "officer_id",
               "incident_to_date", "info_received_ps_date", "court_id")
@@ -600,7 +601,8 @@ def fetch_incident_parties(incident_id):
     return out
 
 
-_FULL_INC_COLS = ("incident_id", "fir_no", "occurred_at", "reported_at", "district_code",
+_FULL_INC_COLS = ("incident_id", "fir_no", "crime_no", "case_no", "occurred_at",
+                  "reported_at", "district_code",
                   "station_code", "crime_type", "ipc_bns_code", "lat", "long",
                   "address_text", "mo_text", "status", "mo_cluster_id", "series_id",
                   "source_fir_url", "case_category", "gravity", "officer_id",
@@ -708,6 +710,22 @@ def fetch_case_status():
     p = SYN_DIR / "case_status.csv"
     rows = _read_csv(p) if p.exists() else []
     return [{k: r.get(k, "") for k in _CASE_STATUS_COLS} for r in rows]
+
+
+_UNIT_COLS = ("unit_id", "unit_name", "unit_type", "parent_unit",
+              "district_code", "district_num", "station_code", "lat", "long")
+
+
+def fetch_units():
+    """Units master (organizer schema: Unit/UnitType hierarchy) — station names,
+    numeric ids (the CrimeNo segments) and centroids for the map drill-down."""
+    if READ_BACKEND == "zcql":
+        zcql = _zcatalyst_zcql()
+        return _zcql_rows("Units", zcql.execute_query(
+            "SELECT " + ", ".join(_UNIT_COLS) + " FROM Units"))
+    p = SYN_DIR / "units.csv"
+    rows = _read_csv(p) if p.exists() else []
+    return [{k: r.get(k, "") for k in _UNIT_COLS} for r in rows]
 
 
 def fetch_crime_head_sections():

@@ -68,6 +68,20 @@ year `2026`, serial `00001`. (UDR=3, Zero-FIR=8, PAR=4.) `CaseNo` = last 9 digit
 | `Officers.kgid/dob/blood_group/appointment_date` **[BUILT]** | `Employee.KGID/EmployeeDOB/BloodGroupID/AppointmentDate` |
 | `Case_Status` (`status_code, status_name`) **[BUILT]** | `CaseStatusMaster` — reference-only; `Incidents.status` stays denormalized text |
 | `Crime_Head_Sections` (`crime_head, act_code, section_code`) **[BUILT]** | `CrimeHeadActSection` — reference map, derived from crime_types + companions |
+| `Incidents.crime_no` / `case_no` **[BUILT 2026-07-17]** | `CaseMaster.CrimeNo`/`CaseNo` in the organizer's exact 18-digit format (1 category + 4 district + 4 unit + 4 year + 5 serial; separate serial per station × category × year). Searchable via `/search` (any ≥6-digit fragment); shown on the CaseFile register head |
+| `Incident_Edges` role `complainant` **[BUILT 2026-07-17]** | `ComplainantDetails` (one-to-many off CaseMaster; ~60% of complainants are the victim filing their own FIR). Masked like victims (`masking.VICTIM_ROLES`) |
+| `Units` (`unit_id, unit_name, unit_type, parent_unit, district_code, district_num, station_code, lat, long`) **[BUILT 2026-07-17]** | `Unit` + `UnitType` — the station/office hierarchy (self-referencing `parent_unit`); its numeric ids are the CrimeNo segments; centroids power `/geo/stations` drill-down |
+
+## Deliberately not modeled (decisions, not gaps)
+
+| Organizer column/table | Why excluded |
+|---|---|
+| `ComplainantDetails.OccupationID/ReligionID/CasteID` (+ their master tables) | **Ethics/fairness by design**: GARUDA profiles places and times, never communities. Caste/religion-keyed analytics in a policing tool invites the exact bias the fairness audit exists to catch. Stated in the submission. |
+| `Accused.PersonID` (A1/A2 per-case ordering) | Per-case display ordering, not a global identity — entity resolution supersedes it |
+| `State` master / `Employee.PhysicallyChallenged/GenderID` | Single-state deployment; HR attributes with no analytical surface |
+| `Rank`/`Designation`/`UnitType` as separate masters | Flattened to text on `Officers`/`Units` — lookup tables with stable vocabularies |
+| `Inv_OccuranceTime` (1:1 off CaseMaster) | Flattened into `Incidents.occurred_at/incident_to_date/lat/long` |
+| `inv_arrestsurrenderaccused` junction | Flattened: one `Arrests` row per (incident, entity) |
 
 ## Implications for our pipeline (important)
 

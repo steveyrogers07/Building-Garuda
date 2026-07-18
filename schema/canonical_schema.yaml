@@ -31,6 +31,10 @@ tables:
     columns:
       - { name: incident_id,   type: Text,     nullable: false, unique: true }
       - { name: fir_no,        type: Text,     nullable: false }
+      # CaseMaster.CrimeNo/CaseNo — organizer's 18-digit decodable key (1 category
+      # + 4 district + 4 unit + 4 year + 5 serial); CaseNo = the last 9 digits.
+      - { name: crime_no,      type: Text,     nullable: true, unique: true }
+      - { name: case_no,       type: Text,     nullable: true }
       - { name: occurred_at,   type: DateTime, nullable: false }
       - { name: reported_at,   type: DateTime, nullable: true }
       - { name: district_code, type: Text,     nullable: false }
@@ -211,6 +215,26 @@ tables:
       - { name: crime_head,   type: Text, nullable: false }   # e.g. "Offences Against Property"
       - { name: act_code,     type: Text, nullable: false }
       - { name: section_code, type: Text, nullable: false }
+
+  Units:
+    phase: 2
+    populate: true
+    description: >
+      Organizer schema Unit + UnitType — the police-unit hierarchy (State HQ →
+      District Office → Police Station, self-referencing parent_unit). The 4-digit
+      numeric ids are the segments CrimeNo encodes; station centroids power the
+      hotspot map's station-level drill-down (/geo/stations).
+    business_key: unit_id
+    columns:
+      - { name: unit_id,       type: Text,    nullable: false, unique: true }
+      - { name: unit_name,     type: Text,    nullable: false }
+      - { name: unit_type,     type: Text,    nullable: false }  # Police Station | District Office | State HQ
+      - { name: parent_unit,   type: Text,    nullable: true, ref: Units.unit_id }
+      - { name: district_code, type: Text,    nullable: true }
+      - { name: district_num,  type: Text,    nullable: true }   # 4-digit CrimeNo segment
+      - { name: station_code,  type: Text,    nullable: true }   # -> Incidents.station_code
+      - { name: lat,           type: Decimal, nullable: true }
+      - { name: long,          type: Decimal, nullable: true }
 
   # ---------- DERIVED (created empty in Phase 2; filled later) ----------
 

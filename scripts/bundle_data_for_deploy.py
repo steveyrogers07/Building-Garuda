@@ -26,7 +26,7 @@ REPO = Path(__file__).resolve().parent.parent
 APP = REPO / "app"
 
 # (source under data/, destination under app/data/)
-_DIRS = ["synthetic", "reference", "gazetteer", "warmstart"]
+_DIRS = ["synthetic", "reference", "gazetteer", "warmstart", "fir_samples"]
 
 
 def main() -> None:

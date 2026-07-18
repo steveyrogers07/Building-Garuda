@@ -63,7 +63,7 @@ export default function Dossier() {
 
   return (
     <>
-      {/* ── registry index card — the entity's paper record ──────────────── */}
+      {/* ── registry index card - the entity's paper record ──────────────── */}
       <div className="paper-sheet relative overflow-hidden rounded-sm">
         <div className="paper-edge absolute inset-y-0 left-0 w-7 border-r border-paper-line/60" />
         <div className="py-4 pl-11 pr-5">
@@ -119,9 +119,9 @@ export default function Dossier() {
             {[
               ["Incidents", fmt(s.incidents)],
               ["Districts", String((s.districts || []).length)],
-              ["First seen", s.first_seen || "–"],
-              ["Last seen", s.last_seen || "–"],
-              ["Reach", (s.districts || []).join(" ") || "–"],
+              ["First seen", s.first_seen || "-"],
+              ["Last seen", s.last_seen || "-"],
+              ["Reach", (s.districts || []).join(" ") || "-"],
             ].map(([k, v]) => (
               <div key={k}>
                 <div className="k-label-paper">{k}</div>
@@ -132,7 +132,7 @@ export default function Dossier() {
         </div>
       </div>
 
-      {/* ── derived intelligence — console panels ─────────────────────────── */}
+      {/* ── derived intelligence - console panels ─────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader>
@@ -265,7 +265,7 @@ export default function Dossier() {
               <span className="font-mono text-[11px]">
                 {Object.entries(s.roles || {})
                   .map(([k, v]) => `${k}:${v}`)
-                  .join("  ") || "–"}
+                  .join("  ") || "-"}
               </span>
             </div>
             {d.guardrail && <Guardrail>{d.guardrail}</Guardrail>}

@@ -1,7 +1,7 @@
-"""GARUDA risk explainability (Phase 6) — SHAP via LightGBM TreeSHAP.
+"""GARUDA risk explainability (Phase 6) - SHAP via LightGBM TreeSHAP.
 
 Uses LightGBM's native `pred_contrib=True` (exact TreeSHAP) so every risk score
-comes with its top contributing drivers — no extra `shap` dependency. Powers
+comes with its top contributing drivers - no extra `shap` dependency. Powers
 `/risk/explain`: "why is this area x time x crime-type risky?".
 """
 from __future__ import annotations

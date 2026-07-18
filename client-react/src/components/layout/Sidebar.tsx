@@ -65,7 +65,7 @@ export function Sidebar() {
     const r = ROLE_PRESETS.find((x) => x.id === id)
     if (!r || !principal) return
     setPrincipal({ ...principal, role: r.role, scope: r.scope })
-    toast(`Clearance switched — ${r.label}`, {
+    toast(`Clearance switched - ${r.label}`, {
       description: "Jurisdiction gates and PII masking now apply server-side.",
     })
   }
@@ -127,7 +127,7 @@ export function Sidebar() {
           </SelectContent>
         </Select>
         <p className="mt-1.5 px-1 text-[10.5px] leading-snug text-faint">
-          {preset?.desc || "Custom principal — masking enforced server-side."}
+          {preset?.desc || "Custom principal - masking enforced server-side."}
         </p>
 
         <div className="mt-3 flex items-center gap-2.5 border-t border-line pt-3">

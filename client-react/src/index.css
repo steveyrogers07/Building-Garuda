@@ -4,11 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ────────────────────────────────────────────────────────────────────────────
-   GARUDA design system — "night operations room, paper evidence"
+   GARUDA design system - "night operations room, paper evidence"
 
    Two materials encode the product's story:
-     · CONSOLE — warm dark graphite: the analytics, the screens, the night shift
-     · PAPER   — manila: the FIR itself, pulled onto the desk under a lamp
+     · CONSOLE - warm dark graphite: the analytics, the screens, the night shift
+     · PAPER   - manila: the FIR itself, pulled onto the desk under a lamp
    Brass is the intelligence colour (Karnataka emblem gold): kingpins, primary
    actions, key findings. Signal red belongs to alerts alone.
    ──────────────────────────────────────────────────────────────────────────── */
@@ -27,7 +27,7 @@
   --dim: #a8a89e;
   --faint: #6b6c63;
 
-  /* paper material — the FIR on the desk */
+  /* paper material - the FIR on the desk */
   --paper: #ede6d3;
   --paper-2: #e4dcc5;
   --paper-line: #cfc4a6;
@@ -35,13 +35,13 @@
   --paper-dim: #6e6553;
   --paper-faint: #99906f;
 
-  /* brass — Karnataka emblem gold, the intelligence colour */
+  /* brass - Karnataka emblem gold, the intelligence colour */
   --brass: #c9a227;
   --brass-bright: #e3bf46;
   --brass-deep: #8c6f1c;
   --brass-soft: rgba(201, 162, 39, 0.12);
 
-  /* signal — beacon red, alerts only */
+  /* signal - beacon red, alerts only */
   --signal: #e5484d;
   --signal-soft: rgba(229, 72, 77, 0.12);
 
@@ -53,7 +53,7 @@
   --steel: #8fa3bf;
   --steel-soft: rgba(143, 163, 191, 0.12);
 
-  /* community palette for the network graph — warm-tuned, distinguishable */
+  /* community palette for the network graph - warm-tuned, distinguishable */
   --com-1: #c9a227;
   --com-2: #8fa3bf;
   --com-3: #7dab77;
@@ -213,7 +213,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* display type — Saira Condensed, uppercase, tracked: signage authority */
+  /* display type - Saira Condensed, uppercase, tracked: signage authority */
   .t-display {
     font-family: var(--font-display);
     @apply font-semibold uppercase tracking-[0.04em];
@@ -227,7 +227,7 @@
     @apply font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-paper-faint;
   }
 
-  /* rubber stamp — double border, condensed uppercase. Real FIR semantics:
+  /* rubber stamp - double border, condensed uppercase. Real FIR semantics:
      case category, gravity, chargesheet class are stamped on the paper. */
   .stamp {
     font-family: var(--font-display);
@@ -248,7 +248,7 @@
     background-size: 36px 36px;
   }
 
-  /* manila paper surface — the document material */
+  /* manila paper surface - the document material */
   .paper-sheet {
     background:
       radial-gradient(ellipse at 20% 0%, rgba(255, 252, 240, 0.5), transparent 55%),

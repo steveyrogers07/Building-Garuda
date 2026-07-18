@@ -1,7 +1,7 @@
-"""GARUDA — scheduled-job orchestration (Phase 9 automation).
+"""GARUDA - scheduled-job orchestration (Phase 9 automation).
 
 The *logic* of the proactive loop. Cron *triggers* are Catalyst **Job Scheduling**
-(nightly 02:00 recompute, weekly Mon 08:00 brief) — not the EOL Cron service.
+(nightly 02:00 recompute, weekly Mon 08:00 brief) - not the EOL Cron service.
 Each job is a plain callable so it runs identically locally and from a Job Pool.
 """
 from __future__ import annotations

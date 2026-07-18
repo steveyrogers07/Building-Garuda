@@ -26,7 +26,7 @@ export default function Audit() {
       <Notice title="Audit log restricted">
         The immutable audit trail is visible to <b className="font-mono">SCRB · Admin</b> and{" "}
         <b className="font-mono">Ethics · Oversight</b> only. Current clearance:{" "}
-        <b className="font-mono">{presetFor(p)?.label || p?.role}</b> — switch role in the sidebar.
+        <b className="font-mono">{presetFor(p)?.label || p?.role}</b> - switch role in the sidebar.
       </Notice>
     )
 
@@ -44,7 +44,7 @@ export default function Audit() {
       <PageHeader
         eyebrow="Govern · Append-only trail"
         title="Audit Log"
-        caption="Append-only trail of every privileged read and query — who, what role, which resource, when. The governance backbone."
+        caption="Append-only trail of every privileged read and query - who, what role, which resource, when. The governance backbone."
       >
         <Input
           value={filter}
@@ -56,7 +56,7 @@ export default function Audit() {
       </PageHeader>
 
       {rows.length === 0 ? (
-        <EmptyState>No audit entries{f ? " match the filter" : " yet — interact with governed reads first"}.</EmptyState>
+        <EmptyState>No audit entries{f ? " match the filter" : " yet - interact with governed reads first"}.</EmptyState>
       ) : (
         <div className="overflow-hidden rounded-md border border-line bg-card shadow-panel">
           <Table>

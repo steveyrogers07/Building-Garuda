@@ -1,4 +1,4 @@
-"""GARUDA — entity resolution (Phase 4). Merges alias/variant mentions of the same
+"""GARUDA - entity resolution (Phase 4). Merges alias/variant mentions of the same
 person/vehicle/phone into one canonical_id, with a confidence and a review flag for
 borderline pairs (never a silent merge).
 
@@ -118,7 +118,7 @@ def person_decision(a, b):
 
     The planted alias variants of one name all reduce to a HIGH full-name similarity
     after normalization/transliteration (stray-token, trailing-a, phonetic swap, Kannada)
-    — except the *initialised* form ('R. Kumar'), handled as a structural rule on an
+    - except the *initialised* form ('R. Kumar'), handled as a structural rule on an
     identical surname. Same-Metaphone first name on an identical surname covers ph->f."""
     # gender is inherited by aliases, so a mismatch is a hard block
     if a["gender"] and b["gender"] and a["gender"] != b["gender"]:
@@ -151,7 +151,7 @@ def person_decision(a, b):
             return "merge", max(jf, 0.88)              # ph->f
 
     # an initialised first name ('R. Kumar') is compatible with many distinct
-    # 'R*** Kumar' — ambiguous, so flag for review, never auto-merge (chaining blob).
+    # 'R*** Kumar' - ambiguous, so flag for review, never auto-merge (chaining blob).
     if _is_initial_pair(fa, fb):
         return "review", max(full, 0.85)
     if jf >= FIRST_REVIEW:
@@ -167,7 +167,7 @@ def person_score(a, b) -> float:
 def _person_blocks(recs):
     """Multi-pass blocking: an entity joins a block for each of its phonetic keys
     (last-name NYSIIS + Metaphone, first-name NYSIIS). Two entities sharing any block
-    become a candidate pair — robust to a variant that perturbs one name part."""
+    become a candidate pair - robust to a variant that perturbs one name part."""
     blocks = defaultdict(list)
     for r in recs:
         keys = set()
@@ -218,7 +218,7 @@ def resolve_persons(rows):
 
     # initials post-pass: an initialised first name ('R. Kumar') is merged into a
     # full-name cluster ONLY when (surname, first-initial, gender) maps to a single
-    # cluster — then it is unambiguous (the true parent always shares that key, so a
+    # cluster - then it is unambiguous (the true parent always shares that key, so a
     # unique candidate *is* the parent). Ambiguous ones stay flagged for review.
     full_key = defaultdict(set)
     initials = []

@@ -1,4 +1,4 @@
-"""GARUDA AppSail — ingestion endpoints (Phase 3).
+"""GARUDA AppSail - ingestion endpoints (Phase 3).
 
 POST /extract  : OCR text -> structured fields + per-field confidence + a Review_Queue record
 POST /geocode  : place/address -> lat/long (gazetteer)

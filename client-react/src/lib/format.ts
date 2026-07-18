@@ -1,6 +1,6 @@
-/** Numbers in Indian grouping — every data cell goes through here. */
+/** Numbers in Indian grouping - every data cell goes through here. */
 export function fmt(n?: number | null): string {
-  return n == null ? "–" : Number(n).toLocaleString("en-IN")
+  return n == null ? "-" : Number(n).toLocaleString("en-IN")
 }
 
 /** First 10 chars of an ISO timestamp (the date part). */
@@ -19,5 +19,5 @@ export function istNow(): string {
 }
 
 export function pct(x?: number | null, digits = 0): string {
-  return x == null ? "–" : (x * 100).toFixed(digits) + "%"
+  return x == null ? "-" : (x * 100).toFixed(digits) + "%"
 }

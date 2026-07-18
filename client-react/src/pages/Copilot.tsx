@@ -15,7 +15,7 @@ type Msg =
   | { role: "user"; text: string }
   | { role: "bot"; res: CopilotResponse; pending?: boolean }
 
-/** Browser speech recognition (Chrome ships kn-IN natively — no credits, no
+/** Browser speech recognition (Chrome ships kn-IN natively - no credits, no
  *  cloud keys; Catalyst Zia has no STT, so this IS the §4.13 voice front). */
 type Recognition = {
   lang: string
@@ -42,7 +42,7 @@ let CHAT: Msg[] = [
     role: "bot",
     res: {
       answer:
-        "Ask me about incidents, locations, crime types or time windows. I return matching FIRs with citations — and I won't make accusations.",
+        "Ask me about incidents, locations, crime types or time windows. I return matching FIRs with citations - and I won't make accusations.",
       citations: [],
     },
   },
@@ -112,7 +112,7 @@ export default function Copilot() {
     const rec = makeRecognition()
     if (!rec) return
     recRef.current = rec
-    rec.lang = "kn-IN" // ಕನ್ನಡ — the showpiece; typed Kannada works too
+    rec.lang = "kn-IN" // ಕನ್ನಡ - the showpiece; typed Kannada works too
     rec.interimResults = false
     rec.onresult = (ev) => {
       const transcript = Array.from({ length: ev.results.length })
@@ -150,7 +150,7 @@ export default function Copilot() {
       <PageHeader
         eyebrow="Assist · RAG over the FIR corpus"
         title="Intelligence Copilot"
-        caption="Plain-English questions over the FIR corpus — every answer grounded in cited records. Citations open the case file."
+        caption="Plain-English questions over the FIR corpus - every answer grounded in cited records. Citations open the case file."
       />
 
       <Card className="flex h-[calc(100vh-235px)] min-h-[420px] flex-col">
@@ -243,7 +243,7 @@ export default function Copilot() {
                 aria-label={listening ? "Stop listening" : "Ask in Kannada by voice"}
                 aria-pressed={listening}
                 className={cn(listening && "animate-pulse")}
-                title="ಕನ್ನಡ ಧ್ವನಿ — Kannada voice query"
+                title="ಕನ್ನಡ ಧ್ವನಿ - Kannada voice query"
               >
                 {listening ? <MicOff className="size-4" /> : <Mic className="size-4" />}
                 <span className="hidden sm:inline">{listening ? "Listening…" : "ಕನ್ನಡ"}</span>

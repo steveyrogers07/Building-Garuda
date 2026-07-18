@@ -1,6 +1,6 @@
 """GARUDA crime-series linkage (Phase 5).
 
-Groups incidents into *series* — the same offender(s) hitting again — using MO
+Groups incidents into *series* - the same offender(s) hitting again - using MO
 similarity plus a space-time near-repeat test (Knox-style). Two incidents link
 when they share an MO signal (Phase-4 ``mo_cluster_id``, or crime_type as a
 fallback) AND occur within ``max_km`` and ``max_gap_days`` of each other.

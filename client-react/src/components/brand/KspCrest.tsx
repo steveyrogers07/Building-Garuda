@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 
-/** Karnataka State Police crest — a geometric Gandaberunda (the two-headed
+/** Karnataka State Police crest - a geometric Gandaberunda (the two-headed
  *  eagle of Karnataka) in a ringed badge. Single-colour, scales from favicon
  *  to login hero; colour follows `currentColor` so themes recolour it. */
 export function KspCrest({

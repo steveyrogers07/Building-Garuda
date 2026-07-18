@@ -40,8 +40,8 @@ export default function Overview() {
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <KpiCard label="Incidents" value={fmt(stats.data?.incidents)} detail="tracked FIRs (canonical)" icon={Activity} />
         <KpiCard label="Entities" value={fmt(stats.data?.entities)} detail="persons · phones · vehicles" icon={Users} />
-        <KpiCard label="Cross-district rings" value={rings.loading ? "–" : fmt(ringRows.length)} detail="organized networks surfaced" icon={Target} tone="accent" />
-        <KpiCard label="Active alerts" value={anomalies.loading ? "–" : fmt(alerts.length)} detail="emerging-trend spikes" icon={Siren} tone="danger" />
+        <KpiCard label="Cross-district rings" value={rings.loading ? "-" : fmt(ringRows.length)} detail="organized networks surfaced" icon={Target} tone="accent" />
+        <KpiCard label="Active alerts" value={anomalies.loading ? "-" : fmt(alerts.length)} detail="emerging-trend spikes" icon={Siren} tone="danger" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
@@ -64,7 +64,7 @@ export default function Overview() {
                     onClick={() => navigate(`/entity/${encodeURIComponent(r.kingpin_id)}`)}
                     className="flex w-full items-center gap-3 rounded-sm border border-transparent px-2 py-2 text-left transition-colors hover:border-line hover:bg-accent"
                   >
-                    {/* rank — rings are ordered by district span */}
+                    {/* rank - rings are ordered by district span */}
                     <span className="t-display w-8 shrink-0 text-center text-[20px] leading-none text-brass">
                       {String(i + 1).padStart(2, "0")}
                     </span>
@@ -166,7 +166,7 @@ export default function Overview() {
         <ShieldCheck className="size-4 shrink-0 text-ok" />
         <span className="min-w-0 flex-1 truncate">
           Forecast model <span className="font-mono">lgbm-p6-v1</span> · walk-forward validated · fairness
-          audit {fs ? `flags ${fs.over_predicted ?? 0}/${fs.wards ?? "–"} wards for over-prediction review` : "active"} ·
+          audit {fs ? `flags ${fs.over_predicted ?? 0}/${fs.wards ?? "-"} wards for over-prediction review` : "active"} ·
           predictions target <b className="text-foreground">places &amp; times, never people</b>
         </span>
         <span className="font-mono text-[10px] text-faint">view →</span>

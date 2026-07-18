@@ -40,7 +40,7 @@ def _slug(s):
 
 
 def detect(incidents, z_thresh=3.5, min_ratio=2.0, min_baseline=3.0, min_active_months=6):
-    """Return ``{alerts: [...]}`` — one Alerts row per flagged (district, crime, month)."""
+    """Return ``{alerts: [...]}`` - one Alerts row per flagged (district, crime, month)."""
     counts = defaultdict(lambda: defaultdict(int))      # (district, crime) -> {month: n}
     months = set()
     for inc in incidents:

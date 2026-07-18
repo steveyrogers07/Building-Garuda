@@ -1,10 +1,10 @@
-"""GARUDA copilot — semantic retrieval over FIR narratives (Phase 7).
+"""GARUDA copilot - semantic retrieval over FIR narratives (Phase 7).
 
 $0 default: a TF-IDF (word + char n-gram) vector index over `mo_text`/BriefFacts
-with cosine scoring — brute force is instant at 10k+ rows, no torch/FAISS. Set
+with cosine scoring - brute force is instant at 10k+ rows, no torch/FAISS. Set
 COPILOT_EMBEDDER=sbert to swap in sentence-transformers (multilingual, pulls
 torch) once you want true paraphrase matching; the API is identical. Used to
-rerank the structured (ZCQL) candidate set — hybrid retrieval, not KB-RAG alone.
+rerank the structured (ZCQL) candidate set - hybrid retrieval, not KB-RAG alone.
 """
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ class NarrativeIndex:
 
     def rank(self, query, candidate_ids=None, top_k=10):
         """Top-k (id, score). Restricted to candidate_ids (the structured hits)
-        when given — that's the hybrid fuse + rerank step."""
+        when given - that's the hybrid fuse + rerank step."""
         sims = self._sims(query)
         if candidate_ids is not None:
             idx = [self.pos[i] for i in candidate_ids if i in self.pos]

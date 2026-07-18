@@ -1,4 +1,4 @@
-"""GARUDA — MO fingerprinting & clustering (Phase 4).
+"""GARUDA - MO fingerprinting & clustering (Phase 4).
 
 Per incident: an embedding of mo_text + interpretable structured MO features (time bucket,
 crime type, weapon/vehicle/entry/target). Cluster with HDBSCAN -> mo_cluster_id, and
@@ -8,12 +8,12 @@ analyst sees "night / two-wheeler / gold chain", not just a number.
 Defaults are local & free:
   - text embedding : TF-IDF + TruncatedSVD (LSA). Opt-in sentence-transformers via
                      MO_EMBEDDER=sbert (multilingual model if mo_text contains Kannada).
-  - clustering     : sklearn's HDBSCAN (bundled since scikit-learn 1.3 — no compiler).
+  - clustering     : sklearn's HDBSCAN (bundled since scikit-learn 1.3 - no compiler).
 Vectors are precomputed and can be persisted (save_vectors / load_vectors) so re-runs and
 the Phase-7 copilot reuse them instead of re-embedding every call.
 
-Heavy deps (scikit-learn) are imported lazily inside fit_mo so importing this module — and
-the AppSail health probe — never fails in a minimal environment.
+Heavy deps (scikit-learn) are imported lazily inside fit_mo so importing this module - and
+the AppSail health probe - never fails in a minimal environment.
 """
 from __future__ import annotations
 

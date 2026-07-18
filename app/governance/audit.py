@@ -1,4 +1,4 @@
-"""GARUDA — audit trail (Phase 9 governance).
+"""GARUDA - audit trail (Phase 9 governance).
 
 Every privileged read/query produces an immutable Audit_Log entry (who, what role,
 what action, which resource, the query, when, from where). Persisted via

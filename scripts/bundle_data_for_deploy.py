@@ -28,6 +28,13 @@ APP = REPO / "app"
 # (source under data/, destination under app/data/)
 _DIRS = ["synthetic", "reference", "gazetteer", "warmstart", "fir_samples"]
 
+# Build-time artefacts that must NOT ship. `_canonical` is the loader's
+# --dry-run output (~7 MB) - it exists only to be fed to ds:import and is never
+# read at runtime, so shipping it just inflates every upload. `_dev_subset` is
+# deliberately NOT excluded: app/routers/provision.py loads the Data Store from
+# it. `__pycache__` is regenerated on the instance.
+_SKIP = shutil.ignore_patterns("_canonical", "__pycache__", "*.pyc")
+
 
 def main() -> None:
     copied = []
@@ -41,7 +48,7 @@ def main() -> None:
         dst = APP / "data" / name
         if dst.exists():
             shutil.rmtree(dst)
-        shutil.copytree(src, dst)
+        shutil.copytree(src, dst, ignore=_SKIP)
         copied.append(name)
 
     # SPA: copy the built React console into app/webclient so a single AppSail

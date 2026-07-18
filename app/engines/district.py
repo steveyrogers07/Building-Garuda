@@ -1,12 +1,12 @@
-"""GARUDA — District Command Card (blueprint §B1/§B2).
+"""GARUDA - District Command Card (blueprint §B1/§B2).
 
-Turns the choropleth into command intelligence: load, backlog aging, and —
-the metric nobody else in the dataset computes — the **clearance rate** from
+Turns the choropleth into command intelligence: load, backlog aging, and -
+the metric nobody else in the dataset computes - the **clearance rate** from
 `Chargesheets.cs_type` (A=Chargesheet, B=False Case, C=Undetected), sourced
 straight from the organizer's `ChargesheetDetails` table. It sits unused in
 the raw schema; this is the aggregation that turns it into a rating.
 
-Pure functions over rows (like engines/anomaly/detect.py) — no I/O, easy to
+Pure functions over rows (like engines/anomaly/detect.py) - no I/O, easy to
 unit-test, called by the router with whatever store.fetch_* already returned.
 """
 from __future__ import annotations
@@ -48,7 +48,7 @@ def _clearance_rate(counts):
 
 def _data_as_of(incidents):
     """Backlog aging is relative to the dataset's own timeline, not wall-clock
-    time — the demo/synthetic corpus is dated in the past, so datetime.now()
+    time - the demo/synthetic corpus is dated in the past, so datetime.now()
     would count every open case as "aging" regardless of how recent it is."""
     dates = [d for d in (_parse_dt(r.get("occurred_at")) for r in incidents) if d]
     return max(dates) if dates else datetime.now()
@@ -118,7 +118,7 @@ def command_card(district_code, incidents, chargesheets, officers, now=None):
 
 
 def rank_districts(district_codes, incidents, chargesheets, officers, now=None):
-    """All districts ranked by clearance rate — "who's improving, who's slipping" (§B2)."""
+    """All districts ranked by clearance rate - "who's improving, who's slipping" (§B2)."""
     now = now or _data_as_of(incidents)
     cards = [command_card(d, incidents, chargesheets, officers, now=now) for d in district_codes]
     cards.sort(key=lambda c: (c["clearance_rate"] is None, -(c["clearance_rate"] or 0)))

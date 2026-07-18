@@ -1,9 +1,9 @@
-"""GARUDA — field-level PII masking (Phase 9 governance).
+"""GARUDA - field-level PII masking (Phase 9 governance).
 
 Protects victim/witness identity per role + jurisdiction, with statutory hard
-masking for sexual offences (**IPC 228A**) and child victims (**POCSO**) — those
+masking for sexual offences (**IPC 228A**) and child victims (**POCSO**) - those
 identities are withheld from everyone except an admin / the assigned case officer,
-regardless of jurisdiction. Suspects/accused are never labelled guilty — only
+regardless of jurisdiction. Suspects/accused are never labelled guilty - only
 annotated "as recorded, pending investigation/trial."
 
 Masking is applied at the API boundary so raw PII never leaves the brain
@@ -40,7 +40,7 @@ def mask_phone(v):
 
 def can_see_victim(role, scope, district, station, protected):
     """Who may see an un-masked victim/witness identity."""
-    if protected:                            # 228A / POCSO — strongest
+    if protected:                            # 228A / POCSO - strongest
         return role in ("scrb-admin", "case-officer")
     if role == "scrb-admin":
         return True

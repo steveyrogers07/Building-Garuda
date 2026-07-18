@@ -1,6 +1,6 @@
 """GARUDA risk fairness audit (Phase 6).
 
-Bias guardrail for predictive policing: per ward (district here — the finest unit
+Bias guardrail for predictive policing: per ward (district here - the finest unit
 available), compare the model's mean predicted risk against the actual offense
 rate. A ward whose predicted risk runs materially hotter than reality (ratio >
 threshold) is over-policed by the model and is flagged for review. Keeps the

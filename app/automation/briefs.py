@@ -1,4 +1,4 @@
-"""GARUDA — intelligence-brief assembly (Phase 9 automation).
+"""GARUDA - intelligence-brief assembly (Phase 9 automation).
 
 Assembles the periodic intelligence brief from the engine outputs (rings, alerts,
 series, risk, fairness) into structured sections + printable HTML. In production a
@@ -19,11 +19,11 @@ def build_brief(scope="STATE", period="", *, stats=None, rings=None, alerts=None
 
     sec = [{"title": "Situation", "body":
             "%s FIRs tracked · %s active spike alerts · %s organized rings."
-            % (stats.get("incidents", "–"), len(alerts), len(rings))}]
+            % (stats.get("incidents", "-"), len(alerts), len(rings))}]
     if rings:
         r = rings[0]
         sec.append({"title": "Top organized network", "body":
-                    "Kingpin %s — %s members across %s districts (%s). Shared links: %s."
+                    "Kingpin %s - %s members across %s districts (%s). Shared links: %s."
                     % (r.get("kingpin_label"), r.get("persons"), r.get("district_count"),
                        ", ".join(r.get("districts", [])), ", ".join(r.get("shared_links", [])))})
     if alerts:
@@ -35,19 +35,19 @@ def build_brief(scope="STATE", period="", *, stats=None, rings=None, alerts=None
             for s in series[:5]]})
     if risk:
         sec.append({"title": "Risk forecast (next period)", "items": [
-            "%s · %s — %s%%" % (t.get("district_code"), t.get("crime_type"),
+            "%s · %s - %s%%" % (t.get("district_code"), t.get("crime_type"),
                                 round((t.get("risk_score") or 0) * 100)) for t in risk[:5]]})
     if fairness:
         sec.append({"title": "Fairness & governance note", "body":
-                    "%s of %s wards over-predicted >1.3x (max %.2fx) — flagged for review. "
+                    "%s of %s wards over-predicted >1.3x (max %.2fx) - flagged for review. "
                     "Forecasts target places & times, never individuals; all reads are audited."
-                    % (fairness.get("over_predicted", 0), fairness.get("wards", "–"),
+                    % (fairness.get("over_predicted", 0), fairness.get("wards", "-"),
                        float(fairness.get("max_ratio", 0) or 0))})
 
     return {
         "scope": scope, "period": period or datetime.date.today().isoformat(),
         "generated_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        "classification": "RESTRICTED — for authorized SCRB personnel only",
+        "classification": "RESTRICTED - for authorized SCRB personnel only",
         "sections": sec,
         "sources": [r.get("kingpin_id") for r in rings[:3] if r.get("kingpin_id")],
     }
@@ -68,7 +68,7 @@ def publish_pdf(html_text, name, bucket=None):
         key = f"{name}.pdf"
         app.stratus().bucket(bucket).put_object(key, body)
         return {"bucket": bucket, "key": key}
-    except Exception:                      # noqa: BLE001 — degrade to HTML-only
+    except Exception:                      # noqa: BLE001 - degrade to HTML-only
         return None
 
 
@@ -85,8 +85,8 @@ def render_html(brief):
             "body{font-family:Arial,Helvetica,sans-serif;color:#0e1626;max-width:760px;margin:28px auto;line-height:1.5}"
             "h1{color:#1e40af;margin-bottom:2px}h2{color:#1e3a8a;border-bottom:1px solid #cbd5e1;padding-bottom:4px;margin-top:22px}"
             ".cls{color:#b45309;font-weight:700}.meta{color:#64748b;font-size:12px}ul{padding-left:18px}</style></head><body>"
-            "<h1>GARUDA — Intelligence Brief</h1><p class='cls'>%s</p>"
+            "<h1>GARUDA - Intelligence Brief</h1><p class='cls'>%s</p>"
             "<p class='meta'>Scope: %s · Period: %s · Generated: %s UTC</p>%s"
             "<p class='meta'>Source FIRs / entities: %s</p></body></html>"
             % (e(brief["classification"]), e(brief["scope"]), e(brief["period"]),
-               e(brief["generated_at"]), "".join(body), e(", ".join(brief["sources"]) or "—")))
+               e(brief["generated_at"]), "".join(body), e(", ".join(brief["sources"]) or "-")))

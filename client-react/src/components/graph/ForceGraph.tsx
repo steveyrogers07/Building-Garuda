@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 
 import type { EgoGraph, GraphNode } from "@/lib/types"
 
-/** Community palette — node colour by Louvain community (design doc §6). */
+/** Community palette - node colour by Louvain community (design doc §6). */
 export const COMMUNITY = [
   "#8fa3bf", "#d98e32", "#7dab77", "#b784c9", "#d9788f",
   "#6fb8ba", "#a3b361", "#c98484", "#7f9bd9", "#c9a227",

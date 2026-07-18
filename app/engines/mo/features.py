@@ -1,4 +1,4 @@
-"""GARUDA — structured MO feature extraction (Phase 4).
+"""GARUDA - structured MO feature extraction (Phase 4).
 
 Turns an incident into interpretable modus-operandi features that complement the free-text
 mo_text embedding: time-of-day bucket, crime type, and weapon / vehicle / entry-method /

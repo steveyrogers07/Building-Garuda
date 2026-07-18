@@ -1,10 +1,10 @@
-"""GARUDA co-offender network engine (Phase 5) — the hero.
+"""GARUDA co-offender network engine (Phase 5) - the hero.
 
 Turns siloed FIRs into one visible criminal network. Nodes are *canonical*
 entities (persons / phones / vehicles, after Phase-4 resolution); an edge means
 two canonical entities co-occur in the same incident. Because a shared phone or
 vehicle is itself a canonical node, the people who used it become connected
-through it — so a gang that never appears together in a single FIR still lights
+through it - so a gang that never appears together in a single FIR still lights
 up as one structure.
 
 We then compute:
@@ -74,7 +74,7 @@ def build_graph(incidents, entities, edges):
 
     inc_cids = defaultdict(set)          # incident_id -> {canonical_id}
     for ed in edges:
-        # Complainants are FIR *reporters*, not actors in the offence — linking
+        # Complainants are FIR *reporters*, not actors in the offence - linking
         # them into a co-offender graph would fabricate associations (and, at
         # ~1 per FIR, drown the real network's centrality in reporting noise).
         # They still appear on the case file and in dossiers via the parties
@@ -193,7 +193,7 @@ def centrality_score(G, betw, nodes=None):
     degree, each scaled by the max over ``nodes`` (default: all nodes).
 
     This deliberately blends two signals: betweenness surfaces *brokers* in loose
-    networks, while weighted degree (strength) surfaces *prolific co-offenders* —
+    networks, while weighted degree (strength) surfaces *prolific co-offenders* -
     e.g. a kingpin inside a tight clique, where betweenness alone is degenerate.
     """
     nodes = list(nodes if nodes is not None else G.nodes)
@@ -205,7 +205,7 @@ def centrality_score(G, betw, nodes=None):
 
 
 def top_actors(G, betw, deg, n=10, node_type="person"):
-    """Highest-centrality nodes (default: persons) — the candidate kingpins."""
+    """Highest-centrality nodes (default: persons) - the candidate kingpins."""
     nodes = [x for x in G.nodes
              if node_type is None or G.nodes[x].get("type") == node_type]
     score = centrality_score(G, betw, nodes)
@@ -229,13 +229,13 @@ def cross_district_rings(G, communities=None, min_districts=2, min_incidents=4,
     the crew that co-offended with it, and de-duplicate rings with the same crew
     (so a gang's phone and vehicle collapse into one ring). Ranked by how heavily
     the link is used, then how many distinct shared links the crew runs (phone AND
-    vehicle beats a lone plate), then district reach — which is what makes a
+    vehicle beats a lone plate), then district reach - which is what makes a
     deliberate cross-district gang stand out from incidental plate reuse.
 
     ``max_districts`` drops implausibly wide crews: a real syndicate sharing one
     burner/plate works a cluster of neighbouring districts, so a "ring" smeared
     across a third of the state is a graph artefact (incidental reuse chaining
-    through a high-degree node), not organised crime — filtering it keeps the
+    through a high-degree node), not organised crime - filtering it keeps the
     surfaced rings believable instead of noisy."""
     rings_by_crew = {}
     for n in G.nodes:

@@ -1,25 +1,25 @@
-"""GARUDA — field-officer intelligence engine (docs/product/08 §1/§2/§6).
+"""GARUDA - field-officer intelligence engine (docs/product/08 §1/§2/§6).
 
 The statute the whole module hangs on: once an accused is arrested, the
 chargesheet must reach court within 60 days (Non-Heinous) or 90 days (Heinous)
-of the arrest — CrPC 167(2) / BNSS 187 — or the accused walks on **default
+of the arrest - CrPC 167(2) / BNSS 187 - or the accused walks on **default
 bail** regardless of the evidence. No IO tool in the source schema tracks this;
 these aggregations turn the Arrests/Officers/gravity columns into:
 
-  §1  case_deadline()     — the default-bail clock for one case (traffic-light
+  §1  case_deadline()     - the default-bail clock for one case (traffic-light
                             buckets: green >30d / amber 10-30d / red <10d /
-                            overdue), from the *earliest* arrest — the first
+                            overdue), from the *earliest* arrest - the first
                             accused in custody sets the binding deadline.
-  §2  officer_worklist()  — one IO's open cases, worst-first: §1 urgency, then
+  §2  officer_worklist()  - one IO's open cases, worst-first: §1 urgency, then
                             case age, then gravity. officers_roster() feeds the
                             console's officer picker with load + urgency counts.
-  §6  absconding_board()  — suspects on open cases with no arrest row, grouped
+  §6  absconding_board()  - suspects on open cases with no arrest row, grouped
                             by canonical person: the live "still out there"
                             list, and the seed for a future watchlist/BOLO.
 
-Pure functions over rows (the engines/district.py pattern) — no I/O; the router
+Pure functions over rows (the engines/district.py pattern) - no I/O; the router
 passes whatever store.fetch_* returned. All day math anchors to the dataset's
-own timeline (max occurred_at), never datetime.now() — same convention as the
+own timeline (max occurred_at), never datetime.now() - same convention as the
 district backlog aging and the A4 test gate in tests/test_arrests_sections.py.
 """
 from __future__ import annotations
@@ -44,7 +44,7 @@ def _d(s):
 
 
 def data_as_of(incidents):
-    """Anchor day = the dataset's own latest occurrence, never wall-clock now —
+    """Anchor day = the dataset's own latest occurrence, never wall-clock now -
     the corpus is dated in the past, so datetime.now() would mark every open
     case overdue regardless of how recent it is."""
     dates = [d for d in (_d(r.get("occurred_at")) for r in incidents) if d]
@@ -63,7 +63,7 @@ def bucket_for(days_remaining):
 
 
 def case_deadline(incident, arrests_for_case, *, anchor, has_chargesheet=False):
-    """§1 — the default-bail clock for one case, or None when no clock runs
+    """§1 - the default-bail clock for one case, or None when no clock runs
     (nobody arrested yet, final report already filed, or the case is no longer
     under investigation)."""
     if has_chargesheet or incident.get("status") != "Under Investigation":
@@ -85,7 +85,7 @@ def case_deadline(incident, arrests_for_case, *, anchor, has_chargesheet=False):
 
 
 # --------------------------------------------------------------------------- #
-# §2 — "My cases" worklist
+# §2 - "My cases" worklist
 # --------------------------------------------------------------------------- #
 def _by_incident(rows):
     out = defaultdict(list)
@@ -107,7 +107,7 @@ def _sort_key(c):
 
 
 def officer_worklist(officer, incidents, arrests, chargesheets, now=None):
-    """One IO's open cases, worst-first — the landing view that replaces the
+    """One IO's open cases, worst-first - the landing view that replaces the
     paper case-diary stack."""
     anchor = now or data_as_of(incidents)
     oid = officer["officer_id"]
@@ -151,7 +151,7 @@ def officer_worklist(officer, incidents, arrests, chargesheets, now=None):
 
 def officers_roster(incidents, officers, arrests, chargesheets,
                     district=None, station=None, now=None):
-    """Officer list with open-case load and urgent-clock count (overdue+red) —
+    """Officer list with open-case load and urgent-clock count (overdue+red) -
     feeds the My-Cases picker, worst worklist first."""
     anchor = now or data_as_of(incidents)
     arr_by_inc = _by_incident(arrests)
@@ -184,10 +184,10 @@ def officers_roster(incidents, officers, arrests, chargesheets,
 
 
 # --------------------------------------------------------------------------- #
-# §6 — absconding-accused board
+# §6 - absconding-accused board
 # --------------------------------------------------------------------------- #
 def absconding_people(incidents, arrests, chargesheets, edges, entities, now=None):
-    """Phase 1 — the expensive, filter-independent derivation: every
+    """Phase 1 - the expensive, filter-independent derivation: every
     (person × open case) absconding pair, exactly as the A3 test gate proves it
     (suspect edges on chargesheet-free cases minus arrest rows). The router
     caches this once (a full pass over ~10k edges/arrests/incidents); filters
@@ -239,7 +239,7 @@ def absconding_people(incidents, arrests, chargesheets, edges, entities, now=Non
 
 def absconding_board_from(state, district=None, station=None, gravity=None,
                           min_days=0, limit=100):
-    """Phase 2 — cheap filter/group/sort over a (cached) phase-1 state.
+    """Phase 2 - cheap filter/group/sort over a (cached) phase-1 state.
     Filters apply to cases; a person's district span keeps the unfiltered set so
     the cross-district signal survives a district-scoped view."""
     rows = []

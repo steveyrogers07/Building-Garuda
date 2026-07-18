@@ -1,4 +1,4 @@
-"""GARUDA copilot — hybrid answer with mandatory citations + guardrails (Phase 7).
+"""GARUDA copilot - hybrid answer with mandatory citations + guardrails (Phase 7).
 
 Pipeline: NL -> structured filters (nl2query) -> ZCQL over Incidents (executed
 locally as row filtering) -> semantic rerank (retriever) -> extractive, templated

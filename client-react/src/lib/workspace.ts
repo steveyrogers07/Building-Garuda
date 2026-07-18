@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react"
 
-/** Investigation workspace tabs — every case/entity the officer opens stays
+/** Investigation workspace tabs - every case/entity the officer opens stays
  *  one click away (IDE-for-investigations, design doc §J2). Session-scoped. */
 export interface WorkTab {
   type: "case" | "entity"

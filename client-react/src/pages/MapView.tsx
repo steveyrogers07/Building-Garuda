@@ -90,7 +90,7 @@ export default function MapView() {
     })
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left")
     map.on("error", () => {
-      /* tile fetch failures (offline) are non-fatal — bubbles still render */
+      /* tile fetch failures (offline) are non-fatal - bubbles still render */
     })
     mapRef.current = map
     return () => {
@@ -195,7 +195,7 @@ export default function MapView() {
         ;(map!.getSource("districts") as maplibregl.GeoJSONSource).setData(fc)
       }
 
-      // code labels as HTML markers (own bundled font — no external glyph server)
+      // code labels as HTML markers (own bundled font - no external glyph server)
       markersRef.current.forEach((m) => m.remove())
       markersRef.current = districts.map((d) => {
         const el = document.createElement("span")
@@ -231,7 +231,7 @@ export default function MapView() {
       .map((s) => {
         const el = document.createElement("div")
         const r = 7 + 13 * Math.sqrt(s.incidents / maxS)
-        el.title = `${s.name} — ${s.incidents} incidents`
+        el.title = `${s.name} - ${s.incidents} incidents`
         el.style.cssText =
           `width:${r * 2}px;height:${r * 2}px;border-radius:50%;cursor:pointer;` +
           "background:rgba(120,200,255,.25);border:1.5px solid #7cc8ff;" +
@@ -254,7 +254,7 @@ export default function MapView() {
       <PageHeader
         eyebrow="Investigate · Geography"
         title="Hotspot Map"
-        caption="District incident load — bubble size = volume, colour = intensity, halo = top hotspots, red pulse = active spike alert. Click a district to drill to its stations."
+        caption="District incident load - bubble size = volume, colour = intensity, halo = top hotspots, red pulse = active spike alert. Click a district to drill to its stations."
       >
         <div
           className="flex flex-wrap items-center gap-0.5 rounded-sm border border-line bg-panel p-0.5"
@@ -321,7 +321,7 @@ export default function MapView() {
                   <span className="k-label">incidents</span>
                   <span className="tnum font-mono">{fmt(drill.incidents)}</span>
                   <span className="k-label">top crime</span>
-                  <span>{drill.top_crime || "–"}</span>
+                  <span>{drill.top_crime || "-"}</span>
                 </div>
 
                 <div className="k-label mt-4 mb-1.5">

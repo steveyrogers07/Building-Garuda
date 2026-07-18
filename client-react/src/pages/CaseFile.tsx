@@ -23,7 +23,7 @@ import { useApi } from "@/lib/hooks"
 import { presetFor, usePrincipal } from "@/lib/roles"
 import { upsertTab } from "@/lib/workspace"
 
-/** Party-role stamp on the paper sheet — suspects in beacon red, the rest in
+/** Party-role stamp on the paper sheet - suspects in beacon red, the rest in
  *  registrar's ink, exactly as an FIR reads. */
 function PaperRole({ role }: { role: string }) {
   const hot = role === "suspect" || role === "accused"
@@ -54,7 +54,7 @@ export default function CaseFile() {
       <Notice title="Access restricted">
         {error.detail || "This case is outside your jurisdiction or role."} Current clearance:{" "}
         <b className="font-mono">{presetFor(p)?.label || p?.role}</b>. Switch role in the sidebar to
-        compare access — the gate is enforced server-side.
+        compare access - the gate is enforced server-side.
       </Notice>
     )
   if (error || !inc)
@@ -87,7 +87,7 @@ export default function CaseFile() {
       </PageHeader>
 
       <div className="grid items-start gap-5 lg:grid-cols-[1.35fr_1fr]">
-        {/* ── the FIR itself — manila paper pulled onto the desk ─────────── */}
+        {/* ── the FIR itself - manila paper pulled onto the desk ─────────── */}
         <div className="paper-sheet relative overflow-hidden rounded-sm">
           <div className="paper-edge absolute inset-y-0 left-0 w-7 border-r border-paper-line/60" />
           <div className="py-5 pl-11 pr-6">
@@ -186,12 +186,12 @@ export default function CaseFile() {
             {/* narrative */}
             <div className="border-t border-paper-line pt-3">
               <div className="k-label-paper mb-1.5">Brief facts / MO</div>
-              <p className="text-[13px] leading-[1.75] text-paper-ink/90">{inc.mo_text || "—"}</p>
+              <p className="text-[13px] leading-[1.75] text-paper-ink/90">{inc.mo_text || "-"}</p>
             </div>
           </div>
         </div>
 
-        {/* ── derived intelligence — stays on the console ────────────────── */}
+        {/* ── derived intelligence - stays on the console ────────────────── */}
         <div className="space-y-4">
           {underInv && !cs && (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-line bg-panel px-3.5 py-2.5 shadow-panel">
@@ -199,8 +199,8 @@ export default function CaseFile() {
                 <div className="k-label">Derived · Default-bail clock</div>
                 <div className="mt-1 text-[11.5px] text-muted-foreground">
                   {data.deadline
-                    ? `Chargesheet due ${data.deadline.due_date} — ${data.deadline.window_days}d window from first arrest (${data.deadline.arrest_date})`
-                    : "No clock running — nobody arrested on this case yet (CrPC 167(2)/BNSS 187)."}
+                    ? `Chargesheet due ${data.deadline.due_date} - ${data.deadline.window_days}d window from first arrest (${data.deadline.arrest_date})`
+                    : "No clock running - nobody arrested on this case yet (CrPC 167(2)/BNSS 187)."}
                 </div>
               </div>
               <DeadlineBadge deadline={data.deadline} verbose />
@@ -243,7 +243,7 @@ export default function CaseFile() {
                 </div>
               ) : (
                 <EmptyState>
-                  No linked cases found — no shared entities, series membership or near-repeat pattern.
+                  No linked cases found - no shared entities, series membership or near-repeat pattern.
                 </EmptyState>
               )}
             </CardContent>
@@ -273,12 +273,12 @@ export default function CaseFile() {
 
           {/* provenance: the scanned source document behind this record (local
               renders now; the Stratus raw-fir bucket in prod). Hidden when no
-              scan exists — only a sample of the corpus has rendered documents. */}
+              scan exists - only a sample of the corpus has rendered documents. */}
           {scanState !== "missing" && (
             <Card>
               <CardHeader>
                 <div className="k-label">Provenance</div>
-                <CardTitle className="t-display mt-1 text-[17px]">Source FIR — scanned original</CardTitle>
+                <CardTitle className="t-display mt-1 text-[17px]">Source FIR - scanned original</CardTitle>
               </CardHeader>
               <CardContent>
                 <img

@@ -15,6 +15,7 @@ import type {
   OfficersRoster,
   OfficerWorklist,
   Ring,
+  SocioCorrelation,
   RiskCell,
   SearchResult,
   Stats,
@@ -43,7 +44,7 @@ function setMode(m: DataMode) {
   }
 }
 
-/** 403/404 from object reads — screens render the clearance/not-found state. */
+/** 403/404 from object reads - screens render the clearance/not-found state. */
 export class ApiError extends Error {
   status: number
   detail: string
@@ -73,12 +74,38 @@ type MockKey = keyof typeof MOCK
  *  shimmer/empty instead of falling back to fixtures. */
 const FETCH_TIMEOUT_MS = 12_000
 
+/** Falling back to fixtures mid-session is what made numbers *change between
+ *  visits* (the rings tile showed the 1-ring fixture, then 6 once a retry
+ *  landed). Fixtures are the offline safety net, not something a single
+ *  transient blip should trigger - so every read gets a couple of quick
+ *  retries first, and only a genuinely unreachable brain shows mock. */
+const FETCH_RETRIES = 2
+const RETRY_BACKOFF_MS = 400
+
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
+async function fetchWithRetry(path: string, init: RequestInit): Promise<Response> {
+  let lastErr: unknown
+  for (let attempt = 0; attempt <= FETCH_RETRIES; attempt++) {
+    if (attempt > 0) await sleep(RETRY_BACKOFF_MS * attempt)
+    try {
+      const r = await fetch(API + path, {
+        ...init,
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      })
+      // 5xx is worth another go (cold worker); 4xx is a real answer.
+      if (r.status >= 500 && attempt < FETCH_RETRIES) continue
+      return r
+    } catch (e) {
+      lastErr = e
+    }
+  }
+  throw lastErr ?? new Error("unreachable")
+}
+
 async function jget<T>(path: string, mockKey: MockKey): Promise<T> {
   try {
-    const r = await fetch(API + path, {
-      headers: roleHeaders(),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    })
+    const r = await fetchWithRetry(path, { headers: roleHeaders() })
     if (!r.ok) throw new Error(String(r.status))
     setMode("live")
     return (await r.json()) as T
@@ -90,11 +117,10 @@ async function jget<T>(path: string, mockKey: MockKey): Promise<T> {
 
 async function jpost<T>(path: string, body: unknown, mockKey: MockKey): Promise<T> {
   try {
-    const r = await fetch(API + path, {
+    const r = await fetchWithRetry(path, {
       method: "POST",
       headers: roleHeaders(true),
       body: JSON.stringify(body ?? {}),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
     if (!r.ok) throw new Error(String(r.status))
     setMode("live")
@@ -110,10 +136,7 @@ async function jpost<T>(path: string, body: unknown, mockKey: MockKey): Promise<
 async function jgetStrict<T>(path: string, mockKey: MockKey): Promise<T> {
   let r: Response
   try {
-    r = await fetch(API + path, {
-      headers: roleHeaders(),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    })
+    r = await fetchWithRetry(path, { headers: roleHeaders() })
   } catch {
     setMode("mock")
     return MOCK[mockKey] as unknown as T
@@ -150,6 +173,7 @@ export const api = {
     ),
   riskTop: (n = 10) => jget<{ top: RiskCell[] }>(`/risk/top?n=${n}`, "risktop"),
   fairness: () => jget<Fairness>("/risk/fairness", "fair"),
+  socio: () => jget<SocioCorrelation>("/socio/correlation", "socio"),
   copilot: (query: string, lang?: string) =>
     jpost<CopilotResponse>(
       "/copilot",

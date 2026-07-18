@@ -1,4 +1,4 @@
-/** Government classification banner — pinned to the top edge of login and
+/** Government classification banner - pinned to the top edge of login and
  *  console. Real intel systems carry one; judges should see it immediately. */
 export function ClassificationBar() {
   return (

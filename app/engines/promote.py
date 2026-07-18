@@ -1,7 +1,7 @@
-"""GARUDA — promote an extracted FIR to the canonical tables.
+"""GARUDA - promote an extracted FIR to the canonical tables.
 
 Two steps mirroring the human-in-the-loop flow:
-  - to_review_record(): build the Review_Queue row (always 'pending' — a human approves).
+  - to_review_record(): build the Review_Queue row (always 'pending' - a human approves).
   - promote_to_canonical(): on approval, map the extracted JSON to canonical
     Incidents + Entities + Incident_Edges rows.
 

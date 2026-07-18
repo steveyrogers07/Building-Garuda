@@ -1,18 +1,18 @@
-"""GARUDA copilot — Kannada → English query normalization (plan §4.13).
+"""GARUDA copilot - Kannada → English query normalization (plan §4.13).
 
 The voice showpiece: the browser's speech recognition produces a *Kannada*
-transcript (Catalyst Zia has OCR/NER but no speech-to-text or translation —
+transcript (Catalyst Zia has OCR/NER but no speech-to-text or translation -
 verified against the SDK), and this module turns it into the English tokens
 nl2query.parse_query and the TF-IDF retriever actually key on:
 
-  1. domain lexicon — crime types, the 31 district names (exact census
+  1. domain lexicon - crime types, the 31 district names (exact census
      spellings, since the parser matches them as substrings), question/time
      words;
   2. anything still in Kannada script (person names, places) is
      transliterated to Latin via indic-transliteration, so it can still hit
      the semantic/entity arms loosely.
 
-Pure-Python, $0, deterministic — same contract as the rest of the copilot.
+Pure-Python, $0, deterministic - same contract as the rest of the copilot.
 """
 from __future__ import annotations
 
@@ -131,7 +131,7 @@ def _transliterate(token):
         from indic_transliteration import sanscript
         latin = sanscript.transliterate(token, sanscript.KANNADA, sanscript.ITRANS)
         return re.sub(r"[^A-Za-z0-9 ]", "", latin).strip().lower() or token
-    except Exception:                          # noqa: BLE001 — keep the token
+    except Exception:                          # noqa: BLE001 - keep the token
         return token
 
 

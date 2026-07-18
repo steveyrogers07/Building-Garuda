@@ -6,7 +6,7 @@ leakage-safe predictors: lagged counts (t-1, t-7), trailing rolling means
 (day-of-week, month, weekend, holiday) and per-area socio-economic context
 (population/density/literacy/urbanization from the Census reference).
 
-Spatial unit = district (`area_code` = `district_code`) — the finest unit the
+Spatial unit = district (`area_code` = `district_code`) - the finest unit the
 synthetic gazetteer carries; swap in ward/grid when finer data arrives, no model
 change. Predicts PLACES x TIMES x crime-type, never individuals.
 """
@@ -32,7 +32,7 @@ def _holiday_dates(years, subdiv="KA"):
 def build_feature_table(incidents, socio):
     """incidents: rows with district_code, occurred_at, crime_type.
        socio: rows with area_code, population, density, literacy, urbanization.
-    Returns (table, FEATURES) — one row per (area_code, crime_type, day)."""
+    Returns (table, FEATURES) - one row per (area_code, crime_type, day)."""
     df = pd.DataFrame(incidents).copy()
     df["occurred_at"] = pd.to_datetime(df["occurred_at"], errors="coerce")
     df = df.dropna(subset=["occurred_at"])

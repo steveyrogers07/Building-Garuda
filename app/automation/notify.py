@@ -1,8 +1,8 @@
-"""GARUDA — alert → notification (Phase 9 automation).
+"""GARUDA - alert → notification (Phase 9 automation).
 
 Turns an anomaly Alert into a routed notification envelope (recipient by district,
-severity → channels, priority). The actual emit — Catalyst **Signal** → Event
-Function → **Push** + **Mail** — is account-gated; `dispatch()` returns the
+severity → channels, priority). The actual emit - Catalyst **Signal** → Event
+Function → **Push** + **Mail** - is account-gated; `dispatch()` returns the
 would-send envelope locally so the flow is testable at $0.
 """
 from __future__ import annotations
@@ -27,10 +27,10 @@ def notification_for(alert, recipients=None):
 
 def dispatch(notification):
     """Route a notification envelope (plan §4.10). Default (local/demo): no
-    send — return the would-send envelope, which tests/test_governance.py
+    send - return the would-send envelope, which tests/test_governance.py
     asserts on. With GARUDA_NOTIFY=catalyst: send Catalyst Mail for every
     enveloped alert and a web Push for the high ones, on the channels already
-    routed by notification_for(). Best-effort — a failed send still returns
+    routed by notification_for(). Best-effort - a failed send still returns
     the envelope, flagged instead of raised. (The Signals row itself is the
     console-bound Stratus → ingest-event trigger; this is the Mail/Push arm
     those signals ultimately fan into.)"""
@@ -61,7 +61,7 @@ def dispatch(notification):
                 sent.append("push")
             except Exception as exc:       # noqa: BLE001
                 errors.append(f"push: {exc}")
-    except Exception as exc:               # noqa: BLE001 — SDK init failed
+    except Exception as exc:               # noqa: BLE001 - SDK init failed
         errors.append(f"sdk: {exc}")
     return {"queued": True, "notification": notification,
             "sent": sent, "errors": errors or None}

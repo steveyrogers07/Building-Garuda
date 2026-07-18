@@ -1,4 +1,4 @@
-"""GARUDA — geocoder. Resolves an FIR place/address to lat/long via the gazetteer
+"""GARUDA - geocoder. Resolves an FIR place/address to lat/long via the gazetteer
 (exact, then fuzzy via stdlib difflib), falling back to the district centroid.
 
 Returns (lat, long, confidence, method). Used by the ingestion /extract step and by

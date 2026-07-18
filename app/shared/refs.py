@@ -1,4 +1,4 @@
-"""GARUDA AppSail — reference-data loaders (districts, IPC<->BNS codes, gazetteer).
+"""GARUDA AppSail - reference-data loaders (districts, IPC<->BNS codes, gazetteer).
 
 Locally these read the repo's data/reference + data/gazetteer (so the engines are
 testable without Catalyst). In production point them at Data Store / Stratus via the
@@ -13,7 +13,7 @@ from pathlib import Path
 
 # Locally, data/ sits two levels up from shared/refs.py (repo_root/app/shared/).
 # But Catalyst AppSail's build_path bundles only the *contents* of app/ as the
-# deployment root, so in production data/ (once bundled — see
+# deployment root, so in production data/ (once bundled - see
 # docs/CATALYST_CREDITS_AND_DEPLOYMENT.md) sits just one level up instead. Try
 # both so the same code runs unchanged from a full checkout or a deployed
 # instance, instead of hard-failing with FileNotFoundError in prod.

@@ -1,4 +1,4 @@
-"""GARUDA — role-based access control (Phase 9 governance).
+"""GARUDA - role-based access control (Phase 9 governance).
 
 Roles map to jurisdiction scopes; every read is filtered to what the principal may
 see, and privileged actions are gated. In production the principal comes from the
@@ -6,7 +6,7 @@ Catalyst Web SDK / API Gateway; locally it is supplied via headers (X-Role/X-Sco
 
 Roles: scrb-admin (state) · district (one district) · station (one station) ·
 analyst (read-all, PII-masked) · case-officer (assigned cases) · ethics (audit /
-fairness / model cards only — no case PII).
+fairness / model cards only - no case PII).
 """
 from __future__ import annotations
 

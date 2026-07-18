@@ -69,7 +69,7 @@ export default function SearchPage() {
       <PageHeader
         eyebrow="Investigate · Structured + semantic"
         title="Universal Search"
-        caption="Cases, people, vehicles, phones, places — structured + semantic over FIR narratives. Every search is audited."
+        caption="Cases, people, vehicles, phones, places - structured + semantic over FIR narratives. Every search is audited."
       />
 
       <div className="mx-auto w-full max-w-3xl">
@@ -106,7 +106,7 @@ export default function SearchPage() {
         <div className="mt-5 space-y-6">
           {q.trim().length < 2 ? (
             <EmptyState>
-              Type at least two characters. Semantic search catches what keywords miss — try{" "}
+              Type at least two characters. Semantic search catches what keywords miss - try{" "}
               <i>“snatching fled on two-wheeler”</i>.
             </EmptyState>
           ) : busy && !res ? (

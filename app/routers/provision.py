@@ -1,11 +1,11 @@
-"""GARUDA — self-provisioning of the Catalyst backend (minimal-console-steps path).
+"""GARUDA - self-provisioning of the Catalyst backend (minimal-console-steps path).
 
 Zoho reserves *schema* creation (Data Store tables, NoSQL tables, Stratus
-buckets, Cache segments) for the console/CLI — the SDK cannot create them.
+buckets, Cache segments) for the console/CLI - the SDK cannot create them.
 Everything else this app can do for itself, from inside AppSail where the
 ambient admin credentials live:
 
-  GET  /admin/provision          what exists vs what GARUDA expects — tables
+  GET  /admin/provision          what exists vs what GARUDA expects - tables
                                  (with row counts), buckets, cache segment.
                                  The console to-do list writes itself.
   POST /admin/provision/load     bulk-load every EXPECTED table that exists
@@ -166,11 +166,11 @@ def provision_load(x_jobs_token: Optional[str] = Header(None)):
     report = {}
     for name, path in EXPECTED_CORE.items():
         if name not in existing:
-            report[name] = {"status": "missing — create it in the console first"}
+            report[name] = {"status": "missing - create it in the console first"}
             continue
         rows_present = _row_count(app, name)
         if rows_present:
-            report[name] = {"status": "skipped — already has rows", "rows": rows_present}
+            report[name] = {"status": "skipped - already has rows", "rows": rows_present}
             continue
         if not path.exists():
             report[name] = {"status": f"bundle CSV not found: {path.name}"}

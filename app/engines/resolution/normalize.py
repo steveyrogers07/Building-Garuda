@@ -1,4 +1,4 @@
-"""GARUDA — normalization, transliteration and phonetic keys for entity resolution.
+"""GARUDA - normalization, transliteration and phonetic keys for entity resolution.
 
 Pure-Python, local/free. Optional libs degrade gracefully so the module imports even
 in a minimal environment (the AppSail health probe must never crash on import):

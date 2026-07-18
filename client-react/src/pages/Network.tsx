@@ -13,7 +13,7 @@ import type { EgoGraph, GraphNode, SearchEntityHit } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /** Search-anyone entry point: any name / phone / plate in the corpus resolves
- *  to its canonical entity and recenters the graph — the rings are just
+ *  to its canonical entity and recenters the graph - the rings are just
  *  starting points, not the only doors in. */
 function EntitySearch({ onPick }: { onPick: (hit: SearchEntityHit) => void }) {
   const [q, setQ] = useState("")
@@ -55,7 +55,7 @@ function EntitySearch({ onPick }: { onPick: (hit: SearchEntityHit) => void }) {
         onChange={(e) => setQ(e.target.value)}
         onFocus={() => hits.length && setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder="Trace anyone — name, phone, plate…"
+        placeholder="Trace anyone - name, phone, plate…"
         className="h-8 bg-panel pl-8 font-mono text-[12px]"
         aria-label="Search an entity to trace"
       />
@@ -215,7 +215,7 @@ export default function Network() {
           </button>
         )}
 
-        {/* legend — hidden on phones when a node is selected (the docked detail
+        {/* legend - hidden on phones when a node is selected (the docked detail
             panel owns the bottom edge there); always shown from lg up */}
         <div
           className={cn(
@@ -236,7 +236,7 @@ export default function Network() {
           <span>☎ phone · ⌗ vehicle</span>
         </div>
 
-        {/* node detail — docks to the bottom edge on phones (floating over a
+        {/* node detail - docks to the bottom edge on phones (floating over a
             342px canvas hid two-thirds of the graph), floats top-right on desktop */}
         {selected && (
           <div className="absolute inset-x-2 bottom-2 max-h-[52%] overflow-y-auto rounded-md border border-line bg-console/95 p-3.5 shadow-pop backdrop-blur lg:inset-x-auto lg:bottom-auto lg:right-3 lg:top-3 lg:max-h-none lg:w-[248px] lg:overflow-visible">
@@ -250,11 +250,11 @@ export default function Network() {
               <span className="k-label">strength</span>
               <span className="tnum font-mono">{selected.strength ?? 0}</span>
               <span className="k-label">betweenness</span>
-              <span className="tnum font-mono">{selected.betweenness ?? "–"}</span>
+              <span className="tnum font-mono">{selected.betweenness ?? "-"}</span>
               <span className="k-label">community</span>
-              <span className="font-mono">#{selected.community ?? "–"}</span>
+              <span className="font-mono">#{selected.community ?? "-"}</span>
               <span className="k-label">districts</span>
-              <span className="font-mono">{(selected.districts || []).join(" ") || "–"}</span>
+              <span className="font-mono">{(selected.districts || []).join(" ") || "-"}</span>
             </div>
             <div className="mt-3.5 space-y-1.5">
               {selected.id !== activeId && (

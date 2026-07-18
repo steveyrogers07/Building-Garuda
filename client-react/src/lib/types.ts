@@ -1,4 +1,4 @@
-/** API contract types — mirrors app/routers/analytics.py responses. */
+/** API contract types - mirrors app/routers/analytics.py responses. */
 
 export type EntityType = "person" | "vehicle" | "phone"
 
@@ -62,6 +62,53 @@ export interface GeoDistrict {
   lat: number
   lng: number
   top_crime?: string
+}
+
+export interface SocioDistrict {
+  district_code: string
+  name: string
+  incidents: number
+  population: number
+  rate_per_100k: number
+  density: number
+  literacy: number
+  urbanization: number
+}
+
+export interface SocioResidual {
+  district_code: string
+  name: string
+  rate_per_100k: number
+  expected_rate: number
+  residual: number
+}
+
+export interface SocioCorrelation {
+  districts: SocioDistrict[]
+  correlations: {
+    indicator: string
+    label: string
+    r: number | null
+    direction: string
+    strength: string
+  }[]
+  by_crime?: {
+    crime_type: string
+    incidents: number
+    urbanization: number | null
+    literacy: number | null
+    density: number | null
+    driver: string | null
+    driver_r: number | null
+  }[]
+  model?: {
+    r2: number | null
+    explains_pct: number
+    above_expected: SocioResidual[]
+    below_expected: SocioResidual[]
+  } | null
+  n_districts: number
+  note?: string
 }
 
 export interface GeoStation {
@@ -142,7 +189,7 @@ export interface LinkedCase {
 export interface Incident {
   incident_id: string
   fir_no?: string
-  /** Organizer-schema CaseMaster.CrimeNo — 18-digit decodable key. */
+  /** Organizer-schema CaseMaster.CrimeNo - 18-digit decodable key. */
   crime_no?: string
   case_no?: string
   occurred_at?: string

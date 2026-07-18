@@ -7,7 +7,7 @@ import type { CaseDeadline } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /** Page heading block: eyebrow + display title left, actions right.
- *  Titles set in Saira Condensed — the signage voice of the console. */
+ *  Titles set in Saira Condensed - the signage voice of the console. */
 export function PageHeader({
   eyebrow,
   title,
@@ -31,7 +31,7 @@ export function PageHeader({
   )
 }
 
-/** Rubber stamp — the FIR's own vocabulary (case category, gravity,
+/** Rubber stamp - the FIR's own vocabulary (case category, gravity,
  *  chargesheet class are literally stamped on the paper original). */
 export function Stamp({
   tone = "dim",
@@ -97,7 +97,7 @@ export function KpiCard({
   )
 }
 
-/** Ethics guardrail strip — every AI/records panel carries one. */
+/** Ethics guardrail strip - every AI/records panel carries one. */
 export function Guardrail({ children }: { children: ReactNode }) {
   return (
     <div className="mt-3 flex items-start gap-2 rounded-sm border border-line-soft bg-panel-2/60 px-3 py-2 text-[11.5px] leading-relaxed text-muted-foreground">
@@ -159,7 +159,7 @@ const REASON_TONES: Record<string, string> = {
   same_section: "border-line bg-panel-2 text-muted-foreground",
 }
 
-/** Explained-link chip — the "why" on every connection. */
+/** Explained-link chip - the "why" on every connection. */
 export function ReasonChip({ type, detail }: { type: string; detail: string }) {
   return (
     <span
@@ -181,7 +181,7 @@ const DEADLINE_TONES: Record<string, string> = {
   overdue: "border-signal bg-signal text-white",
 }
 
-/** §1 default-bail clock chip — chargesheet due 60d (90d Heinous) from first
+/** §1 default-bail clock chip - chargesheet due 60d (90d Heinous) from first
  *  arrest (CrPC 167(2)/BNSS 187). `verbose` renders a muted chip when no clock
  *  runs (nobody arrested yet) instead of nothing. */
 export function DeadlineBadge({
@@ -194,14 +194,14 @@ export function DeadlineBadge({
   if (!deadline) {
     return verbose ? (
       <span className="inline-flex items-center gap-1 rounded-sm border border-line bg-panel-2 px-1.5 py-0.5 font-mono text-[10px] text-faint">
-        no clock — no arrest yet
+        no clock - no arrest yet
       </span>
     ) : null
   }
   const overdue = deadline.days_remaining < 0
   return (
     <span
-      title={`Default-bail window: ${deadline.window_days}d from first arrest ${deadline.arrest_date} — chargesheet due ${deadline.due_date} (${deadline.arrested} in custody)`}
+      title={`Default-bail window: ${deadline.window_days}d from first arrest ${deadline.arrest_date} - chargesheet due ${deadline.due_date} (${deadline.arrested} in custody)`}
       className={cn(
         "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] font-medium",
         DEADLINE_TONES[deadline.bucket],

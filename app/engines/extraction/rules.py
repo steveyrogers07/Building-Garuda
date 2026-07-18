@@ -1,4 +1,4 @@
-"""GARUDA — rule-based FIR field extractor (default extractor; no LLM/credits).
+"""GARUDA - rule-based FIR field extractor (default extractor; no LLM/credits).
 
 Parses OCR'd FIR text into the schema in ingestion/extraction/fir_schema.json.
 Works great on the structured synthetic FIRs and is the dev/offline fallback for the

@@ -17,7 +17,7 @@ import Network from "@/pages/Network"
 import Overview from "@/pages/Overview"
 import SearchPage from "@/pages/SearchPage"
 
-// MapLibre is the heaviest dependency — load it only when the map opens.
+// MapLibre is the heaviest dependency - load it only when the map opens.
 const MapView = lazy(() => import("@/pages/MapView"))
 
 export default function App() {

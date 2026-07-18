@@ -33,7 +33,7 @@ const MIN_DAYS = [
   { v: "365", label: "Open 1y+" },
 ]
 
-/** §6 — suspects named on open FIRs with no arrest recorded, grouped by
+/** §6 - suspects named on open FIRs with no arrest recorded, grouped by
  *  canonical person: the district's live "still out there" list and the seed
  *  for a watchlist/BOLO feature. Same derivation the A3 data gate proves. */
 export default function Absconding() {
@@ -64,7 +64,7 @@ export default function Absconding() {
       <PageHeader
         eyebrow="Field operations · Wanted / no arrest on record"
         title="Absconding Board"
-        caption="Suspects named on open FIRs with no arrest recorded — grouped by person, heinous cases first. The natural seed for watchlist/BOLO."
+        caption="Suspects named on open FIRs with no arrest recorded - grouped by person, heinous cases first. The natural seed for watchlist/BOLO."
       >
         {!scoped && (
           <Select value={district} onValueChange={setDistrict}>

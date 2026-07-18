@@ -13,7 +13,7 @@ import { usePrincipal } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 import { closeTab, tabRoute, useWorkTabs, type WorkTab } from "@/lib/workspace"
 
-/** Open case/entity objects — styled as manila folder tabs on the desk edge:
+/** Open case/entity objects - styled as manila folder tabs on the desk edge:
  *  the documents currently pulled out of the register. */
 function TabStrip() {
   const tabs = useWorkTabs()

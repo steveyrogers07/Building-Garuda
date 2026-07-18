@@ -5,7 +5,7 @@ import { toast } from "sonner"
 
 declare global {
   interface Window {
-    /** Catalyst embedded-auth SDK — injected only when the SPA is served via
+    /** Catalyst embedded-auth SDK - injected only when the SPA is served via
      *  Web Client Hosting with Authentication enabled (plan §4.4). */
     catalyst?: { auth?: { isUserAuthenticated?: () => Promise<unknown> } }
   }
@@ -39,8 +39,8 @@ export default function Login() {
 
   // Catalyst path (plan §4.4): when the embedded-auth SDK is present, an
   // existing Zoho session maps to a GARUDA principal via GET /whoami
-  // (Console_Users resolves role/scope server-side). Absent the SDK — local
-  // dev, or the AppSail-served build — nothing changes: the demo login below
+  // (Console_Users resolves role/scope server-side). Absent the SDK - local
+  // dev, or the AppSail-served build - nothing changes: the demo login below
   // IS the governance demo and stays.
   useEffect(() => {
     const auth = window.catalyst?.auth
@@ -56,7 +56,7 @@ export default function Login() {
         if (!me.role) return
         setPrincipal({ actor: me.actor, name: me.display_name || me.actor,
                        role: me.role, scope: me.scope || "" })
-        toast(`Signed in — ${me.display_name || me.actor}`, {
+        toast(`Signed in - ${me.display_name || me.actor}`, {
           description: "Verified Catalyst identity; clearance from Console_Users.",
         })
         navigate("/")
@@ -71,7 +71,7 @@ export default function Login() {
     const id = officerId.trim()
     if (!id) return
     // Demo-phase gate: one shared credential pair keeps idle visitors out of a
-    // public dev URL. This is a UI courtesy, not the security boundary — real
+    // public dev URL. This is a UI courtesy, not the security boundary - real
     // sign-in is Catalyst Authentication + Console_Users role mapping (built,
     // activates with the API Gateway).
     if (id.toLowerCase() !== "garudaadmin" || password !== "datathon26") {
@@ -80,7 +80,7 @@ export default function Login() {
     }
     setAuthError("")
     setPrincipal({ actor: id, name: id.toUpperCase(), role: preset.role, scope: preset.scope })
-    toast(`Signed in — ${preset.label}`, {
+    toast(`Signed in - ${preset.label}`, {
       description: "All access under this clearance is logged to the audit trail.",
     })
     navigate("/")
@@ -101,7 +101,7 @@ export default function Login() {
             <div className="mt-1.5 text-[13px] text-muted-foreground">
               ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ · Karnataka State Police
             </div>
-            <div className="k-label mt-1.5">State Crime Records Bureau — Crime Intelligence Platform</div>
+            <div className="k-label mt-1.5">State Crime Records Bureau - Crime Intelligence Platform</div>
           </div>
 
           <form
@@ -191,7 +191,7 @@ export default function Login() {
               <span className="k-label text-brass">Demo evaluation access</span>
               <div className="mt-1">
                 Officer ID <b className="font-mono text-foreground">garudaadmin</b> · Password{" "}
-                <b className="font-mono text-foreground">datathon26</b> — pick any clearance tier to
+                <b className="font-mono text-foreground">datathon26</b> - pick any clearance tier to
                 experience its jurisdiction gates and PII masking.
               </div>
               <div className="mt-1 text-faint">
@@ -203,7 +203,7 @@ export default function Login() {
             <div className="mt-2 flex items-start gap-2 rounded-sm border border-line-soft bg-panel-2/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
               <span>
-                Access is clearance-gated and fully audited. GARUDA surfaces and explains records —
+                Access is clearance-gated and fully audited. GARUDA surfaces and explains records -
                 it never asserts guilt.
               </span>
             </div>

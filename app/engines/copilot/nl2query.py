@@ -1,4 +1,4 @@
-"""GARUDA copilot — natural language -> structured query (Phase 7).
+"""GARUDA copilot - natural language -> structured query (Phase 7).
 
 Rules/regex parser (no credits) that turns a plain-English question into safe,
 parameterized filters over Incidents: district, crime_type, vehicle plate, phone,
@@ -28,7 +28,7 @@ ISO_RE = re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b")
 MONTH_YEAR_RE = re.compile(
     r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(20\d{2})\b", re.I)
 YEAR_RE = re.compile(r"\b(20\d{2})\b")
-# guilt-determination guardrail (refuse) — NOT generic investigative retrieval
+# guilt-determination guardrail (refuse) - NOT generic investigative retrieval
 _GUILT_RE = re.compile(
     r"\b(guilty|culprit|the criminal|did (he|she|they|\w+) (commit|do it)|"
     r"is \w+ (a criminal|the offender)|convict\b|should be punished|prove .* guilt)\b",

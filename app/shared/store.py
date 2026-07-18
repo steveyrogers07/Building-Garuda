@@ -1,18 +1,18 @@
-"""GARUDA — batch data access for the Phase-4 analytics endpoints.
+"""GARUDA - batch data access for the Phase-4 analytics endpoints.
 
-Two backends, selected independently for reads and writes (Catalyst plan §4.1 Option A —
+Two backends, selected independently for reads and writes (Catalyst plan §4.1 Option A -
 bundled-CSV serving with the Data Store as system-of-record for writes):
-  - GARUDA_READ_BACKEND — "local" (default): corpus reads (Entities/Incidents/edges/
+  - GARUDA_READ_BACKEND - "local" (default): corpus reads (Entities/Incidents/edges/
     reference tables) come from the Phase-2 CSVs. "zcql": read them from the Catalyst
-    Data Store instead (requires the pagination work in plan §4.1B — do not flip
+    Data Store instead (requires the pagination work in plan §4.1B - do not flip
     without it, ZCQL caps rows per query and would silently truncate the corpus).
-  - GARUDA_WRITE_BACKEND — "local" (default): resolved outputs / alerts / audit rows land
+  - GARUDA_WRITE_BACKEND - "local" (default): resolved outputs / alerts / audit rows land
     as CSVs. "zcql": write them to the Data Store via ZCQL, batched. Account-gated
     (needs the live project + the zcatalyst SDK); imported lazily so the local path
     never requires it.
 GARUDA_BACKEND is honored as a legacy fallback that sets both.
 
-Writes use the Text business keys (entity_id / incident_id), never ROWID — consistent with
+Writes use the Text business keys (entity_id / incident_id), never ROWID - consistent with
 the Phase-2 FK strategy. Original Entities are never deleted; resolution only adds
 canonical_id + match_confidence (alias_of lineage is preserved).
 """
@@ -24,7 +24,7 @@ from pathlib import Path
 
 # Locally, data/ sits two levels up from shared/store.py (repo_root/app/shared/).
 # But Catalyst AppSail's build_path bundles only the *contents* of app/ as the
-# deployment root, so in production data/ (once bundled — see
+# deployment root, so in production data/ (once bundled - see
 # docs/CATALYST_CREDITS_AND_DEPLOYMENT.md) sits just one level up instead. Try
 # both so the same code runs unchanged from a full checkout or a deployed
 # instance, instead of hard-failing with FileNotFoundError in prod.
@@ -45,12 +45,12 @@ def _zcql_failed(fn):
     """A zcql arm failed (typically: the console table does not exist yet).
     Log once per call site and fall through to the local arm, so setting
     GARUDA_WRITE_BACKEND=zcql before the console work is done degrades
-    gracefully instead of 500ing endpoints — and self-activates the moment
+    gracefully instead of 500ing endpoints - and self-activates the moment
     the tables appear. Local fallbacks on an AppSail instance are ephemeral;
     the log line is the operator's signal to finish the console setup."""
     import logging
     logging.getLogger("garuda").warning(
-        "zcql arm failed in %s — falling back to local", fn, exc_info=True)
+        "zcql arm failed in %s - falling back to local", fn, exc_info=True)
 
 
 # Phase-5 outputs (crime_series / alerts / cached ego-subgraphs) land here. Defaults
@@ -154,7 +154,7 @@ def write_entity_resolution(assignments):
                 for eid, a in assignments.items()
             ]
             return _zcql_update_batches(stmts)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_entity_resolution")
     # local: emit a resolved copy (never overwrite the source of truth)
     src = _read_csv(SYN_DIR / "entities.csv")
@@ -165,7 +165,7 @@ def write_entity_resolution(assignments):
         for r in src:
             a = assignments.get(r["entity_id"])
             if a:
-                # copy before mutating — `src` rows are shared with the cached
+                # copy before mutating - `src` rows are shared with the cached
                 # entities.csv parse; writing in place would corrupt that cache
                 r = {**r, "canonical_id": a["canonical_id"], "match_confidence": a["match_confidence"]}
             w.writerow(r)
@@ -182,7 +182,7 @@ def write_incident_mo(assignments):
                 for iid, cid in assignments.items() if cid
             ]
             return _zcql_update_batches(stmts)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_incident_mo")
     src = _read_csv(SYN_DIR / "incidents.csv")
     out = SYN_DIR / "incidents_mo.csv"
@@ -190,7 +190,7 @@ def write_incident_mo(assignments):
         w = csv.DictWriter(f, fieldnames=list(src[0].keys()))
         w.writeheader()
         for r in src:
-            # copy before mutating — `src` rows are shared with the cached
+            # copy before mutating - `src` rows are shared with the cached
             # incidents.csv parse; writing in place would corrupt that cache
             r = {**r, "mo_cluster_id": assignments.get(r["incident_id"], "")}
             w.writerow(r)
@@ -198,7 +198,7 @@ def write_incident_mo(assignments):
 
 
 def write_incident_coords(updates):
-    """updates: {incident_id: (lat, long)} — backfill of previously missing coords."""
+    """updates: {incident_id: (lat, long)} - backfill of previously missing coords."""
     if WRITE_BACKEND == "zcql":
         try:
             stmts = [
@@ -207,7 +207,7 @@ def write_incident_coords(updates):
                 for iid, (lat, lng) in updates.items()
             ]
             return _zcql_update_batches(stmts)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_incident_coords")
     return len(updates)   # local: coords already present in the synthetic set
 
@@ -229,7 +229,7 @@ def write_mo_clusters(clusters):
                         f"INSERT INTO MO_Clusters ({', '.join(cols)}) VALUES ({vals})")
                     done += 1
             return done
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_mo_clusters")
     out = SYN_DIR / "mo_clusters.csv"
     if not clusters:
@@ -242,7 +242,7 @@ def write_mo_clusters(clusters):
 
 
 # --------------------------------------------------------------------------- #
-# Phase-5 reads — prefer the Phase-4 resolved/MO outputs, fall back to base CSVs
+# Phase-5 reads - prefer the Phase-4 resolved/MO outputs, fall back to base CSVs
 # so the network/series engines run even before Phase 4 has been executed.
 # --------------------------------------------------------------------------- #
 def _read_first_existing(*names):
@@ -294,7 +294,7 @@ def fetch_edges_p5():
 
 
 # --------------------------------------------------------------------------- #
-# Phase-5 writes — Crime_Series / Alerts / Incidents.series_id / cached subgraphs
+# Phase-5 writes - Crime_Series / Alerts / Incidents.series_id / cached subgraphs
 # --------------------------------------------------------------------------- #
 _CRIME_SERIES_COLS = ["series_id", "crime_type", "district_code", "locality",
                       "start_date", "end_date", "incident_count", "method"]
@@ -324,7 +324,7 @@ def write_crime_series(series):
                         f"INSERT INTO Crime_Series ({', '.join(_CRIME_SERIES_COLS)}) "
                         f"VALUES ({vals})")
             return len(series)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_crime_series")
     _write_out_csv("crime_series.csv", series, _CRIME_SERIES_COLS)
     return len(series)
@@ -338,7 +338,7 @@ def write_incident_series(assignments):
                      f"WHERE incident_id='{_sql_escape(iid)}'"
                      for iid, sid in assignments.items() if sid]
             return _zcql_update_batches(stmts)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_incident_series")
     rows = [{"incident_id": k, "series_id": v} for k, v in assignments.items()]
     _write_out_csv("incidents_series.csv", rows, ["incident_id", "series_id"])
@@ -355,7 +355,7 @@ def write_alerts(alerts):
                     zcql.execute_query(
                         f"INSERT INTO Alerts ({', '.join(_ALERTS_COLS)}) VALUES ({vals})")
             return len(alerts)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_alerts")
     _write_out_csv("alerts.csv", alerts, _ALERTS_COLS)
     return len(alerts)
@@ -372,7 +372,7 @@ def _nosql_ego_table():
 def write_network_cache(center, payload):
     """Cache an ego-subgraph JSON (plan §4.6): Catalyst NoSQL under the zcql
     write arm (variable-shape JSON that doesn't fit the relational tables);
-    a local file otherwise. The NoSQL arm is best-effort — any failure falls
+    a local file otherwise. The NoSQL arm is best-effort - any failure falls
     back to the local file so the endpoint's contract never changes."""
     import json
     raw = json.dumps(payload, ensure_ascii=False)
@@ -382,7 +382,7 @@ def write_network_cache(center, payload):
                 {"item": {"canonical_id": {"S": str(center)},
                           "payload": {"S": raw}}})
             return f"nosql://{NOSQL_EGO_TABLE}/{center}"
-        except Exception:                      # noqa: BLE001 — degrade to file
+        except Exception:                      # noqa: BLE001 - degrade to file
             pass
     d = OUT_DIR / "network"
     d.mkdir(parents=True, exist_ok=True)
@@ -393,7 +393,7 @@ def write_network_cache(center, payload):
 
 def read_network_cache(center):
     """Cached ego-subgraph or None (GET /network/{id}?cached=true fast path).
-    Follows the write arm, like read_audit_log — it reads back what
+    Follows the write arm, like read_audit_log - it reads back what
     write_network_cache produced."""
     import json
     if WRITE_BACKEND == "zcql":
@@ -407,7 +407,7 @@ def read_network_cache(center):
                     raw = raw.get("S")
                 if raw:
                     return json.loads(raw)
-        except Exception:                      # noqa: BLE001 — degrade to miss
+        except Exception:                      # noqa: BLE001 - degrade to miss
             return None
         return None
     p = OUT_DIR / "network" / f"{center}.json"
@@ -418,10 +418,10 @@ def read_network_cache(center):
 
 
 # --------------------------------------------------------------------------- #
-# Phase-6 reads/writes — socio-economic context + Predictive_Risk
+# Phase-6 reads/writes - socio-economic context + Predictive_Risk
 # --------------------------------------------------------------------------- #
 # district_name matters: the copilot's district parsing and the hotspot map's
-# labels both read it — dropping it silently reduced "in Mysuru" to statewide.
+# labels both read it - dropping it silently reduced "in Mysuru" to statewide.
 _SOCIO_COLS = ("area_code", "district_name", "population", "density", "literacy",
                "urbanization")
 _PRED_RISK_COLS = ["grid_id", "district_code", "crime_type", "period", "risk_score",
@@ -456,14 +456,14 @@ def write_predictive_risk(rows):
                         f"INSERT INTO Predictive_Risk ({', '.join(_PRED_RISK_COLS)}) "
                         f"VALUES ({vals})")
             return len(rows)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_predictive_risk")
     _write_out_csv("predictive_risk.csv", rows, _PRED_RISK_COLS)
     return len(rows)
 
 
 # --------------------------------------------------------------------------- #
-# Phase-7 reads/writes — copilot narratives + Audit_Log
+# Phase-7 reads/writes - copilot narratives + Audit_Log
 # --------------------------------------------------------------------------- #
 _COPILOT_INC_COLS = ("incident_id", "fir_no", "occurred_at", "district_code",
                      "station_code", "crime_type", "ipc_bns_code", "mo_text",
@@ -493,7 +493,7 @@ def write_audit_log(entries):
                 zcql.execute_query(
                     f"INSERT INTO Audit_Log ({', '.join(_AUDIT_COLS)}) VALUES ({vals})")
             return len(entries)
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("write_audit_log")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     p = OUT_DIR / "audit_log.csv"
@@ -524,7 +524,7 @@ def fetch_console_user(email):
                 "SELECT " + ", ".join(_CONSOLE_USER_COLS) +
                 " FROM Console_Users WHERE email='" + _sql_escape(email) + "'"))
             return rows[0] if rows else None
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("fetch_console_user")
     p = SYN_DIR.parent / "reference" / "console_users.csv"
     for r in (_read_csv(p) if p.exists() else []):
@@ -534,10 +534,10 @@ def fetch_console_user(email):
 
 
 def read_audit_log(limit=100):
-    """Most-recent audit entries (admin/ethics only — gated at the API layer).
+    """Most-recent audit entries (admin/ethics only - gated at the API layer).
 
     Branches on WRITE_BACKEND, not READ_BACKEND: this reads back what
-    write_audit_log produced, so it must look wherever those rows landed —
+    write_audit_log produced, so it must look wherever those rows landed -
     under the prod split (reads local / writes zcql) the trail lives in the
     Data Store, and reading the local CSV would show an empty audit view."""
     if WRITE_BACKEND == "zcql":
@@ -545,14 +545,14 @@ def read_audit_log(limit=100):
             zcql = _zcatalyst_zcql()
             return _zcql_rows("Audit_Log", zcql.execute_query(
                 "SELECT " + ", ".join(_AUDIT_COLS) + " FROM Audit_Log"))[:limit]
-        except Exception:  # noqa: BLE001 — table missing / unreachable
+        except Exception:  # noqa: BLE001 - table missing / unreachable
             _zcql_failed("read_audit_log")
     p = OUT_DIR / "audit_log.csv"
     return list(reversed(_read_csv(p)))[:limit] if p.exists() else []
 
 
 # --------------------------------------------------------------------------- #
-# Phase-9 reads — incident + its parties (governed: masking applied at API layer)
+# Phase-9 reads - incident + its parties (governed: masking applied at API layer)
 # --------------------------------------------------------------------------- #
 _CASE_COLS = ("incident_id", "fir_no", "crime_no", "case_no", "occurred_at",
               "district_code", "station_code",
@@ -575,7 +575,7 @@ def fetch_incident(incident_id):
 
 
 def fetch_incident_parties(incident_id):
-    """Persons / vehicles / phones linked to an incident, with role — for the case
+    """Persons / vehicles / phones linked to an incident, with role - for the case
     view. Raw values; the governance layer masks victim/witness PII by role."""
     if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
@@ -596,7 +596,7 @@ def fetch_incident_parties(incident_id):
                     "type": ent.get("type"), "value": ent.get("value"),
                     "age": ent.get("age"), "gender": ent.get("gender"),
                     "evidence_type": e.get("evidence_type"),
-                    # VictimPolice (P2 #12) — only meaningful when role == "victim"
+                    # VictimPolice (P2 #12) - only meaningful when role == "victim"
                     "is_police": e.get("is_police") or None})
     return out
 
@@ -610,7 +610,7 @@ _FULL_INC_COLS = ("incident_id", "fir_no", "crime_no", "case_no", "occurred_at",
 
 
 def fetch_incidents_full():
-    """Every incident with the full column set — the workbench working set."""
+    """Every incident with the full column set - the workbench working set."""
     if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()
         return _zcql_rows("Incidents", zcql.execute_query(
@@ -620,8 +620,8 @@ def fetch_incidents_full():
 
 
 # --------------------------------------------------------------------------- #
-# Officers / Chargesheets — organizer schema's Employee + ChargesheetDetails.
-# Powers the District Command Card (clearance/conviction rate — blueprint §B1)
+# Officers / Chargesheets - organizer schema's Employee + ChargesheetDetails.
+# Powers the District Command Card (clearance/conviction rate - blueprint §B1)
 # and "who registered/investigated this FIR" on the case file.
 # --------------------------------------------------------------------------- #
 _OFFICER_COLS = ("officer_id", "name", "rank", "designation", "district_code", "unit_code",
@@ -650,7 +650,7 @@ def fetch_chargesheets():
 
 
 # --------------------------------------------------------------------------- #
-# Arrests / Case_Sections — organizer schema's ArrestSurrender + ActSectionAssociation.
+# Arrests / Case_Sections - organizer schema's ArrestSurrender + ActSectionAssociation.
 # Arrests start the 60/90-day default-bail clock (docs/product/08 §1) and define the
 # absconding board (§6: suspects on open cases with no arrest row); Case_Sections is
 # the one-to-many legal classification behind §5's per-section evidence gaps.
@@ -682,9 +682,9 @@ def fetch_case_sections():
 
 
 # --------------------------------------------------------------------------- #
-# Courts / Case_Status / Crime_Head_Sections — organizer schema's Court,
+# Courts / Case_Status / Crime_Head_Sections - organizer schema's Court,
 # CaseStatusMaster and CrimeHeadActSection. Reference/master tables (schema
-# completeness — P2 #10/#11/#14); Incidents.status/court_id stay denormalized
+# completeness - P2 #10/#11/#14); Incidents.status/court_id stay denormalized
 # text so no engine changes are needed to consume them.
 # --------------------------------------------------------------------------- #
 _COURT_COLS = ("court_id", "name", "district_code", "state_code")
@@ -717,7 +717,7 @@ _UNIT_COLS = ("unit_id", "unit_name", "unit_type", "parent_unit",
 
 
 def fetch_units():
-    """Units master (organizer schema: Unit/UnitType hierarchy) — station names,
+    """Units master (organizer schema: Unit/UnitType hierarchy) - station names,
     numeric ids (the CrimeNo segments) and centroids for the map drill-down."""
     if READ_BACKEND == "zcql":
         zcql = _zcatalyst_zcql()

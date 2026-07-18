@@ -1,24 +1,24 @@
-"""GARUDA AppSail — analytics endpoints (Phases 4-5).
+"""GARUDA AppSail - analytics endpoints (Phases 4-5).
 
-Phase 4 — entity resolution + MO fingerprinting:
+Phase 4 - entity resolution + MO fingerprinting:
   POST /resolve/run     : Entities -> canonical_id + match_confidence (borderline -> Review_Queue).
   POST /mo/run          : Incidents -> mo_cluster_id + MO_Clusters signatures.
   POST /geocode/backfill: fill Incidents missing lat/long.
 
-Phase 5 — co-offender network / crime-series / anomaly (the hero reveal):
+Phase 5 - co-offender network / crime-series / anomaly (the hero reveal):
   GET  /network/top         : highest-centrality persons (candidate kingpins).
   GET  /network/{canonical} : ego-subgraph JSON for the force graph (+optional cache).
   POST /network/run         : (re)build the graph; report size + communities + top actors.
   POST /series/run          : link incidents into Crime_Series (MO + space-time near-repeat).
   POST /anomaly/run         : flag emerging-trend spikes into Alerts.
 
-Phase 6 — predictive & explainable risk forecasting (places x times, not people):
+Phase 6 - predictive & explainable risk forecasting (places x times, not people):
   POST /risk/run            : walk-forward backtest (PAI/PEI/PR-AUC) + write Predictive_Risk.
   GET  /risk/top            : current highest-risk area x crime-type cells.
   GET  /risk/explain        : SHAP drivers for one area x crime-type prediction.
   GET  /risk/fairness       : per-ward predicted-vs-actual bias audit.
 
-Phase 7 — intelligence copilot (hybrid RAG over FIRs):
+Phase 7 - intelligence copilot (hybrid RAG over FIRs):
   POST /copilot             : NL -> structured filters + semantic retrieval -> cited answer
                               (guardrails: never asserts guilt; refuses out-of-scope; audited).
 
@@ -72,7 +72,7 @@ class _Lazy:
     """Thread-safe memoize-once for an expensive build (graph analysis, LightGBM
     walk-forward, TF-IDF index, anomaly scan). Plain "if cache is None: build()"
     is fine for a single request thread, but the background warm-up thread
-    (main.py startup) can race a live request hitting the same cold cache —
+    (main.py startup) can race a live request hitting the same cold cache -
     without a lock both would redundantly run the full computation at once,
     doubling CPU contention right when someone is watching. The lock only
     guards the (rare) build path; reads of an already-warm cache never block."""
@@ -91,7 +91,7 @@ class _Lazy:
         return self._value
 
     def ready(self):
-        """True once built — lets endpoints serve the kvcache L2 while this
+        """True once built - lets endpoints serve the kvcache L2 while this
         L1 is still cold (warm() builds it in the background) without ever
         paying the L2 round-trip on a warm instance."""
         return self._value is not None
@@ -172,7 +172,7 @@ def geocode_backfill(body: RunIn):
 
 
 # --------------------------------------------------------------------------- #
-# Phase 5 — co-offender network / crime-series / anomaly
+# Phase 5 - co-offender network / crime-series / anomaly
 # --------------------------------------------------------------------------- #
 # The graph is expensive to build, so cache it in-process. /network/run rebuilds.
 _NET_CACHE = _Lazy(lambda: net_engine.analyze(
@@ -193,7 +193,7 @@ def network_top(n: int = 10, node_type: str = "person"):
 
 @router.get("/network/rings")
 def network_rings(min_districts: int = 2, min_incidents: int = 4, top: int = 20):
-    """Organized cross-district rings — the 'show me the gangs' query."""
+    """Organized cross-district rings - the 'show me the gangs' query."""
     if not _NET_CACHE.ready() and (min_districts, min_incidents) == (2, 4):
         c = kv.get("network:rings")            # baked at deploy + nightly publish
         if c:
@@ -207,7 +207,7 @@ def network_rings(min_districts: int = 2, min_incidents: int = 4, top: int = 20)
 @router.get("/network/{canonical_id}")
 def network_ego(canonical_id: str, radius: int = 2, cache: bool = False,
                 cached: bool = False):
-    """Ego-subgraph around a canonical entity — the JSON the Phase-8 force graph draws.
+    """Ego-subgraph around a canonical entity - the JSON the Phase-8 force graph draws.
     ?cache=true writes the payload to the ego cache (NoSQL in prod, plan §4.6);
     ?cached=true serves from that cache when present, skipping the graph build."""
     if cached:
@@ -250,7 +250,7 @@ def series_run(body: RunIn):
 
 # The z-score/MAD scan is O(months^2) per (district, crime) series in pure Python
 # and the frontend calls this (as a read, write=False) from both the Overview and
-# Alerts screens on every mount — cache the detection result the same way the
+# Alerts screens on every mount - cache the detection result the same way the
 # network/risk/copilot state is cached, and only rescan on an explicit write run.
 _ANOMALY_CACHE = _Lazy(lambda: detect_anomalies(store.fetch_incidents_p5()))
 
@@ -273,7 +273,7 @@ def anomaly_run(body: RunIn):
 
 
 # --------------------------------------------------------------------------- #
-# Phase 6 — predictive & explainable risk forecasting
+# Phase 6 - predictive & explainable risk forecasting
 # --------------------------------------------------------------------------- #
 # Training is expensive; cache the model + backtest + current risk surface.
 def _build_risk_state():
@@ -363,7 +363,7 @@ def risk_fairness():
 
 
 # --------------------------------------------------------------------------- #
-# Phase 7 — intelligence copilot (hybrid RAG over FIRs)
+# Phase 7 - intelligence copilot (hybrid RAG over FIRs)
 # --------------------------------------------------------------------------- #
 def _build_copilot_state():
     inc = store.fetch_incidents_copilot()
@@ -388,7 +388,7 @@ class CopilotIn(BaseModel):
 
 @router.post("/copilot")
 def copilot(body: CopilotIn):
-    """Plain-English (or Kannada — §4.13) Q&A over FIRs: hybrid retrieval +
+    """Plain-English (or Kannada - §4.13) Q&A over FIRs: hybrid retrieval +
     mandatory citations + guardrails. Kannada queries are normalized to the
     English tokens the parser keys on; the response carries the translation
     trace so the UI can show its work."""
@@ -403,13 +403,13 @@ def copilot(body: CopilotIn):
     res = cp.answer(query, st["incidents"], st["index"], st["refs"], top_k=body.top_k)
     if voice:
         res["voice"] = voice
-    # audit the ORIGINAL utterance — the governance trail must show what was asked
+    # audit the ORIGINAL utterance - the governance trail must show what was asked
     store.write_audit_log(cp.audit_entry(body.query, res, actor=body.actor, role=body.role))
     return res
 
 
 # --------------------------------------------------------------------------- #
-# Phase 8 — lightweight read endpoints for the frontend (stats + geo)
+# Phase 8 - lightweight read endpoints for the frontend (stats + geo)
 # --------------------------------------------------------------------------- #
 @router.get("/stats")
 def stats():
@@ -442,7 +442,7 @@ def _in_hour_band(ts, hour_from, hour_to):
 
 @router.get("/geo/districts")
 def geo_districts(hour_from: Optional[int] = None, hour_to: Optional[int] = None):
-    """Per-district centroid + incident load + top crime — powers the hotspot map.
+    """Per-district centroid + incident load + top crime - powers the hotspot map.
     ?hour_from/&hour_to layer time-of-day onto location (the brief's
     'spatiotemporal clusters'): counts include only incidents in that band."""
     if hour_from is None and hour_to is None and not _WARMED:
@@ -476,6 +476,164 @@ def geo_districts(hour_from: Optional[int] = None, hour_to: Optional[int] = None
                     "lng": round(a["lng"] / k, 4), "top_crime": top})
     out.sort(key=lambda x: -x["incidents"])
     return {"districts": out}
+
+
+@router.get("/socio/correlation")
+def socio_correlation():
+    """Socio-economic correlation - the brief's "why behind the where".
+
+    Overlays per-district crime load on the Census indicators (population,
+    density, literacy, urbanisation) and reports both the per-district table
+    and the Pearson correlation of each indicator against crime rate per
+    100k. Rate, not raw count: raw counts only re-discover that Bengaluru is
+    big. Reported as association, never causation - these are ecological
+    correlations over 31 districts, which is exactly how they must be read."""
+    if not _WARMED:
+        c = kv.get("socio:correlation")
+        # Shape guard: a warmstart file baked before this payload grew would
+        # otherwise serve the old structure and silently render a degraded
+        # card. Only trust a cached payload that carries every key this
+        # endpoint now returns; anything older falls through and recomputes.
+        if c and "by_crime" in c and "model" in c:
+            return c
+    socio = {s.get("area_code"): s for s in store.fetch_socioeconomic()}
+    counts: dict = {}
+    for r in store.fetch_incidents_p5():
+        d = r.get("district_code")
+        if d:
+            counts[d] = counts.get(d, 0) + 1
+
+    rows = []
+    for code, s in socio.items():
+        try:
+            pop = float(s.get("population") or 0)
+        except (TypeError, ValueError):
+            pop = 0.0
+        if pop <= 0:
+            continue
+        n = counts.get(code, 0)
+
+        def _f(key):
+            try:
+                return float(s.get(key) or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        rows.append({
+            "district_code": code,
+            "name": s.get("district_name") or code,
+            "incidents": n,
+            "population": int(pop),
+            "rate_per_100k": round(n / pop * 100_000, 2),
+            "density": _f("density"),
+            "literacy": _f("literacy"),
+            "urbanization": _f("urbanization"),
+        })
+    rows.sort(key=lambda r: -r["rate_per_100k"])
+
+    def _pearson(key):
+        if len(rows) < 3:
+            return None
+        x = np.array([r[key] for r in rows], dtype=float)
+        y = np.array([r["rate_per_100k"] for r in rows], dtype=float)
+        if x.std() == 0 or y.std() == 0:
+            return None
+        return round(float(np.corrcoef(x, y)[0, 1]), 3)
+
+    def _strength(r):
+        a = abs(r or 0)
+        return "strong" if a >= 0.6 else "moderate" if a >= 0.35 else "weak"
+
+    INDICATORS = (("urbanization", "Urbanisation"),
+                  ("density", "Population density"),
+                  ("literacy", "Literacy"))
+
+    correlations = []
+    for key, label in INDICATORS:
+        r = _pearson(key)
+        correlations.append({
+            "indicator": key, "label": label, "r": r,
+            "direction": ("none" if r is None else "positive" if r > 0 else "negative"),
+            "strength": _strength(r),
+        })
+    correlations.sort(key=lambda c: -abs(c["r"] or 0))
+
+    # ---- per-crime-type profile -------------------------------------------
+    # The headline correlation hides that different offences track different
+    # social conditions: economic/cyber crime follows literacy and urbanisation,
+    # street property crime follows density. That contrast is the actual
+    # sociological finding, and it tells a commander which lever applies where.
+    per_district_crime: dict = {}
+    crime_totals: dict = {}
+    for r in store.fetch_incidents_p5():
+        d, ct = r.get("district_code"), r.get("crime_type")
+        if not d or not ct:
+            continue
+        per_district_crime.setdefault(ct, {})
+        per_district_crime[ct][d] = per_district_crime[ct].get(d, 0) + 1
+        crime_totals[ct] = crime_totals.get(ct, 0) + 1
+
+    pop_by_code = {r["district_code"]: r["population"] for r in rows}
+    by_crime = []
+    for ct in sorted(crime_totals, key=lambda k: -crime_totals[k])[:8]:
+        per_d = per_district_crime.get(ct, {})
+        y = np.array([per_d.get(r["district_code"], 0) / pop_by_code[r["district_code"]] * 100_000
+                      for r in rows], dtype=float)
+        if y.std() == 0:
+            continue
+        entry = {"crime_type": ct, "incidents": crime_totals[ct]}
+        best_label, best_r = None, 0.0
+        for key, label in INDICATORS:
+            x = np.array([r[key] for r in rows], dtype=float)
+            rr = None if x.std() == 0 else round(float(np.corrcoef(x, y)[0, 1]), 3)
+            entry[key] = rr
+            if rr is not None and abs(rr) > abs(best_r):
+                best_label, best_r = label, rr
+        entry["driver"] = best_label
+        entry["driver_r"] = round(best_r, 3) if best_label else None
+        by_crime.append(entry)
+    by_crime.sort(key=lambda e: -abs(e.get("driver_r") or 0))
+
+    # ---- expected vs actual (the part a commander can act on) --------------
+    # Regress crime rate on the socio-economic profile, then read the residual.
+    # A district well ABOVE its predicted rate has more crime than its
+    # demographics explain - something local is driving it, and that is where
+    # attention belongs; below-expected districts are doing better than their
+    # conditions predict. This separates "high crime because it is a big city"
+    # from "high crime for what this place is", which raw counts never show.
+    model = None
+    if len(rows) >= 6:
+        X = np.array([[r["urbanization"], r["literacy"], r["density"]] for r in rows],
+                     dtype=float)
+        y = np.array([r["rate_per_100k"] for r in rows], dtype=float)
+        Xd = np.column_stack([np.ones(len(X)), X])
+        coef, *_ = np.linalg.lstsq(Xd, y, rcond=None)
+        pred = Xd @ coef
+        ss_res = float(((y - pred) ** 2).sum())
+        ss_tot = float(((y - y.mean()) ** 2).sum())
+        r2 = round(1 - ss_res / ss_tot, 3) if ss_tot else None
+        for i, r in enumerate(rows):
+            r["expected_rate"] = round(float(pred[i]), 2)
+            r["residual"] = round(float(y[i] - pred[i]), 2)
+        ranked = sorted(rows, key=lambda r: -r["residual"])
+        keep = ("district_code", "name", "rate_per_100k", "expected_rate", "residual")
+        model = {
+            "r2": r2,
+            "explains_pct": round((r2 or 0) * 100),
+            "above_expected": [{k: d[k] for k in keep} for d in ranked[:5]],
+            "below_expected": [{k: d[k] for k in keep} for d in ranked[-5:][::-1]],
+        }
+
+    return {
+        "districts": rows,
+        "correlations": correlations,
+        "by_crime": by_crime,
+        "model": model,
+        "n_districts": len(rows),
+        "note": "Ecological correlation across districts - association, not "
+                "causation. Used to explain where risk concentrates; the "
+                "forecast model consumes these same indicators as features.",
+    }
 
 
 @router.get("/geo/stations")
@@ -516,17 +674,17 @@ def geo_stations(district: str, hour_from: Optional[int] = None,
 
 
 # --------------------------------------------------------------------------- #
-# Phase 9 — governance (RBAC + PII masking + audit) + automation (briefs)
+# Phase 9 - governance (RBAC + PII masking + audit) + automation (briefs)
 # --------------------------------------------------------------------------- #
 def get_principal(x_actor: Optional[str] = Header(None),
                   x_role: Optional[str] = Header(None),
                   x_scope: Optional[str] = Header(None),
                   x_garuda_user: Optional[str] = Header(None)) -> rbac.Principal:
-    """Resolve the caller. Under ENV=prod only X-Garuda-User is trusted — the
+    """Resolve the caller. Under ENV=prod only X-Garuda-User is trusted - the
     API Gateway strips it from inbound traffic and injects the Catalyst-verified
     email server-side (plan §4.5), and role/scope come from Console_Users
     (§4.4). Everywhere else (local, Dev demo) the client-supplied X-Role /
-    X-Scope headers keep working — the role-switcher IS the governance demo."""
+    X-Scope headers keep working - the role-switcher IS the governance demo."""
     if os.environ.get("ENV") == "prod":
         if not x_garuda_user:
             raise HTTPException(401, "sign-in required")
@@ -540,7 +698,7 @@ def get_principal(x_actor: Optional[str] = Header(None),
 
 @router.get("/whoami")
 def whoami(principal: rbac.Principal = Depends(get_principal)):
-    """The resolved principal — Login.tsx calls this after a Catalyst sign-in
+    """The resolved principal - Login.tsx calls this after a Catalyst sign-in
     to learn its GARUDA role/scope; harmless echo under the demo login."""
     u = store.fetch_console_user(principal.actor)
     return {"actor": principal.actor, "role": principal.role,
@@ -581,14 +739,14 @@ def case_parties(incident_id: str, principal: rbac.Principal = Depends(get_princ
 
 @router.get("/audit")
 def audit_log(limit: int = 100, principal: rbac.Principal = Depends(get_principal)):
-    """The governance audit trail — restricted to admin / ethics."""
+    """The governance audit trail - restricted to admin / ethics."""
     if principal.role not in ("scrb-admin", "ethics"):
         raise HTTPException(403, "audit log restricted to admin/ethics")
     return {"entries": store.read_audit_log(limit)}
 
 
 # --------------------------------------------------------------------------- #
-# Iteration 11 — investigation workbench (dossier / case file / universal search)
+# Iteration 11 - investigation workbench (dossier / case file / universal search)
 # --------------------------------------------------------------------------- #
 from engines import workbench as wb  # noqa: E402
 
@@ -603,7 +761,7 @@ def _authz(principal, action, resource):
 
 @router.get("/entity/{canonical_id}")
 def entity_dossier(canonical_id: str, principal: rbac.Principal = Depends(get_principal)):
-    """360-degree dossier: aliases, appearances, associates, timeline — masked by role."""
+    """360-degree dossier: aliases, appearances, associates, timeline - masked by role."""
     _authz(principal, "read", "incident_pii")                   # ethics denied -> 403
     res = wb.dossier(canonical_id, principal)
     if res.get("error"):
@@ -636,13 +794,13 @@ def universal_search(q: str, principal: rbac.Principal = Depends(get_principal))
 
 
 # --------------------------------------------------------------------------- #
-# District Command Card (blueprint §B1/§B2) — clearance/conviction rate from
+# District Command Card (blueprint §B1/§B2) - clearance/conviction rate from
 # ChargesheetDetails.cs_type, backlog aging, officer leaderboard. district/
 # station roles are scoped to their own jurisdiction; others may query any.
 # --------------------------------------------------------------------------- #
 @router.get("/district/{code}/command")
 def district_command(code: str, principal: rbac.Principal = Depends(get_principal)):
-    """One district's cockpit — load, backlog, clearance rate, top officers."""
+    """One district's cockpit - load, backlog, clearance rate, top officers."""
     if principal.role in ("district", "station") and not rbac.in_scope(principal, district=code):
         raise HTTPException(403, "outside your jurisdiction")
     card = district_engine.command_card(
@@ -654,7 +812,7 @@ def district_command(code: str, principal: rbac.Principal = Depends(get_principa
 
 @router.get("/district/rank")
 def district_rank(principal: rbac.Principal = Depends(get_principal)):
-    """All districts ranked by clearance rate — "who's improving, who's slipping" (§B2)."""
+    """All districts ranked by clearance rate - "who's improving, who's slipping" (§B2)."""
     if principal.role in ("district", "station"):
         raise HTTPException(403, "statewide ranking requires SP/analyst clearance or higher")
     inc = store.fetch_incidents_full()
@@ -666,11 +824,11 @@ def district_rank(principal: rbac.Principal = Depends(get_principal)):
 
 
 # --------------------------------------------------------------------------- #
-# Field-officer intelligence (docs/product/08 §1/§2/§6) — the default-bail
+# Field-officer intelligence (docs/product/08 §1/§2/§6) - the default-bail
 # deadline clock, the per-IO worklist, and the absconding-accused board.
 # district/station roles are scoped to their own jurisdiction; ethics sees none.
 # The statewide roster and the absconding pair derivation are each a full pass
-# over the corpus (~100-130ms) and hit on every page mount / filter change —
+# over the corpus (~100-130ms) and hit on every page mount / filter change -
 # cache them like the network/risk/copilot state; per-request work is only the
 # cheap filter/sort (jurisdiction scoping stays per request, on the principal).
 # --------------------------------------------------------------------------- #
@@ -679,7 +837,7 @@ _ROSTER_CACHE = _Lazy(lambda: _publish("workbench:roster", dl_engine.officers_ro
     store.fetch_arrests(), store.fetch_chargesheets())))
 # NOT L2-published: absconding_people's phase-1 state carries sets, which a JSON
 # round-trip through the Cache would silently turn into lists and corrupt
-# absconding_board_from's filtering — cold instances build it locally instead.
+# absconding_board_from's filtering - cold instances build it locally instead.
 _ABSCONDING_CACHE = _Lazy(lambda: dl_engine.absconding_people(
     store.fetch_incidents_full(), store.fetch_arrests(),
     store.fetch_chargesheets(), store.fetch_edges_p5(), store.fetch_entities_p5()))
@@ -709,7 +867,7 @@ def officers_roster(district: Optional[str] = None,
 
 @router.get("/officer/{officer_id}/cases")
 def officer_cases(officer_id: str, principal: rbac.Principal = Depends(get_principal)):
-    """§2 — one IO's open cases sorted by default-bail urgency → age → gravity."""
+    """§2 - one IO's open cases sorted by default-bail urgency → age → gravity."""
     off = next((o for o in store.fetch_officers()
                 if o["officer_id"] == officer_id), None)
     if not off:
@@ -728,7 +886,7 @@ def officer_cases(officer_id: str, principal: rbac.Principal = Depends(get_princ
 def absconding(district: Optional[str] = None, gravity: Optional[str] = None,
                min_days: int = 0, limit: int = 100,
                principal: rbac.Principal = Depends(get_principal)):
-    """§6 — suspects on open cases with no arrest row, grouped by person."""
+    """§6 - suspects on open cases with no arrest row, grouped by person."""
     if principal.role == "ethics":
         raise HTTPException(403, "case data restricted for ethics role")
     station = None
@@ -755,7 +913,7 @@ def absconding(district: Optional[str] = None, gravity: Optional[str] = None,
 @router.post("/brief/run")
 def brief_run(scope: str = "STATE", pdf: bool = False):
     """Assemble the intelligence brief. ?pdf=true additionally renders it to
-    PDF via SmartBrowz into the Stratus briefs bucket (plan §4.9) — best-effort,
+    PDF via SmartBrowz into the Stratus briefs bucket (plan §4.9) - best-effort,
     the JSON+HTML response is unchanged either way."""
     a = _network_analysis()
     inc = store.fetch_incidents_p5()
@@ -774,7 +932,7 @@ def brief_run(scope: str = "STATE", pdf: bool = False):
 
 
 # --------------------------------------------------------------------------- #
-# FIR provenance — the scanned source document behind an incident. Locally the
+# FIR provenance - the scanned source document behind an incident. Locally the
 # scans are the bundled synthetic renders (data/fir_samples, CCTNS-style);
 # in prod the same panel reads the Stratus raw-fir bucket the Zia-OCR
 # ingestion pipeline consumes. Every analytical claim traces to its document.
@@ -786,7 +944,7 @@ if not _FIR_DIR.is_dir():           # full checkout: data/ sits beside app/
 
 @router.get("/fir/{incident_id}")
 def fir_scan(incident_id: str):
-    """The scanned FIR image for an incident (404 when no scan exists —
+    """The scanned FIR image for an incident (404 when no scan exists -
     only a sample of the corpus has rendered documents)."""
     from fastapi.responses import FileResponse
     safe = re.sub(r"[^A-Za-z0-9_]", "", incident_id)
@@ -798,7 +956,7 @@ def fir_scan(incident_id: str):
 
 
 # --------------------------------------------------------------------------- #
-# Scheduled jobs (plan §4.8) — Catalyst Job Scheduling fires the thin Node job
+# Scheduled jobs (plan §4.8) - Catalyst Job Scheduling fires the thin Node job
 # function (functions/jobs), which makes ONE call here; ordering/error capture
 # lives in automation.jobs so the batch runs identically locally and in prod.
 # --------------------------------------------------------------------------- #
@@ -812,7 +970,7 @@ def _check_jobs_token(token):
 
 
 def _heavy_payloads():
-    """Every precomputed JSON a cold instance should serve instantly — one
+    """Every precomputed JSON a cold instance should serve instantly - one
     source of truth for warm()'s L2 publish, the nightly republish, and the
     deploy-time warmstart bake (scripts/bake_warmstart.py)."""
     a = _network_analysis()
@@ -821,6 +979,7 @@ def _heavy_payloads():
     return {
         "stats": stats(),
         "geo:districts": geo_districts(),
+        "socio:correlation": socio_correlation(),
         "risk:top": {"as_of": str(pd.Timestamp(st["last"]).date()),
                      "top": _risk_rows(st, n=100)},
         "risk:fairness": {"summary": fair_sum, "wards": fair_df.to_dict("records")},
@@ -855,7 +1014,7 @@ def _report_ok(report):
 @router.post("/jobs/nightly")
 def jobs_nightly(x_jobs_token: Optional[str] = Header(None)):
     """Nightly recompute: anomaly scan, risk retrain, network rebuild, workbench
-    caches — each task's error is captured, never aborting the batch."""
+    caches - each task's error is captured, never aborting the batch."""
     _check_jobs_token(x_jobs_token)
     body = RunIn(write=True)
     report = automation_jobs.nightly_recompute([
@@ -890,10 +1049,10 @@ def jobs_weekly(scope: str = "STATE", x_jobs_token: Optional[str] = Header(None)
 
 
 # --------------------------------------------------------------------------- #
-# Cache warm-up — the network graph / LightGBM walk-forward / copilot TF-IDF
+# Cache warm-up - the network graph / LightGBM walk-forward / copilot TF-IDF
 # index / anomaly scan / workbench state are each expensive exactly once and
 # cheap forever after (module-level caches above). Left lazy, that one-time
-# cost lands on whichever user's click happens to be first — a multi-second
+# cost lands on whichever user's click happens to be first - a multi-second
 # stall right when someone is looking. Precompute them at process start
 # instead, off the request path.
 # --------------------------------------------------------------------------- #

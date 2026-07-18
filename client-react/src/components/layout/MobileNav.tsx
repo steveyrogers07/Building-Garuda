@@ -32,7 +32,7 @@ const TABS = [
   { to: "/copilot", label: "Copilot", icon: MessageSquareText },
 ]
 
-/** Bottom tab bar (< lg) — the desktop sidebar's mobile counterpart. The full
+/** Bottom tab bar (< lg) - the desktop sidebar's mobile counterpart. The full
  *  nav, the clearance/role switcher and sign-out live in the "More" sheet. */
 export function MobileNav() {
   const principal = usePrincipal()
@@ -44,7 +44,7 @@ export function MobileNav() {
     const r = ROLE_PRESETS.find((x) => x.id === id)
     if (!r || !principal) return
     setPrincipal({ ...principal, role: r.role, scope: r.scope })
-    toast(`Clearance switched — ${r.label}`, {
+    toast(`Clearance switched - ${r.label}`, {
       description: "Jurisdiction gates and PII masking now apply server-side.",
     })
   }

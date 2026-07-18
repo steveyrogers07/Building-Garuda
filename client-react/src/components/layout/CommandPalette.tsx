@@ -17,7 +17,7 @@ import { api } from "@/lib/api"
 import { d10, fmt } from "@/lib/format"
 import type { SearchResult } from "@/lib/types"
 
-/** Ctrl-K universal search — cases, people, vehicles, phones, places and
+/** Ctrl-K universal search - cases, people, vehicles, phones, places and
  *  semantic narrative matches, all deep-linked. Results are server-filtered
  *  (structured + semantic), so cmdk's own filtering is disabled. */
 export function CommandPalette({
@@ -88,7 +88,7 @@ export function CommandPalette({
           <CommandList className="max-h-[420px]">
             {q.trim().length < 2 ? (
               <div className="px-4 py-8 text-center text-[12.5px] text-faint">
-                Type at least 2 characters — try <span className="font-mono text-brass">KA68MC3164</span>{" "}
+                Type at least 2 characters - try <span className="font-mono text-brass">KA68MC3164</span>{" "}
                 or <span className="font-mono">Aayush</span>
               </div>
             ) : (

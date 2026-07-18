@@ -1,4 +1,4 @@
-"""GARUDA — Qwen (QuickML LLM serving) FIR extractor; used when EXTRACTOR=qwen.
+"""GARUDA - Qwen (QuickML LLM serving) FIR extractor; used when EXTRACTOR=qwen.
 
 Schema-constrained extraction for messy/handwritten real FIRs. Falls back to the
 rule-based extractor on ANY error so ingestion never hard-fails (and so dev/offline runs
@@ -20,7 +20,7 @@ from engines.extraction.rules import extract_fir as _rules_extract
 
 # ingestion/ sits three levels up locally (repo_root/app/engines/extraction/);
 # in a deployed AppSail bundle (app/ becomes the root) it would be two levels
-# up instead — try both, same reasoning as shared/store.py and shared/refs.py.
+# up instead - try both, same reasoning as shared/store.py and shared/refs.py.
 _HERE = Path(__file__).resolve()
 for _candidate in (_HERE.parents[3], _HERE.parents[2]):
     if (_candidate / "ingestion").is_dir():

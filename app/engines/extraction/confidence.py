@@ -1,4 +1,4 @@
-"""GARUDA — per-field confidence scoring for an extracted FIR record.
+"""GARUDA - per-field confidence scoring for an extracted FIR record.
 
 Combines extraction provenance (label vs regex vs missing) with validation against
 reference data (date parses, district known, IPC/BNS code in the map, coords present).

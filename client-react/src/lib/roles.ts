@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react"
 
-/** The caller identity sent as X-Actor / X-Role / X-Scope — RBAC + PII masking
+/** The caller identity sent as X-Actor / X-Role / X-Scope - RBAC + PII masking
  *  are enforced server-side; switching role live is the governance demo. */
 export interface Principal {
   actor: string
@@ -26,7 +26,7 @@ export const ROLE_PRESETS: RolePreset[] = [
     scope: "",
     label: "SCRB · Admin",
     clearance: "L5",
-    desc: "Statewide, all dossiers & model cards — every read fully audited",
+    desc: "Statewide, all dossiers & model cards - every read fully audited",
   },
   {
     id: "district-bnu",
@@ -58,7 +58,7 @@ export const ROLE_PRESETS: RolePreset[] = [
     scope: "",
     label: "Ethics · Oversight",
     clearance: "OS",
-    desc: "Audit, fairness & model cards only — no case PII at all",
+    desc: "Audit, fairness & model cards only - no case PII at all",
   },
 ]
 
@@ -91,7 +91,7 @@ export function setPrincipal(p: Principal | null) {
     if (p) sessionStorage.setItem(KEY, JSON.stringify(p))
     else sessionStorage.removeItem(KEY)
   } catch {
-    /* storage unavailable — session-only state still works */
+    /* storage unavailable - session-only state still works */
   }
   subs.forEach((f) => f())
 }

@@ -89,7 +89,7 @@ export function Topbar({ onOpenPalette }: { onOpenPalette: () => void }) {
         <TooltipContent side="bottom">
           {mode === "live"
             ? "Connected to the analytics brain (same-origin API)."
-            : "Brain unreachable — rendering planted demo fixtures."}
+            : "Brain unreachable - rendering planted demo fixtures."}
         </TooltipContent>
       </Tooltip>
 

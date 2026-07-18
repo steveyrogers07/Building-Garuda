@@ -35,12 +35,12 @@ import { presetFor, usePrincipal } from "@/lib/roles"
 import type { OfficerWorklist } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-/** §2 — the IO's landing view: open cases worst-first by the §1 default-bail
+/** §2 - the IO's landing view: open cases worst-first by the §1 default-bail
  *  clock (CrPC 167(2)/BNSS 187: chargesheet within 60d of arrest, 90d for
  *  Heinous, or the accused walks), then case age, then gravity. In production
  *  this binds to the signed-in officer's KGID; the demo console picks any
  *  officer in jurisdiction. Selection is district-first, then the officer
- *  within it — both always drawn from the roster, so a scoped role never fires
+ *  within it - both always drawn from the roster, so a scoped role never fires
  *  an out-of-jurisdiction fetch (no 403 flash). */
 export default function MyCases() {
   const p = usePrincipal()
@@ -111,7 +111,7 @@ export default function MyCases() {
       <PageHeader
         eyebrow="Field operations · CrPC 167(2) / BNSS 187"
         title="My Cases"
-        caption="Open cases worst-first on the default-bail clock — chargesheet due 60 days from first arrest (90 for Heinous) or the accused walks on default bail."
+        caption="Open cases worst-first on the default-bail clock - chargesheet due 60 days from first arrest (90 for Heinous) or the accused walks on default bail."
       >
         {!scoped && (
           <Select value={district} onValueChange={pickDistrict}>
@@ -172,7 +172,7 @@ export default function MyCases() {
         </Notice>
       ) : !roster.loading && officers.length === 0 ? (
         <EmptyState>
-          No officers on record for this jurisdiction in the current dataset — switch clearance
+          No officers on record for this jurisdiction in the current dataset - switch clearance
           in the sidebar to view another desk.
         </EmptyState>
       ) : wl.error?.status === 403 ? (
@@ -261,14 +261,14 @@ export default function MyCases() {
                           {c.gravity === "Heinous" ? (
                             <Stamp tone="signal">Heinous</Stamp>
                           ) : (
-                            <span className="text-[11px] text-faint">{c.gravity || "—"}</span>
+                            <span className="text-[11px] text-faint">{c.gravity || "-"}</span>
                           )}
                         </TableCell>
                         <TableCell className="font-mono text-[11.5px] text-muted-foreground">
                           {c.district_code} / {c.station_code}
                         </TableCell>
                         <TableCell className="tnum text-right font-mono text-[12px]">
-                          {c.case_age_days == null ? "–" : `${fmt(c.case_age_days)}d`}
+                          {c.case_age_days == null ? "-" : `${fmt(c.case_age_days)}d`}
                         </TableCell>
                         <TableCell className="text-[11.5px] text-muted-foreground">{c.status}</TableCell>
                       </TableRow>
@@ -276,7 +276,7 @@ export default function MyCases() {
                   </TableBody>
                 </Table>
               ) : (
-                <EmptyState>No open cases on this desk — clean slate.</EmptyState>
+                <EmptyState>No open cases on this desk - clean slate.</EmptyState>
               )}
               <p className="mt-3.5 text-[11px] leading-relaxed text-faint">
                 Clock = CrPC 167(2)/BNSS 187 default-bail window from the first arrest on the case

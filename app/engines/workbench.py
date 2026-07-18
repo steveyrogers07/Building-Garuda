@@ -1,8 +1,8 @@
-"""GARUDA — investigation workbench engine (Iteration 11).
+"""GARUDA - investigation workbench engine (Iteration 11).
 
 The object-centric layer that makes the console an investigation tool rather than
 a dashboard: 360-degree entity dossiers, full case files with *explained* linked
-cases, and universal search — every payload governance-aware (RBAC jurisdiction +
+cases, and universal search - every payload governance-aware (RBAC jurisdiction +
 victim/witness masking incl. IPC-228A/POCSO), every claim traceable to a FIR.
 
 Pure aggregation over shared.store + the existing engines (network graph for
@@ -25,7 +25,7 @@ from governance import masking
 from shared import store
 
 _STATE = {"v": None}
-# guards the (rare) build path only — a background cache-warm thread (see
+# guards the (rare) build path only - a background cache-warm thread (see
 # app/main.py startup) can otherwise race a live dossier/case/search request
 # into rebuilding this same expensive state twice at once.
 _STATE_LOCK = threading.Lock()
@@ -201,7 +201,7 @@ def dossier(entity_or_canonical_id, principal, max_associates=14):
         "appearances": apps[:100],
         "associates": associates,
         "timeline": [{"month": m, "count": c} for m, c in sorted(months.items())],
-        # transparent activity indicators — deliberately NOT a single "risk score"
+        # transparent activity indicators - deliberately NOT a single "risk score"
         "indicators": {"incident_count": len(apps), "district_span": len(districts),
                        "active_month_max": max(months.values()) if months else 0,
                        "recent_month_incidents": recent},
@@ -304,17 +304,17 @@ def case_file(incident_id, principal, max_links=12):
         first = min(a.get("event_date", "") for a in arrests)
         label = ("Accused in custody" if len(arrests) == 1
                  else f"{len(arrests)} accused in custody")
-        timeline.append({"ts": first, "label": label + " — default-bail clock starts"})
+        timeline.append({"ts": first, "label": label + " - default-bail clock starts"})
     if inc.get("status"):
         timeline.append({"ts": None, "label": "Status: " + inc["status"]})
     if chargesheet:
-        cs_label = {"A": "Chargesheet filed", "B": "Closed — false case",
-                    "C": "Closed — undetected"}.get(chargesheet.get("cs_type"), "Final report filed")
+        cs_label = {"A": "Chargesheet filed", "B": "Closed - false case",
+                    "C": "Closed - undetected"}.get(chargesheet.get("cs_type"), "Final report filed")
         timeline.append({"ts": chargesheet.get("cs_date"), "label": cs_label})
     if deadline:
         rem = deadline["days_remaining"]
         timeline.append({"ts": deadline["due_date"],
-                         "label": (f"Chargesheet due — {rem}d left before default bail"
+                         "label": (f"Chargesheet due - {rem}d left before default bail"
                                    if rem >= 0 else
                                    f"Default-bail window PASSED {-rem}d ago")})
 
@@ -365,7 +365,7 @@ def search(q, principal, per_group=6):
                 or (len(digits) >= 6 and digits in r.get("crime_no", ""))):
             out["groups"]["cases"].append(_case_hit(r))
 
-    # entities by value — rank matches by recorded involvement, then cap
+    # entities by value - rank matches by recorded involvement, then cap
     ent_hits = defaultdict(list)
     for cid, meta in st["canon_meta"].items():
         v = meta.get("value", "")

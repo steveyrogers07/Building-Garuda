@@ -1,4 +1,4 @@
-"""GARUDA automation — scheduled jobs, alerts, briefs (Phase 9)."""
+"""GARUDA automation - scheduled jobs, alerts, briefs (Phase 9)."""
 from . import briefs, jobs, notify
 from .briefs import build_brief, render_html
 from .notify import notification_for, notifications_for_alerts, dispatch

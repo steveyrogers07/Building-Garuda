@@ -2,7 +2,7 @@
 
 Trains a gradient-boosted classifier to predict whether each (area x day x
 crime_type) cell will see an incident, validated with an **expanding walk-forward
-(temporal) split** — never a random split, which would leak the future. Reports
+(temporal) split** - never a random split, which would leak the future. Reports
 PR-AUC (the positive class is rare) plus the hotspot-policing metrics PAI and PEI,
 and compares against a naive "recently-hot" persistence baseline.
 """
@@ -91,7 +91,7 @@ def _summary(folds):
 
 def forecast_next(t, features, model):
     """Score the most recent day as the current risk surface (one row per
-    area x crime_type) — what Predictive_Risk / the map shows."""
+    area x crime_type) - what Predictive_Risk / the map shows."""
     last = t["date"].max()
     cur = t[t["date"] == last].copy()
     cur["risk_score"] = _score(model, cur, features)

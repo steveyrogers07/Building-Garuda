@@ -1,4 +1,4 @@
-"""GARUDA — TTL cache (Phase 9 hardening).
+"""GARUDA - TTL cache (Phase 9 hardening).
 
 A tiny in-process TTL cache for expensive engine aggregations (top rings, risk
 surface, dashboard stats). Locally this is a dict + expiry; in production the same

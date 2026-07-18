@@ -27,7 +27,7 @@ import { presetFor, usePrincipal } from "@/lib/roles"
 import type { DistrictCommandCard } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-/** SP's cockpit for one district — load, backlog aging, and the clearance rate
+/** SP's cockpit for one district - load, backlog aging, and the clearance rate
  *  computed from ChargesheetDetails.cs_type (A/B/C), a metric the organizer
  *  schema carries but nobody else in the dataset was computing (blueprint §B1). */
 export default function DistrictCommand() {
@@ -57,7 +57,7 @@ export default function DistrictCommand() {
       <PageHeader
         eyebrow="Command · SP cockpit"
         title="District Command"
-        caption="Load, backlog aging, and the clearance & conviction rate from chargesheet outcomes — the metric nobody else computes."
+        caption="Load, backlog aging, and the clearance & conviction rate from chargesheet outcomes - the metric nobody else computes."
       >
         {!homeDistrict && (
           <Select value={code} onValueChange={setCode}>
@@ -97,7 +97,7 @@ export default function DistrictCommand() {
             <KpiCard label="Total incidents" value={fmt(c.total_incidents)} detail={`${c.district_code} · all recorded FIRs`} />
             <KpiCard
               label="Clearance rate"
-              value={c.clearance_rate == null ? "–" : pct(c.clearance_rate)}
+              value={c.clearance_rate == null ? "-" : pct(c.clearance_rate)}
               detail={`${fmt(c.outcomes.A)} chargesheeted / ${fmt(c.outcomes_total)} disposed`}
               icon={ShieldCheck}
               tone="accent"
@@ -198,7 +198,7 @@ export default function DistrictCommand() {
                         <TableCell><MiniBar value={o.cases} max={maxCases} className="max-w-[120px]" /></TableCell>
                         <TableCell className="tnum text-right font-mono text-[12px]">{o.chargesheeted}</TableCell>
                         <TableCell className="tnum text-right font-mono text-[12px] text-brass">
-                          {o.clearance_rate == null ? "–" : pct(o.clearance_rate)}
+                          {o.clearance_rate == null ? "-" : pct(o.clearance_rate)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -231,7 +231,7 @@ export default function DistrictCommand() {
                       <span className="w-9 font-mono text-[12px] font-medium">{d.district_code}</span>
                       <MiniBar value={d.clearance_rate ?? 0} max={1} className="flex-1" tone="amber" />
                       <span className="tnum w-12 text-right font-mono text-[11.5px] text-muted-foreground">
-                        {d.clearance_rate == null ? "–" : pct(d.clearance_rate)}
+                        {d.clearance_rate == null ? "-" : pct(d.clearance_rate)}
                       </span>
                     </button>
                   ))}

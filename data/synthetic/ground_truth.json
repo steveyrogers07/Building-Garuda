@@ -1,6 +1,6 @@
 {
   "seed": 20260618,
-  "generated_at": "2026-07-08T16:05:03",
+  "generated_at": "2026-07-18T09:22:06",
   "network": {
     "crime_type": "Chain snatching",
     "districts": [
@@ -214,6 +214,96 @@
         "INC010128",
         "INC010129",
         "INC010130"
+      ]
+    }
+  ],
+  "extra_networks": [
+    {
+      "label": "Vehicle-theft ring (north Karnataka)",
+      "crime_type": "Motor vehicle theft",
+      "districts": [
+        "KLB",
+        "BID",
+        "YDG"
+      ],
+      "kingpin_entity_id": "ENT014609",
+      "kingpin_value": "Upasna Sachdeva",
+      "member_entity_ids": [
+        "ENT014609",
+        "ENT014610",
+        "ENT014611",
+        "ENT014612"
+      ],
+      "shared_phone": null,
+      "shared_vehicle": "KA60QM0741",
+      "incident_ids": [
+        "INC010131",
+        "INC010132",
+        "INC010133",
+        "INC010134",
+        "INC010135",
+        "INC010136",
+        "INC010137",
+        "INC010138",
+        "INC010139"
+      ]
+    },
+    {
+      "label": "Cyber-fraud syndicate",
+      "crime_type": "Cybercrime",
+      "districts": [
+        "BNU",
+        "MYS",
+        "DK"
+      ],
+      "kingpin_entity_id": "ENT014614",
+      "kingpin_value": "Chaaya Prabhu",
+      "member_entity_ids": [
+        "ENT014614",
+        "ENT014615",
+        "ENT014616"
+      ],
+      "shared_phone": "+916763051134",
+      "shared_vehicle": null,
+      "incident_ids": [
+        "INC010140",
+        "INC010141",
+        "INC010142",
+        "INC010143",
+        "INC010144",
+        "INC010145",
+        "INC010146",
+        "INC010147"
+      ]
+    },
+    {
+      "label": "Highway dacoity gang",
+      "crime_type": "Dacoity",
+      "districts": [
+        "BAL",
+        "RCR",
+        "KPL"
+      ],
+      "kingpin_entity_id": "ENT014618",
+      "kingpin_value": "Indrajit Keer",
+      "member_entity_ids": [
+        "ENT014618",
+        "ENT014619",
+        "ENT014620",
+        "ENT014621",
+        "ENT014622"
+      ],
+      "shared_phone": "+917418074637",
+      "shared_vehicle": "KA65CM8156",
+      "incident_ids": [
+        "INC010148",
+        "INC010149",
+        "INC010150",
+        "INC010151",
+        "INC010152",
+        "INC010153",
+        "INC010154",
+        "INC010155"
       ]
     }
   ]

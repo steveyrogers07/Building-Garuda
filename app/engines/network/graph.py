@@ -219,7 +219,8 @@ def top_actors(G, betw, deg, n=10, node_type="person"):
     return rows
 
 
-def cross_district_rings(G, communities=None, min_districts=2, min_incidents=4, top=20):
+def cross_district_rings(G, communities=None, min_districts=2, min_incidents=4,
+                         top=20, max_districts=8):
     """Organized rings anchored on a SHARED phone/vehicle reused across districts.
 
     A single reused burner phone or number plate crossing district lines is the
@@ -229,7 +230,13 @@ def cross_district_rings(G, communities=None, min_districts=2, min_incidents=4, 
     (so a gang's phone and vehicle collapse into one ring). Ranked by how heavily
     the link is used, then how many distinct shared links the crew runs (phone AND
     vehicle beats a lone plate), then district reach — which is what makes a
-    deliberate cross-district gang stand out from incidental plate reuse."""
+    deliberate cross-district gang stand out from incidental plate reuse.
+
+    ``max_districts`` drops implausibly wide crews: a real syndicate sharing one
+    burner/plate works a cluster of neighbouring districts, so a "ring" smeared
+    across a third of the state is a graph artefact (incidental reuse chaining
+    through a high-degree node), not organised crime — filtering it keeps the
+    surfaced rings believable instead of noisy."""
     rings_by_crew = {}
     for n in G.nodes:
         if G.nodes[n].get("type") not in LINK_TYPES:
@@ -263,7 +270,7 @@ def cross_district_rings(G, communities=None, min_districts=2, min_incidents=4, 
         ring["shared_links"].append(G.nodes[n].get("value", ""))
         ring["link_uses"] = max(ring["link_uses"], len(incidents))
 
-    rings = list(rings_by_crew.values())
+    rings = [r for r in rings_by_crew.values() if r["district_count"] <= max_districts]
     rings.sort(key=lambda r: (r["link_uses"], len(r["shared_links"]),
                               r["district_count"]), reverse=True)
     return rings[:top]

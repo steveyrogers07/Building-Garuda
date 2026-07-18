@@ -591,6 +591,81 @@ def generate(cfg, out_dir):
         })
     ground["anomalies"] = anomalies
 
+    # ---- planted 4: additional organised rings (Network Reveal variety) --------
+    # The single chain-snatching network above is the hero reveal, but with only
+    # one genuine ring every other "ring" the graph surfaces is Louvain noise
+    # (5 people smeared across 15+ districts). Plant a few more tight, believable
+    # syndicates — distinct crimes, regions and shared-evidence signatures — so
+    # the co-offender graph has real variety to explore. Each shares a phone
+    # and/or vehicle across its incidents (the link that collapses the silos),
+    # spans 3 adjacent districts, and runs at night, like real organised crime.
+    extra_ring_specs = [
+        {"label": "Vehicle-theft ring (north Karnataka)", "crime_type": "Motor vehicle theft",
+         "districts": ["KLB", "BID", "YDG"], "n_members": 4, "n_incidents": 9,
+         "share": ("vehicle",), "kingpin_presence": 0.75},
+        {"label": "Cyber-fraud syndicate", "crime_type": "Cybercrime",
+         "districts": ["BNU", "MYS", "DK"], "n_members": 3, "n_incidents": 8,
+         "share": ("phone",), "kingpin_presence": 0.85},
+        {"label": "Highway dacoity gang", "crime_type": "Dacoity",
+         "districts": ["BAL", "RCR", "KPL"], "n_members": 5, "n_incidents": 8,
+         "share": ("vehicle", "phone"), "kingpin_presence": 0.8},
+    ]
+    extra_networks = []
+    r_estart = pd.to_datetime("2024-09-01")
+    r_espan = (pd.to_datetime("2025-05-31") - r_estart).days
+    for spec in extra_ring_specs:
+        r_members = []
+        for _ in range(int(spec["n_members"])):
+            nm = fake.name()
+            mid = new_eid()
+            entities.append(dict(entity_id=mid, canonical_id=mid, type="person", value=nm,
+                                 alias_of="", age=int(rng.integers(21, 46)), gender="M",
+                                 match_confidence=""))
+            r_members.append({"entity_id": mid, "value": nm})
+        r_kingpin = r_members[0]
+        shared = {}
+        if "phone" in spec["share"]:
+            pid = new_eid(); pv = phone_no(rng)
+            entities.append(dict(entity_id=pid, canonical_id=pid, type="phone", value=pv,
+                                 alias_of="", age="", gender="", match_confidence=""))
+            shared["phone"] = (pid, pv)
+        if "vehicle" in spec["share"]:
+            vid = new_eid(); vv = ka_reg(rng)
+            entities.append(dict(entity_id=vid, canonical_id=vid, type="vehicle", value=vv,
+                                 alias_of="", age="", gender="", match_confidence=""))
+            shared["vehicle"] = (vid, vv)
+        r_incidents = []
+        for i in range(int(spec["n_incidents"])):
+            dc = spec["districts"][i % len(spec["districts"])]
+            d = dcode[dc]
+            when = (r_estart + timedelta(days=int(rng.integers(0, r_espan + 1)),
+                                         hours=int(rng.choice(24, p=hw_night)),
+                                         minutes=int(rng.integers(0, 60)))).to_pydatetime()
+            place = f"{rng.choice(LOCALITIES)}, {d['name']}"
+            iid, _ = make_incident(dc, spec["crime_type"], when,
+                                   mo=f"Organised {spec['crime_type'].lower()} near {place}; "
+                                      "linked vehicle/number recurs across jurisdictions.")
+            r_incidents.append(iid)
+            if rng.random() < float(spec["kingpin_presence"]):
+                add_edge(iid, r_kingpin["entity_id"], "suspect", "cctv")
+            for m in rng.choice(r_members[1:], size=int(rng.integers(1, len(r_members))),
+                                replace=False):
+                add_edge(iid, m["entity_id"], "suspect", "fir_named")
+            if "phone" in shared:
+                add_edge(iid, shared["phone"][0], "phone_used", "call_record")
+            if "vehicle" in shared:
+                add_edge(iid, shared["vehicle"][0], "vehicle_used", "cctv")
+        extra_networks.append({
+            "label": spec["label"], "crime_type": spec["crime_type"],
+            "districts": spec["districts"], "kingpin_entity_id": r_kingpin["entity_id"],
+            "kingpin_value": r_kingpin["value"],
+            "member_entity_ids": [m["entity_id"] for m in r_members],
+            "shared_phone": shared.get("phone", (None, None))[1],
+            "shared_vehicle": shared.get("vehicle", (None, None))[1],
+            "incident_ids": r_incidents,
+        })
+    ground["extra_networks"] = extra_networks
+
     # ---- ChargesheetDetails — only cases that reached a final-report status get one ----
     cs_cfg = cfg["chargesheet"]
     eligible = set(cs_cfg["eligible_statuses"])

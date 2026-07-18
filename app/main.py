@@ -12,7 +12,6 @@ import os
 import time
 
 from fastapi import FastAPI
-from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 _ENV = os.environ.get("ENV", "dev")
@@ -23,10 +22,13 @@ app = FastAPI(title="GARUDA ML Brain", version="0.4.0",
               docs_url=None if _ENV == "prod" else "/docs",
               redoc_url=None if _ENV == "prod" else "/redoc",
               openapi_url=None if _ENV == "prod" else "/openapi.json")
-# The Dev AppSail proxy adds a fixed per-request latency floor (~0.7s measured),
-# so payload transfer is the only wire cost we control — gzip the big JSON
-# responses (officer roster ~28KB, ego graphs, geo aggregates shrink ~5x).
-app.add_middleware(GZipMiddleware, minimum_size=1500)
+# NB: do NOT re-add FastAPI's GZipMiddleware. It streams Content-Encoding: gzip
+# through Catalyst's ZGS edge proxy, which re-chunks the body — the combination
+# corrupted ~66% of browser responses on the deployed instance (every browser
+# sends Accept-Encoding: gzip), so map/officers/absconding intermittently threw
+# "Failed to fetch" and the SPA fell back to mock. curl without gzip was always
+# 200. The edge proxy already compresses at its hop; app-level gzip is pure
+# downside here. (Measured 2026-07-18.)
 
 
 # --- Rate limiting: the copilot / extraction / recompute endpoints each burn

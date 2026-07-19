@@ -354,6 +354,24 @@ export const MOCK = {
     ],
   },
 
+  districtActions: {
+    district_code: "BNU",
+    as_of: "2025-06-30",
+    open_cases: 441,
+    signals: [
+      { source: "anomaly", severity: "high", text: "Chain snatching at 3.1x baseline (12 vs 3.9, window to 2025-06-30)" },
+      { source: "deadlines", severity: "high", text: "27 open cases with the chargesheet clock red or already blown" },
+      { source: "absconding", severity: "medium", text: "212 wanted persons, 31 tied to heinous cases" },
+      { source: "district", severity: "medium", text: "96 open cases pending > 90d" },
+    ],
+    recommendations: [
+      { priority: 1, severity: "high", action: "Surge chain snatching patrols - concentrate 20:00-00:00 around BNU07 (7 of 12 recent there)", why: "12 incidents vs 3.9 baseline (3.1x) in the window to 2025-06-30", sources: ["anomaly", "hotspot"] },
+      { priority: 2, severity: "high", action: "Prioritise 27 chargesheet filings inside or past the default-bail window", why: "CrPC 167(2)/BNSS 187: past 60d (90d heinous) from first arrest the accused walk on default bail", sources: ["deadlines"] },
+      { priority: 3, severity: "medium", action: "Issue BOLO / watchlist push on 31 heinous absconders", why: "212 persons named on open FIRs with no arrest recorded in BNU", sources: ["absconding"] },
+      { priority: 4, severity: "medium", action: "Review 96 cases open beyond 90 days", why: "aging backlog erodes evidence quality and witness recall", sources: ["district"] },
+    ],
+  },
+
   districtRank: {
     districts: [
       { district_code: "BGK", total_incidents: 210, open: 80, disposed: 130, backlog_aging: 12, backlog_threshold_days: 90, outcomes: { A: 88, B: 6, C: 12 }, outcomes_total: 106, clearance_rate: 0.831, top_crimes: [], top_officers: [] },

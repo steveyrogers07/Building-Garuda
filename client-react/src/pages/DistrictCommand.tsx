@@ -1,8 +1,8 @@
-import { AlertTriangle, ShieldCheck, Trophy } from "lucide-react"
+import { AlertTriangle, Radar, ShieldCheck, Trophy } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
-import { EmptyState, KpiCard, MiniBar, Notice, PageHeader, ShimmerRows } from "@/components/common/bits"
+import { EmptyState, KpiCard, MiniBar, Notice, PageHeader, ShimmerRows, Stamp } from "@/components/common/bits"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -24,7 +24,7 @@ import { api } from "@/lib/api"
 import { fmt, pct } from "@/lib/format"
 import { useApi } from "@/lib/hooks"
 import { presetFor, usePrincipal } from "@/lib/roles"
-import type { DistrictCommandCard } from "@/lib/types"
+import type { ActionRec, DistrictCommandCard } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /** SP's cockpit for one district - load, backlog aging, and the clearance rate
@@ -39,6 +39,7 @@ export default function DistrictCommand() {
   const geo = useApi(() => api.geoDistricts(), [])
   const card = useApi(() => api.districtCommand(code), [code, p?.role, p?.scope])
   const rank = useApi(() => api.districtRank(), [p?.role, p?.scope])
+  const actions = useApi(() => api.districtActions(code), [code, p?.role, p?.scope])
 
   const districts = geo.data?.districts ?? []
   useEffect(() => {
@@ -111,6 +112,59 @@ export default function DistrictCommand() {
               tone={c.backlog_aging > 0 ? "danger" : "default"}
             />
           </div>
+
+          {actions.data && (actions.data.recommendations?.length ?? 0) > 0 && (
+            <Card>
+              <CardHeader className="flex-row items-center justify-between space-y-0">
+                <div>
+                  <div className="k-label">Derived · Proactive directives</div>
+                  <CardTitle className="t-display mt-1 text-[17px]">Action card</CardTitle>
+                </div>
+                <span className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-mono text-[10px] text-faint">
+                    as of {actions.data.as_of} · every number traceable
+                  </Badge>
+                  <Radar className="size-4 text-brass" />
+                </span>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2.5">
+                  {actions.data.recommendations.map((r: ActionRec) => (
+                    <div
+                      key={r.priority}
+                      className="flex items-start gap-3 rounded-sm border border-line-soft p-2.5"
+                    >
+                      <span className="tnum mt-0.5 w-5 shrink-0 text-right font-mono text-[13px] text-faint">
+                        {r.priority}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px] leading-snug">{r.action}</span>
+                        <span className="mt-1 block text-[11px] leading-relaxed text-faint">
+                          {r.why}
+                          {r.sources.length > 0 && (
+                            <span className="ml-1.5 font-mono text-[10px] text-paper-faint">
+                              [{r.sources.join(" + ")}]
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                      <Stamp
+                        tone={r.severity === "high" ? "signal" : r.severity === "medium" ? "warn" : "dim"}
+                        className="mt-0.5 shrink-0"
+                      >
+                        {r.severity === "info" ? "clear" : r.severity}
+                      </Stamp>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-[11px] leading-relaxed text-faint">
+                  Directives are templated from the district's own engine outputs (anomaly ×
+                  hotspot, default-bail clocks, absconding board, chargesheet outcomes, risk
+                  forecast) - assembled evidence, not a black box.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid gap-4 lg:grid-cols-[1fr_1.3fr]">
             <Card>

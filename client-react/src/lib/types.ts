@@ -272,6 +272,28 @@ export interface DistrictCommandCard {
   top_officers: OfficerRow[]
 }
 
+export interface ActionSignal {
+  source: string
+  severity: "high" | "medium" | "info"
+  text: string
+}
+
+export interface ActionRec {
+  priority: number
+  severity: "high" | "medium" | "info"
+  action: string
+  why: string
+  sources: string[]
+}
+
+export interface DistrictActions {
+  district_code: string
+  as_of: string
+  open_cases: number
+  signals: ActionSignal[]
+  recommendations: ActionRec[]
+}
+
 export interface RosterOfficer {
   officer_id: string
   name?: string

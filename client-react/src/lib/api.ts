@@ -6,6 +6,7 @@ import type {
   AuditEntry,
   CaseFull,
   CopilotResponse,
+  DistrictActions,
   DistrictCommandCard,
   EgoGraph,
   EntityDossier,
@@ -188,6 +189,8 @@ export const api = {
     jgetStrict<DistrictCommandCard>(`/district/${encodeURIComponent(code)}/command`, "districtCommand"),
   districtRank: () =>
     jgetStrict<{ districts: DistrictCommandCard[] }>("/district/rank", "districtRank"),
+  districtActions: (code: string) =>
+    jgetStrict<DistrictActions>(`/district/${encodeURIComponent(code)}/actions`, "districtActions"),
   officers: (district?: string) =>
     jgetStrict<OfficersRoster>(
       `/officers${district ? `?district=${encodeURIComponent(district)}` : ""}`,

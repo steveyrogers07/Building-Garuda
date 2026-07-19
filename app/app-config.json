@@ -1,5 +1,5 @@
 {
-	"command": "sh -c 'python3 -V >/tmp/app.log 2>&1; uname -m >>/tmp/app.log; pwd >>/tmp/app.log; ls -la >>/tmp/app.log 2>&1; LD_LIBRARY_PATH=/catalyst/lib PYTHONPATH=lib python3 -m uvicorn main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT} >>/tmp/app.log 2>&1; python3 -m http.server ${X_ZOHO_CATALYST_LISTEN_PORT} --directory /tmp'",
+	"command": "sh -c 'LD_LIBRARY_PATH=/catalyst/lib PYTHONPATH=lib python3 -m uvicorn main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT}'",
 	"build_path": ".",
 	"stack": "python_3_11",
 	"env_variables": {

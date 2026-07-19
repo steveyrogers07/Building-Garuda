@@ -153,11 +153,14 @@ def health():
     out = {"status": "ok", "service": "garuda-appsail", "phase": 1,
            "routers_loaded": [r for r in ("ingestion", "analytics", "provision")
                               if r not in _ROUTER_ERRORS]}
-    # Tracebacks are the remote-diagnosis channel in dev, but they leak paths
-    # and library versions — prod reports only which routers failed.
+    # Router *names* always show (operationally harmless). Full tracebacks leak
+    # paths and library versions, and the Dev URL is public - so they are
+    # opt-in via GARUDA_DEBUG=1 (flip the env var in app-config while
+    # diagnosing, never leave it on), regardless of ENV.
     if _ROUTER_ERRORS:
-        out["router_errors"] = (sorted(_ROUTER_ERRORS) if _ENV == "prod"
-                                else _ROUTER_ERRORS)
+        out["routers_failed"] = sorted(_ROUTER_ERRORS)
+        if os.environ.get("GARUDA_DEBUG") == "1":
+            out["router_errors"] = _ROUTER_ERRORS
     return out
 
 

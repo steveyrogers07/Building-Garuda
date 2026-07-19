@@ -43,6 +43,7 @@ from automation import briefs
 from automation import jobs as automation_jobs
 from automation import notify
 from governance import audit as gaudit, masking, rbac
+from engines import actions as act_engine
 from engines import copilot as cp
 from engines.copilot import kannada as knq
 from engines import deadlines as dl_engine
@@ -810,17 +811,56 @@ def district_command(code: str, principal: rbac.Principal = Depends(get_principa
     return card
 
 
+def _build_rank():
+    inc = store.fetch_incidents_full()
+    codes = sorted({r["district_code"] for r in inc if r.get("district_code")})
+    return district_engine.rank_districts(
+        codes, inc, store.fetch_chargesheets(), store.fetch_officers())
+
+
+# 31 command_card passes over the full corpus - computed once, reused by both
+# the ranking endpoint and the action card's state-median baseline.
+_RANK_CACHE = _Lazy(_build_rank)
+
+
 @router.get("/district/rank")
 def district_rank(principal: rbac.Principal = Depends(get_principal)):
     """All districts ranked by clearance rate - "who's improving, who's slipping" (§B2)."""
     if principal.role in ("district", "station"):
         raise HTTPException(403, "statewide ranking requires SP/analyst clearance or higher")
-    inc = store.fetch_incidents_full()
-    codes = sorted({r["district_code"] for r in inc if r.get("district_code")})
-    ranked = district_engine.rank_districts(
-        codes, inc, store.fetch_chargesheets(), store.fetch_officers())
     gaudit.record(principal, "read", "District:ALL", "district/rank")
-    return {"districts": ranked}
+    return {"districts": _RANK_CACHE.get()}
+
+
+@router.get("/district/{code}/actions")
+def district_actions(code: str, principal: rbac.Principal = Depends(get_principal)):
+    """Action card - the district's signals fused into prioritised directives
+    (anomaly x hotspot, default-bail pressure, absconders, clearance, forecast).
+    Best-effort on a cold instance: expensive inputs fall back to the baked
+    kvcache payloads and are simply omitted when neither is available yet."""
+    if principal.role in ("district", "station") and not rbac.in_scope(principal, district=code):
+        raise HTTPException(403, "outside your jurisdiction")
+    inc = store.fetch_incidents_full()
+    card = district_engine.command_card(
+        code, inc, store.fetch_chargesheets(), store.fetch_officers())
+
+    alerts = (((kv.get("anomaly:alerts") if not _ANOMALY_CACHE.ready() else None)
+               or (_ANOMALY_CACHE.get() if _ANOMALY_CACHE.ready() else None)
+               or {"alerts": []})["alerts"])
+    if _RISK_CACHE.ready():
+        risk_rows = _risk_rows(_risk_state(), 100)
+    else:
+        risk_rows = (kv.get("risk:top") or {}).get("top") or []
+    roster_full = (kv.get("workbench:roster") if not _ROSTER_CACHE.ready() else None) \
+        or _ROSTER_CACHE.get()
+    absc = dl_engine.absconding_board_from(_ABSCONDING_CACHE.get(), district=code, limit=1)
+
+    res = act_engine.district_actions(
+        code, card=card, all_cards=_RANK_CACHE.get(), alerts=alerts,
+        risk_rows=risk_rows, roster=roster_full["officers"],
+        absconding_summary=absc.get("summary"), incidents=inc)
+    gaudit.record(principal, "read", "District:" + code, "district/actions")
+    return res
 
 
 # --------------------------------------------------------------------------- #

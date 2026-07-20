@@ -32,7 +32,7 @@ are **Text business keys** (`incident_id`, `entity_id`) referencing the business
 | crime_type | Text | no |
 | ipc_bns_code | Text | yes |
 | lat | Decimal | yes |
-| long | Decimal | yes |
+| lng | Decimal | yes (CSV header is `long`, which Catalyst reserves - create the column as `lng`; provision.py COLUMN_ALIASES remaps it on load) |
 | address_text | Text | yes |
 | mo_text | Text | yes |
 | status | Text | yes (denormalized from Case_Status.status_name) |
@@ -174,7 +174,7 @@ ids the CrimeNo encodes; also the map's station-level drill-down)*
 | district_num | Text | yes (4-digit district id, CrimeNo segment) |
 | station_code | Text | yes (→ Incidents.station_code) |
 | lat | Decimal | yes |
-| long | Decimal | yes |
+| lng | Decimal | yes (CSV header is `long`, which Catalyst reserves - create the column as `lng`; provision.py COLUMN_ALIASES remaps it on load) |
 
 ### Console_Users
 *(plan §4.4 — maps Catalyst-authenticated emails to GARUDA RBAC roles; the 5 demo

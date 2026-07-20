@@ -64,6 +64,10 @@ EXPECTED_DERIVED = ["MO_Clusters", "Crime_Series", "Predictive_Risk",
 EXPECTED_BUCKETS = ["raw-fir", "briefs"]
 
 _BATCH = 200
+# Catalyst rejects some words as column names - `long` among them - so the Data
+# Store column is created as `lng` and the CSV header is remapped on the way in.
+# Keys are the bundled CSV's header, values are the Data Store column name.
+COLUMN_ALIASES = {"long": "lng"}
 # Boolean columns in the subset (everything else loads as text/number strings,
 # which the Data Store row API coerces against the column type).
 _BOOL_COLS = {"is_police", "is_accused", "is_complainant_accused"}
@@ -101,6 +105,7 @@ def _row_count(app, table):
 def _coerce(row):
     out = {}
     for k, v in row.items():
+        k = COLUMN_ALIASES.get(k, k)
         if v == "" or v is None:
             out[k] = None
         elif k in _BOOL_COLS:

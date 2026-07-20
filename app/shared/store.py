@@ -202,7 +202,8 @@ def write_incident_coords(updates):
     if WRITE_BACKEND == "zcql":
         try:
             stmts = [
-                f"UPDATE Incidents SET lat={float(lat)}, long={float(lng)} "
+                # `long` is reserved in the Data Store; the column is `lng`
+                f"UPDATE Incidents SET lat={float(lat)}, lng={float(lng)} "
                 f"WHERE incident_id='{_sql_escape(iid)}'"
                 for iid, (lat, lng) in updates.items()
             ]

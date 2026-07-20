@@ -4,7 +4,7 @@
 		"stack": "node18",
 		"type": "event",
 		"env_variables": {
-			"APPSAIL_BASE_URL": ""
+			"APPSAIL_BASE_URL": "https://garuda-brain-50044039193.development.catalystappsail.in"
 		}
 	},
 	"execution": {

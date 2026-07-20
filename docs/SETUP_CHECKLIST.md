@@ -7,7 +7,7 @@ by itself afterwards. Everything below is one-time.
 Console: https://console.catalyst.zoho.in → project **Garuda-system** →
 environment **Development** (top-right switcher — NOT "project rainfall").
 
-## Step 1 — create 19 empty tables (Cloud Scale → Data Store → Create Table)
+## Step 1 — create 20 empty tables (Cloud Scale → Data Store → Create Table)
 
 Create each table below by name, then add its columns — the exact column
 names/types to copy are in [schema/create_tables.md](../schema/create_tables.md)
@@ -16,8 +16,11 @@ Just names first, in this order:
 
 Incidents · Entities · Incident_Edges · Case_Sections · Arrests ·
 Chargesheets · Officers · Courts · Case_Status · Crime_Head_Sections ·
-Socioeconomic · Geo_Boundaries · Console_Users · MO_Clusters · Crime_Series ·
-Predictive_Risk · Alerts · Review_Queue · Audit_Log
+Socioeconomic · Geo_Boundaries · Units · Console_Users · MO_Clusters ·
+Crime_Series · Predictive_Risk · Alerts · Review_Queue · Audit_Log
+
+(Authoritative list = routers/provision.py EXPECTED_CORE + EXPECTED_DERIVED;
+GET /admin/provision reports any you missed.)
 
 (The last 6 stay empty — the app writes into them at runtime.)
 

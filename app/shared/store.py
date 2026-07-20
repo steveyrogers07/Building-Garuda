@@ -90,8 +90,8 @@ def _read_csv(path):
 
 
 def _zcatalyst_zcql():
-    import zcatalyst_sdk                       # deferred (account-gated)
-    return zcatalyst_sdk.initialize().zcql()
+    from shared import catalyst_ctx        # request-scoped SDK context
+    return catalyst_ctx.app().zcql()
 
 
 def _zcql_rows(table, result):
@@ -365,8 +365,8 @@ NOSQL_EGO_TABLE = os.environ.get("GARUDA_NOSQL_EGO_TABLE", "EgoGraphCache")
 
 
 def _nosql_ego_table():
-    import zcatalyst_sdk                       # deferred (account-gated)
-    return zcatalyst_sdk.initialize().nosql().get_table(NOSQL_EGO_TABLE)
+    from shared import catalyst_ctx        # request-scoped SDK context
+    return catalyst_ctx.app().nosql().get_table(NOSQL_EGO_TABLE)
 
 
 def write_network_cache(center, payload):

@@ -40,8 +40,8 @@ def dispatch(notification):
                 "note": "Signal/Push/Mail send is account-gated (Catalyst Dev/Prod)"}
     sent, errors = [], []
     try:
-        import zcatalyst_sdk               # deferred (account-gated)
-        app = zcatalyst_sdk.initialize()
+        from shared import catalyst_ctx    # request-scoped SDK context
+        app = catalyst_ctx.app()
         if "mail" in notification.get("channels", []):
             try:
                 app.email().send_mail({

@@ -76,8 +76,8 @@ def _check_token(token):
 
 
 def _app():
-    import zcatalyst_sdk                       # deferred (account-gated)
-    return zcatalyst_sdk.initialize()
+    from shared import catalyst_ctx        # request-scoped SDK context
+    return catalyst_ctx.app()
 
 
 def _existing_tables(app):

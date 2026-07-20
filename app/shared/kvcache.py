@@ -57,8 +57,8 @@ def warmstart_get(key):
 
 
 def _segment():
-    import zcatalyst_sdk                       # deferred (account-gated)
-    return zcatalyst_sdk.initialize().cache().segment()
+    from shared import catalyst_ctx        # request-scoped SDK context
+    return catalyst_ctx.app().cache().segment()
 
 
 def get(key):

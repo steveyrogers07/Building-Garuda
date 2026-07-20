@@ -66,6 +66,19 @@ def _rate_limited(ip, path):
     return False
 
 
+# Capture Catalyst's internal request headers so every SDK arm (Data Store,
+# Cache, NoSQL, Mail/Push, SmartBrowz, provisioning) can authenticate. Must be
+# pure-ASGI and registered before the security middleware: BaseHTTPMiddleware
+# runs downstream in its own task, where a ContextVar set here would not
+# reliably survive. See shared/catalyst_ctx.py for the full reasoning.
+try:
+    from shared.catalyst_ctx import CatalystContextMiddleware
+    app.add_middleware(CatalystContextMiddleware)
+except Exception as _exc:  # noqa: BLE001
+    import logging
+    logging.getLogger("garuda").warning("catalyst context middleware off: %s", _exc)
+
+
 @app.middleware("http")
 async def _security_middleware(request, call_next):
     path = request.url.path

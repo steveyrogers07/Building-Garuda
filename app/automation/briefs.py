@@ -61,8 +61,8 @@ def publish_pdf(html_text, name, bucket=None):
     import os
     bucket = bucket or os.environ.get("GARUDA_BRIEFS_BUCKET", "briefs")
     try:
-        import zcatalyst_sdk               # deferred (account-gated)
-        app = zcatalyst_sdk.initialize()
+        from shared import catalyst_ctx    # request-scoped SDK context
+        app = catalyst_ctx.app()
         pdf = app.smart_browz().convert_to_pdf(html_text)
         body = pdf.content if hasattr(pdf, "content") else pdf
         key = f"{name}.pdf"

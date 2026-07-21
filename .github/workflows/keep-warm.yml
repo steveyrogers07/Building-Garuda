@@ -1,0 +1,65 @@
+# GARUDA keep-warm pinger
+#
+# WHY THIS EXISTS
+# AppSail spins the container down when it is idle. The next visitor then pays
+# container boot (~10s) plus the background warm() that builds the network
+# graph, the LightGBM walk-forward model and the copilot TF-IDF index. Measured
+# cold on 2026-07-21: /health 9.97s, first /stats 8.42s. Warm, the same calls
+# are 0.2-1.4s.
+#
+# During an unattended evaluation window nobody is standing by to absorb that,
+# so this workflow knocks on the door every few minutes and eats the cold start
+# instead of the evaluator.
+#
+# IMPORTANT - GitHub only runs `schedule:` from the repository's DEFAULT branch.
+# On a feature branch this file does nothing. Either merge it to the default
+# branch or rely on the external monitor (UptimeRobot / cron-job.org), which is
+# the more reliable primary anyway: GitHub's scheduled runs are best-effort and
+# are frequently delayed 10-30 minutes under load.
+#
+# Verify it is working at any time:
+#   curl https://garuda-brain-50044039193.development.catalystappsail.in/keepalive
+# A large, steadily growing `uptime_seconds` means the container has never been
+# recycled. A value near zero means it went cold and has just been rebooted.
+
+name: keep-warm
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE: https://garuda-brain-50044039193.development.catalystappsail.in
+    steps:
+      - name: Wake the container
+        run: |
+          # --max-time 90 is deliberately generous: a genuinely cold container
+          # needs to boot before it can answer, and that slow response IS the
+          # cold start being absorbed here rather than by a judge.
+          code=$(curl -s -o /tmp/keepalive.json -w '%{http_code}' \
+                   --max-time 90 "$BASE/keepalive" || echo 000)
+          echo "keepalive -> HTTP $code"
+          cat /tmp/keepalive.json || true
+          echo
+          test "$code" = "200"
+
+      - name: Warm the data path
+        run: |
+          # /keepalive only proves the process is up. /stats exercises the CSV
+          # parse + kvcache read, so the first real dashboard load is hot too.
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+                   --max-time 90 "$BASE/stats" || echo 000)
+          echo "stats -> HTTP $code"
+          test "$code" = "200"

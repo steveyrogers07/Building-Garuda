@@ -11,10 +11,11 @@ Start command (see app-config.json):
 import os
 import time
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 
 _ENV = os.environ.get("ENV", "dev")
+_BOOT_TS = time.time()
 
 # Interactive API docs are a recon gift on a public URL — dev keeps them,
 # prod serves 404 for /docs, /redoc and the OpenAPI schema.
@@ -86,7 +87,7 @@ async def _security_middleware(request, call_next):
             and (path.startswith(_RL_PREFIXES) or path.endswith(_RL_SUFFIXES))
             and request.method == "POST"):
         if _rate_limited(_client_key(request), path):
-            return JSONResponse({"detail": "rate limit exceeded — retry in a minute"},
+            return JSONResponse({"detail": "rate limit exceeded - retry in a minute"},
                                 status_code=429, headers={"Retry-After": "60"})
     resp = await call_next(request)
     h = resp.headers
@@ -177,11 +178,45 @@ def health():
     return out
 
 
+@app.get("/keepalive")
+def keepalive():
+    """Cheap liveness+readiness probe for an external keep-warm pinger.
+
+    AppSail spins the container down when idle; the next visitor then pays
+    container boot *plus* the background warm() (network graph, LightGBM
+    walk-forward, TF-IDF index). Across an unattended evaluation window nobody
+    is around to absorb that, so an external cron hits this every few minutes
+    and eats the cold start instead of the evaluator. `uptime_seconds` falling
+    back towards zero between checks is the signal that the container was
+    recycled; `warmed` false means boot happened but warm() is still running.
+    """
+    warmed = None
+    try:
+        from routers import analytics as _analytics
+        warmed = bool(_analytics._WARMED)
+    except Exception:  # noqa: BLE001 - the probe must never fail
+        pass
+    return {"ok": True, "warmed": warmed,
+            "uptime_seconds": round(time.time() - _BOOT_TS, 1)}
+
+
+# Set True when the console SPA is mounted below. A browser landing on the bare
+# domain should get the console rather than a JSON blob (evaluators are given a
+# link and do not always keep the /ui/ path), but health probes, curl and the
+# Catalyst tooling still want a machine-readable root - so branch on Accept
+# instead of redirecting unconditionally.
+_SPA_MOUNTED = False
+
+
 @app.get("/")
-def root():
+def root(request: Request):
+    if _SPA_MOUNTED and "text/html" in (request.headers.get("accept") or ""):
+        return RedirectResponse("/ui/")
     return {
         "service": "garuda-appsail",
-        "message": "GARUDA ML brain - Phase 1 hello-world. See /health.",
+        "message": "GARUDA - Karnataka SCRB crime-intelligence platform.",
+        "console": "/ui/",
+        "health": "/health",
     }
 
 
@@ -191,7 +226,6 @@ def root():
 # (scripts/bundle_data_for_deploy.py) and GARUDA_LOCAL=1 is set in app-config.json. ---
 if os.environ.get("GARUDA_LOCAL") == "1":
     from pathlib import Path
-    from fastapi.responses import RedirectResponse
     from fastapi.staticfiles import StaticFiles
 
     _APP_DIR = Path(__file__).resolve().parent
@@ -211,3 +245,4 @@ if os.environ.get("GARUDA_LOCAL") == "1":
             return RedirectResponse("/ui/")
 
         app.mount("/ui", StaticFiles(directory=str(_CLIENT), html=True), name="ui")
+        _SPA_MOUNTED = True

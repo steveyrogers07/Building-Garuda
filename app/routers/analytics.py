@@ -966,9 +966,48 @@ def brief_run(scope: str = "STATE", pdf: bool = False):
     html_text = briefs.render_html(brief)
     out = {"ok": True, "brief": brief, "html_bytes": len(html_text)}
     if pdf:
-        out["pdf"] = briefs.publish_pdf(
-            html_text, f"garuda-brief-{scope.lower()}-{brief['period']}")
+        name = f"garuda-brief-{scope.lower()}-{brief['period']}"
+        _start_pdf_render(html_text, name)
+        out["pdf"] = {"state": "rendering", "name": name,
+                      "poll": "/brief/pdf/status"}
     return out
+
+
+# SmartBrowz conversion + the Stratus upload run far longer than AppSail's
+# request budget (a 2 KB brief exceeded it), so the render is detached and the
+# caller polls. The brief JSON/HTML is returned immediately either way.
+_PDF_STATUS: dict = {"state": "idle"}
+
+
+def _start_pdf_render(html_text, name):
+    from shared import catalyst_ctx
+    # The SDK context lives in a ContextVar that does NOT cross into a new
+    # thread - capture the request's headers here and replay them inside.
+    headers = catalyst_ctx.headers()
+    _PDF_STATUS.clear()
+    _PDF_STATUS.update({"state": "rendering", "name": name})
+
+    def _run():
+        from shared import catalyst_ctx as ctx
+        if headers:
+            ctx.set_headers(headers)
+        try:
+            res = briefs.publish_pdf(html_text, name)
+            _PDF_STATUS.update(
+                {"state": "done", "result": res} if res
+                else {"state": "failed",
+                      "error": "publish_pdf returned None - SmartBrowz or the "
+                               "briefs bucket is unavailable for this project"})
+        except Exception as exc:                   # noqa: BLE001
+            _PDF_STATUS.update({"state": "failed", "error": str(exc)[:300]})
+
+    threading.Thread(target=_run, daemon=True, name="garuda-brief-pdf").start()
+
+
+@router.get("/brief/pdf/status")
+def brief_pdf_status():
+    """Outcome of the most recent ?pdf=true render (see _start_pdf_render)."""
+    return dict(_PDF_STATUS)
 
 
 # --------------------------------------------------------------------------- #

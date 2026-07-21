@@ -9,9 +9,124 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./crest.svg" />
     <title>GARUDA · Karnataka State Police</title>
+
+    <!-- Boot splash. Lives inside #root, so React's createRoot replaces it on
+         first render with no teardown code of our own. Styles are inlined here
+         rather than imported because the app stylesheet and the 561 KB JS
+         bundle both arrive later, and this has to be able to paint on its own.
+         Fonts are the system stack for the same reason - @fontsource files ship
+         with the bundle, and a splash that waits on a webfont defeats itself.
+
+         Scope: this covers the gap between the HTML landing and React mounting.
+         It cannot cover a cold container start, because nothing at all is
+         served until the process is up - that is the keep-warm pinger's job. -->
+    <style>
+      #garuda-boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        background: #101318;
+        color: #e9e7e0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      #garuda-boot .gb-crest {
+        color: #c9a227;
+        filter: drop-shadow(0 0 18px rgba(201, 162, 39, 0.22));
+      }
+      #garuda-boot .gb-word {
+        font-size: 30px;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em;
+      }
+      #garuda-boot .gb-sub {
+        margin-top: 9px;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #a8a89e;
+        text-align: center;
+      }
+      #garuda-boot .gb-track {
+        width: 168px;
+        height: 2px;
+        overflow: hidden;
+        border-radius: 2px;
+        background: #262c37;
+      }
+      #garuda-boot .gb-bar {
+        width: 40%;
+        height: 100%;
+        border-radius: 2px;
+        background: #c9a227;
+        animation: gb-slide 1.15s ease-in-out infinite;
+      }
+      @keyframes gb-slide {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(320%); }
+      }
+      #garuda-boot .gb-foot {
+        position: absolute;
+        bottom: 22px;
+        padding: 0 16px;
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        text-align: center;
+        color: #a8a89e;
+        opacity: 0.75;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #garuda-boot .gb-bar { width: 100%; animation: none; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="garuda-boot">
+        <svg class="gb-crest" viewBox="0 0 240 240" width="86" height="86"
+             role="img" aria-label="Karnataka State Police crest" fill="currentColor">
+          <circle cx="120" cy="120" r="114" fill="none" stroke="currentColor" stroke-width="3" />
+          <circle cx="120" cy="120" r="106" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6" />
+          <path d="M 14 120 l 5 -5 5 5 -5 5 Z" />
+          <path d="M 216 120 l 5 -5 5 5 -5 5 Z" />
+          <path d="M 106 66 L 106 52 L 113 60 L 120 46 L 127 60 L 134 52 L 134 66 Z" />
+          <g id="gb-half">
+            <path d="M 124 112 C 122 98 128 86 141 80 C 147 77 154 78 158 82 C 163 87 163 94 158 99 C 154 103 148 104 143 101 C 137 108 134 116 134 124 Z" />
+            <path d="M 158 84 L 176 90 L 158 97 Z" />
+            <path d="M 130 112 C 146 96 170 86 200 82 L 191 102 L 201 106 L 186 128 L 194 133 L 176 152 L 182 158 L 158 166 L 136 154 Z" />
+            <path d="M 136 146 L 186 104" stroke="#101318" stroke-width="3" fill="none" opacity="0.85" />
+            <path d="M 138 152 L 180 130" stroke="#101318" stroke-width="3" fill="none" opacity="0.85" />
+            <path d="M 128 176 L 140 190 L 132 191 L 137 199 L 128 195 Z" />
+          </g>
+          <use href="#gb-half" transform="matrix(-1 0 0 1 240 0)" />
+          <path d="M 120 100 C 133 100 138 116 138 134 C 138 156 131 170 120 176 C 109 170 102 156 102 134 C 102 116 107 100 120 100 Z" />
+          <path d="M 106 128 Q 120 136 134 128" stroke="#101318" stroke-width="3" fill="none" opacity="0.85" />
+          <path d="M 107 142 Q 120 150 133 142" stroke="#101318" stroke-width="3" fill="none" opacity="0.85" />
+          <path d="M 120 172 L 141 198 L 130 196 L 134 208 L 120 202 L 106 208 L 110 196 L 99 198 Z" />
+          <circle cx="146" cy="88" r="2.6" fill="#101318" />
+          <circle cx="94" cy="88" r="2.6" fill="#101318" />
+        </svg>
+
+        <div>
+          <div class="gb-word">GARUDA</div>
+          <div class="gb-sub">ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ · Karnataka State Police</div>
+          <div class="gb-sub" style="margin-top: 4px; letter-spacing: 0.12em">
+            State Crime Records Bureau
+          </div>
+        </div>
+
+        <div class="gb-track"><div class="gb-bar"></div></div>
+
+        <div class="gb-foot">Government of Karnataka · Demonstration system</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

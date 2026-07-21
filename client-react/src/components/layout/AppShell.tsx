@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom"
 
 import { ClassificationBar } from "@/components/brand/ClassificationBar"
+import { OfficialFooter } from "@/components/brand/OfficialFooter"
 import { entityIcon } from "@/components/common/bits"
 import { CommandPalette } from "@/components/layout/CommandPalette"
 import { MobileNav } from "@/components/layout/MobileNav"
@@ -93,6 +94,10 @@ export function AppShell() {
           <main className="mx-auto w-full max-w-[1500px] flex-1 space-y-5 px-4 py-5 pb-24 lg:px-6 lg:py-6 lg:pb-6">
             <Outlet />
           </main>
+          {/* pb-24 above clears the mobile tab bar; the footer sits below it */}
+          <div className="pb-20 lg:pb-0">
+            <OfficialFooter />
+          </div>
         </div>
       </div>
       <MobileNav />

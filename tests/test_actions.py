@@ -17,6 +17,7 @@ Run:  python tests/test_actions.py
   - AC7  hotspot() only reports bands with enough mass and only stations from
          the requested district.
 """
+import re
 import sys
 from pathlib import Path
 
@@ -100,13 +101,17 @@ def run():
         else:
             assert not bolo
 
-        # AC5 - clearance directive iff below state median
+        # AC5 - clearance directive iff below state median, and the sentence it
+        # prints must be literally true at the precision it prints
         cr = by_code[code].get("clearance_rate")
         clr = [r for r in recs if "district" in r["sources"] and "clearance" in r["why"]]
-        if cr is not None and cr < med:
+        if cr is not None and round(cr * 100) < round(med * 100):
             assert clr, f"{code}: below median ({cr:.0%} < {med:.0%}) but no audit rec"
         else:
             assert not clr, f"{code}: audit rec at/above median"
+        for r in clr:
+            a, b = re.findall(r"(\d+)%", r["why"])[:2]
+            assert int(a) < int(b), f"{code}: contradictory clearance text: {r['why']}"
 
     assert checked_anom and checked_dead and checked_absc, \
         "gates never exercised - dataset lost its planted signals?"

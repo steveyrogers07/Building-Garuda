@@ -153,7 +153,11 @@ def district_actions(code, *, card, all_cards, alerts, risk_rows, roster,
     # 4 - clearance vs the state, and backlog aging
     med = _median([c.get("clearance_rate") for c in all_cards])
     cr = card.get("clearance_rate")
-    if cr is not None and med is not None and cr < med:
+    # Compare at the precision the directive prints. A raw `cr < med` fires on
+    # differences too small to survive rounding, producing the nonsense
+    # "clearance rate 72% is below the state median 72%".
+    if (cr is not None and med is not None
+            and round(cr * 100) < round(med * 100)):
         signals.append({"source": "district", "severity": "medium",
                         "text": f"clearance {cr:.0%} vs state median {med:.0%}"})
         rec("medium",

@@ -202,10 +202,12 @@ The audit log grows as you read. It stood at 6 rows early in development and is 
 written to Data Store through ZCQL by ordinary use. The `Alerts` table holds 12 rows the
 anomaly engine wrote on its own schedule, unprompted.
 
-**Measured response times on the deployed instance, warm** (2026-07-21): `/stats` 0.27s ·
-`/geo/districts` 0.26s · `/network/rings` 0.28s · `/risk/top` 0.31s · `/audit` 0.33s ·
-`/copilot` 0.40s · `/officers` 0.42s · `/district/BNU/command` 0.45s · `/absconding` 0.55s
-· `/district/BNU/actions` 0.76s. Every screen in the console is under a second.
+**Measured response times on the deployed instance, warm** (2026-07-21, across two runs):
+`/stats` 0.27-0.30s · `/geo/districts` 0.26-0.37s · `/network/rings` 0.28s · `/risk/top`
+0.28-0.31s · `/audit` 0.31-0.33s · `/copilot` 0.40s · `/officers` 0.40-0.42s ·
+`/district/BNU/command` 0.45-0.52s · `/absconding` 0.50-0.55s. The District Action Card is
+the heaviest screen at 0.76-1.68s, because it fuses anomaly, hotspot, clearance,
+absconding and forecast in one pass. Everything else answers in well under a second.
 
 ---
 
@@ -240,13 +242,21 @@ below the state median 72%" because it compared raw floats. A test now parses th
 percentages back out of the rendered sentence and fails the build if the sentence
 contradicts itself, so a wording regression breaks CI rather than reaching a judge.
 
-**Availability.** AppSail idle-stops the container, so the first visitor after a quiet
-period pays roughly ten seconds of boot plus the background warm-up that builds the
-network graph, the LightGBM model and the TF-IDF index. Because this submission is a link
-opened at an unpredictable moment, an external monitor pings `/keepalive` every five
-minutes so that cost is always absorbed by a robot and never by an evaluator. That
-endpoint reports `uptime_seconds`, which makes a container recycle observable after the
-fact rather than a matter of guesswork.
+**Availability.** AppSail idle-stops the container, and this submission is a link opened at
+an unpredictable moment, so the cold path was measured rather than assumed. Boot to first
+byte is about 11 seconds. The background warm-up that builds the co-offender graph, the
+LightGBM walk-forward model and the TF-IDF index then runs for roughly 3 minutes.
+
+That warm-up window is covered by design: analytics results are baked into the deployment
+at build time, so from the first second the container is up, every endpoint serves correct
+precomputed data at full speed while the live rebuild proceeds behind it. A visitor
+arriving mid-warm sees no difference, which is the whole point of baking them.
+
+An external monitor pings `/keepalive` every five minutes so even the 11-second boot is
+absorbed by a robot rather than an evaluator. The endpoint reports `uptime_seconds` and
+`warmed`, which makes a container recycle observable after the fact instead of a matter of
+guesswork. It caught a genuine idle-stop during final verification, which is precisely the
+event it exists to make visible.
 
 ---
 

@@ -12,12 +12,24 @@ from __future__ import annotations
 import re
 import unicodedata
 
-try:  # Kannada <-> Latin
-    from indic_transliteration import sanscript
-    from indic_transliteration.sanscript import transliterate as _translit
-    _HAS_INDIC = True
-except Exception:  # noqa: BLE001
-    _HAS_INDIC = False
+# Kannada <-> Latin. Imported on first use, not at module import: the library
+# builds every Brahmic scheme table eagerly and costs ~3.0s (measured with
+# `python -X importtime`), which was the single largest item on the container's
+# cold-start path. Nothing here is reached until a name actually contains
+# Kannada script. copilot/kannada.py already defers the same library.
+_INDIC = None                    # None = untried · False = unavailable · tuple = loaded
+
+
+def _indic():
+    global _INDIC
+    if _INDIC is None:
+        try:
+            from indic_transliteration import sanscript
+            from indic_transliteration.sanscript import transliterate
+            _INDIC = (sanscript, transliterate)
+        except Exception:  # noqa: BLE001 - degrade to identity, as before
+            _INDIC = False
+    return _INDIC
 
 try:  # phonetic keys
     import jellyfish
@@ -41,13 +53,17 @@ def has_kannada(s: str) -> bool:
 def transliterate_kn(s: str) -> str:
     """Transliterate Kannada-script tokens to Latin (Harvard-Kyoto), leaving Latin
     tokens untouched. No-op if the lib is missing or there's no Kannada."""
-    if not s or not _HAS_INDIC or not has_kannada(s):
+    if not s or not has_kannada(s):
         return s
+    indic = _indic()
+    if not indic:
+        return s
+    sanscript, translit = indic
     out = []
     for tok in s.split():
         if has_kannada(tok):
             try:
-                tok = _translit(tok, sanscript.KANNADA, sanscript.HK)
+                tok = translit(tok, sanscript.KANNADA, sanscript.HK)
             except Exception:  # noqa: BLE001
                 pass
         out.append(tok)

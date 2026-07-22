@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import lightgbm as lgb
-from sklearn.metrics import average_precision_score
+
+# lightgbm (~1.5s) and sklearn (~1.7s) are imported inside the functions that
+# use them rather than here. Together they were the second and third largest
+# items on the container's cold-start path (`python -X importtime`), and neither
+# is reached until a model is actually trained or scored - which happens on the
+# background warm-up thread, never while a visitor is waiting on the port.
 
 MODEL_VERSION = "lgbm-p6-v1"
 BASELINE_COL = "roll_28"          # naive "recently-hot" persistence predictor
@@ -22,6 +26,7 @@ _PARAMS = dict(objective="binary", n_estimators=300, learning_rate=0.05,
 
 
 def fit(train, features, params=None):
+    import lightgbm as lgb
     m = lgb.LGBMClassifier(**{**_PARAMS, **(params or {})})
     m.fit(train[features], train["y"])
     return m
@@ -52,6 +57,7 @@ def walk_forward(t, features, n_folds=3, coverage=0.10):
     days = np.sort(t["date"].unique())
     n = len(days)
     # test windows tile the last 45% of the timeline into n_folds slices
+    from sklearn.metrics import average_precision_score
     edges = [int(n * f) for f in np.linspace(0.55, 1.0, n_folds + 1)]
     folds = []
     for k in range(n_folds):

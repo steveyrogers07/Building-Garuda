@@ -11,8 +11,12 @@ from __future__ import annotations
 import os
 
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
+
+# sklearn is imported inside the two methods that need it rather than here.
+# Pulling sklearn.feature_extraction.text costs ~1.7s (measured with
+# `python -X importtime`) and it is only reached once an index is actually
+# built or queried - which happens on the background warm-up thread, not on
+# the container's cold-start path. mo/fingerprint.py already does this.
 
 
 class NarrativeIndex:
@@ -23,6 +27,7 @@ class NarrativeIndex:
         if os.environ.get("COPILOT_EMBEDDER", "tfidf").lower() == "sbert":
             self._build_sbert(texts)        # opt-in, credit/torch heavy
         else:
+            from sklearn.feature_extraction.text import TfidfVectorizer
             self.vec = TfidfVectorizer(max_features=40000, ngram_range=(1, 2),
                                        sublinear_tf=True, stop_words="english")
             self.mat = self.vec.fit_transform(texts)
@@ -37,6 +42,7 @@ class NarrativeIndex:
         if self._sbert is not None:          # pragma: no cover
             qv = self._sbert.encode([query], normalize_embeddings=True)
             return (self.mat @ qv[0])
+        from sklearn.metrics.pairwise import linear_kernel
         return linear_kernel(self.vec.transform([query]), self.mat).ravel()
 
     def rank(self, query, candidate_ids=None, top_k=10):

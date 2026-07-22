@@ -33,13 +33,23 @@
         background: #101318;
         color: #e9e7e0;
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        /* Held for a fixed 3s, then faded out. Deliberately pure CSS and no
-           JavaScript: the splash now sits outside #root so React cannot clear
-           it, which means anything that could leave it on screen would hide the
-           whole app. An animation cannot fail to run - even if the JS bundle
-           never parses, this still dismisses on time. visibility:hidden also
-           drops it out of hit-testing, so it never eats a click afterwards. */
+        /* 3s here is a CEILING, not a duration. main.tsx adds .gb-done as soon
+           as React has painted, which on a warm load is ~200ms - so the splash
+           covers a slow start and gets out of the way of a fast one.
+
+           A fixed hold was the first attempt and it was wrong: the console is
+           ready in under a second, so a flat 3s timer made every visit four
+           times slower than the app actually is, waiting on nothing.
+
+           The CSS rule stays as the failsafe. The splash sits outside #root so
+           React cannot clear it, meaning a dismissal that never fired would
+           hide the entire application. An animation cannot fail to run - if the
+           bundle never parses, this still clears it at 3s. visibility:hidden
+           also drops it out of hit-testing so it never eats a click. */
         animation: gb-dismiss 0.45s ease 3s forwards;
+      }
+      #garuda-boot.gb-done {
+        animation: gb-dismiss 0.32s ease forwards;   /* higher specificity wins */
       }
       @keyframes gb-dismiss {
         to { opacity: 0; visibility: hidden; }

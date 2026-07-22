@@ -15,6 +15,13 @@ import { ClassificationBar } from "@/components/brand/ClassificationBar"
 import { KspCrest } from "@/components/brand/KspCrest"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -26,6 +33,13 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { ROLE_PRESETS, setPrincipal } from "@/lib/roles"
 
+/** The shared demo credentials, in one place. They appear in the arrival
+ *  dialog, in the notice under the form, and in the submit check, and three
+ *  hand-maintained copies is how a password ends up printed on screen that
+ *  no longer opens the door. */
+const DEMO_ID = "garudaadmin"
+const DEMO_PASSWORD = "datathon26"
+
 /** Government-grade sign-in: crest, classification, clearance selection.
  *  Locally this is a stub principal (headers drive server-side RBAC);
  *  on Catalyst the same form fronts the Web SDK. */
@@ -35,6 +49,27 @@ export default function Login() {
   const [password, setPassword] = useState("")
   const [presetId, setPresetId] = useState("scrb-admin")
   const [catalystReady, setCatalystReady] = useState(false)
+  // Evaluators arrive on a link with no context. The access notice under the
+  // form was being missed entirely - it sits below the fold on a laptop - so
+  // the same credentials lead with a dismissable card. It defaults open once
+  // per tab: helpful on arrival, never nagging on a re-visit or after signing
+  // out, which is why the flag lives in sessionStorage rather than state alone.
+  const [credsOpen, setCredsOpen] = useState(
+    () => sessionStorage.getItem("garuda.creds.seen") !== "1",
+  )
+
+  function dismissCreds() {
+    sessionStorage.setItem("garuda.creds.seen", "1")
+    setCredsOpen(false)
+  }
+
+  /** One click from "I have a link" to "I am looking at the console". */
+  function fillDemoCredentials() {
+    setOfficerId(DEMO_ID)
+    setPassword(DEMO_PASSWORD)
+    dismissCreds()
+  }
+
   const preset = ROLE_PRESETS.find((r) => r.id === presetId)!
 
   // Catalyst path (plan §4.4): when the embedded-auth SDK is present, an
@@ -74,7 +109,7 @@ export default function Login() {
     // public dev URL. This is a UI courtesy, not the security boundary - real
     // sign-in is Catalyst Authentication + Console_Users role mapping (built,
     // activates with the API Gateway).
-    if (id.toLowerCase() !== "garudaadmin" || password !== "datathon26") {
+    if (id.toLowerCase() !== DEMO_ID || password !== DEMO_PASSWORD) {
       setAuthError("Invalid credentials. Demo evaluators: use the access details in the notice below.")
       return
     }
@@ -89,6 +124,52 @@ export default function Login() {
   return (
     <div className="grid-field flex min-h-screen flex-col bg-background">
       <ClassificationBar />
+
+      {/* Arrival card. DialogContent renders its own close control top-right. */}
+      <Dialog open={credsOpen} onOpenChange={(o) => (o ? setCredsOpen(true) : dismissCreds())}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <div className="mb-1 flex items-center gap-2">
+              <Badge variant="outline" className="border-brass/40 text-brass">
+                Demo evaluation access
+              </Badge>
+            </div>
+            <DialogTitle className="t-display text-[19px] tracking-[0.1em]">
+              Sign in to GARUDA
+            </DialogTitle>
+            <DialogDescription className="text-[12px] leading-relaxed">
+              Use these credentials to explore the console. Any of the five clearance
+              tiers will sign you in, and each demonstrates its own jurisdiction gates
+              and PII masking.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 rounded-sm border border-brass/30 bg-brass-soft/40 px-3.5 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <span className="k-label">Officer ID</span>
+              <span className="select-all font-mono text-[13.5px] font-semibold text-foreground">
+                {DEMO_ID}
+              </span>
+            </div>
+            <Separator className="bg-brass/15" />
+            <div className="flex items-center justify-between gap-4">
+              <span className="k-label">Password</span>
+              <span className="select-all font-mono text-[13.5px] font-semibold text-foreground">
+                {DEMO_PASSWORD}
+              </span>
+            </div>
+          </div>
+
+          <Button onClick={fillDemoCredentials} className="w-full gap-2">
+            <Lock className="size-3.5" /> Fill in and continue
+          </Button>
+
+          <p className="text-center font-mono text-[10.5px] leading-relaxed text-faint">
+            Demonstration build on synthetic data. No real FIR record or person
+            appears anywhere in this system.
+          </p>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="w-full max-w-[420px]">
@@ -190,9 +271,9 @@ export default function Login() {
             <div className="mt-4 rounded-sm border border-brass/30 bg-brass-soft/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               <span className="k-label text-brass">Demo evaluation access</span>
               <div className="mt-1">
-                Officer ID <b className="font-mono text-foreground">garudaadmin</b> · Password{" "}
-                <b className="font-mono text-foreground">datathon26</b> - pick any clearance tier to
-                experience its jurisdiction gates and PII masking.
+                Officer ID <b className="font-mono text-foreground">{DEMO_ID}</b> · Password{" "}
+                <b className="font-mono text-foreground">{DEMO_PASSWORD}</b> - pick any clearance
+                tier to experience its jurisdiction gates and PII masking.
               </div>
               <div className="mt-1 text-faint">
                 Production sign-in (Zoho Catalyst Authentication → Console_Users role mapping) is

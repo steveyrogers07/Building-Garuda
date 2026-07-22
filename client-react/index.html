@@ -33,17 +33,32 @@
         background: #101318;
         color: #e9e7e0;
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        /* Held for a fixed 3s, then faded out. Deliberately pure CSS and no
+           JavaScript: the splash now sits outside #root so React cannot clear
+           it, which means anything that could leave it on screen would hide the
+           whole app. An animation cannot fail to run - even if the JS bundle
+           never parses, this still dismisses on time. visibility:hidden also
+           drops it out of hit-testing, so it never eats a click afterwards. */
+        animation: gb-dismiss 0.45s ease 3s forwards;
+      }
+      @keyframes gb-dismiss {
+        to { opacity: 0; visibility: hidden; }
       }
       #garuda-boot .gb-crest {
         color: #c9a227;
         filter: drop-shadow(0 0 18px rgba(201, 162, 39, 0.22));
       }
+      /* text-align matters here: the block below is centred, so without this
+         the wordmark sat left-aligned against centred subtitles. text-indent
+         offsets the trailing letter-space that 0.3em tracking adds after the
+         final A, which otherwise drags the word visually left of true centre. */
       #garuda-boot .gb-word {
         font-size: 30px;
         font-weight: 600;
         line-height: 1;
         letter-spacing: 0.3em;
         text-indent: 0.3em;
+        text-align: center;
       }
       #garuda-boot .gb-sub {
         margin-top: 9px;
@@ -88,8 +103,8 @@
     </style>
   </head>
   <body>
-    <div id="root">
-      <div id="garuda-boot">
+    <div id="root"></div>
+    <div id="garuda-boot">
         <svg class="gb-crest" viewBox="0 0 240 240" width="86" height="86"
              role="img" aria-label="Karnataka State Police crest" fill="currentColor">
           <circle cx="120" cy="120" r="114" fill="none" stroke="currentColor" stroke-width="3" />
@@ -124,8 +139,7 @@
 
         <div class="gb-track"><div class="gb-bar"></div></div>
 
-        <div class="gb-foot">Government of Karnataka · Demonstration system</div>
-      </div>
+      <div class="gb-foot">Government of Karnataka · Demonstration system</div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

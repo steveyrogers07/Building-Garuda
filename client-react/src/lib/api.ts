@@ -71,9 +71,21 @@ type MockKey = keyof typeof MOCK
 
 /** Module reads: any failure (offline or error) falls back to fixtures. */
 /** Warm-window guard: right after an instance restart the heavy endpoints can
- *  stall for minutes; without a timeout those fetches hang and screens sit on
- *  shimmer/empty instead of falling back to fixtures. */
-const FETCH_TIMEOUT_MS = 12_000
+ *  stall, and without a timeout those fetches hang and screens sit on shimmer
+ *  forever instead of falling back to fixtures.
+ *
+ *  The budget has to clear a cold container start, though, and 12s did not.
+ *  AppSail idle-stops the instance; waking it was measured at ~11s to first
+ *  byte, so a first request that arrived cold used up nearly the whole budget
+ *  before the endpoint had even begun. Anything slower tripped the timeout and
+ *  the console showed thin fixture data instead of the real 10,155-FIR corpus -
+ *  which reads to a visitor as "the app loaded nothing".
+ *
+ *  Waiting on a shimmer for real data beats being shown fixtures quickly, so
+ *  the budget now clears a cold boot with room to spare. Deferring the heavy
+ *  ML imports cut boot to ~7s, and this is the belt to that braces. Fixtures
+ *  stay what they were meant to be: the genuinely-offline safety net. */
+const FETCH_TIMEOUT_MS = 30_000
 
 /** Falling back to fixtures mid-session is what made numbers *change between
  *  visits* (the rings tile showed the 1-ring fixture, then 6 once a retry
